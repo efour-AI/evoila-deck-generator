@@ -1,0 +1,44 @@
+name: Build walking deck
+
+# Fired by the Airtable automation "Deck request: plan and build" (repository_dispatch),
+# or by hand from the Actions tab with a record ID (workflow_dispatch).
+on:
+  repository_dispatch:
+    types: [build-deck]
+  workflow_dispatch:
+    inputs:
+      record_id:
+        description: "Deck Requests record ID (rec...)"
+        required: true
+
+concurrency:
+  group: deck-${{ github.event.client_payload.record_id || github.event.inputs.record_id }}
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install LibreOffice and fonts
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq --no-install-recommends libreoffice-impress fonts-inter fonts-crosextra-carlito > /dev/null
+          mkdir -p ~/.config/fontconfig
+          cp fonts.conf ~/.config/fontconfig/fonts.conf
+          fc-cache -f > /dev/null
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install Python packages
+        run: pip install -q python-pptx==1.0.2 pillow lxml
+
+      - name: Build deck
+        env:
+          AIRTABLE_TOKEN: ${{ secrets.AIRTABLE_TOKEN }}
+          RECORD_ID: ${{ github.event.client_payload.record_id || github.event.inputs.record_id }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: python run_request.py
