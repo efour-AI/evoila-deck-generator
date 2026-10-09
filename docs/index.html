@@ -1,0 +1,183 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>evoila | Request a meeting deck</title>
+<meta name="robots" content="noindex">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--violet:#1F1534;--violet2:#2B2754;--blue:#0075E4;--green:#0BD7A1;--cream:#F6F0EB;--line:#E4DDD6;--muted:#6B6478;--err:#D2335C}
+*{box-sizing:border-box}
+body{margin:0;font-family:Inter,system-ui,sans-serif;font-size:14px;line-height:1.4;color:var(--violet);background:var(--cream)}
+header{background:var(--violet);color:#fff;padding:18px 16px 46px}
+.wrap{max-width:760px;margin:0 auto}
+.logo{height:26px;width:auto;display:block;margin-bottom:14px}
+h1{font-size:22px;font-weight:700;margin:0 0 4px;letter-spacing:-.01em}
+header p{margin:0;color:rgba(255,255,255,.75);font-size:13.5px}
+header p b{color:var(--green);font-weight:600}
+main{margin:-30px auto 32px;padding:0 16px}
+form{background:#fff;border-radius:12px;box-shadow:0 6px 24px rgba(31,21,52,.08);padding:6px 22px 20px}
+section{padding:14px 0 6px;border-bottom:1px solid var(--line)}
+section:last-of-type{border-bottom:0}
+h2{font-size:11.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--blue);margin:0 0 10px;display:flex;gap:8px;align-items:center}
+h2 span{font-weight:500;letter-spacing:0;text-transform:none;color:var(--muted);font-size:12px}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:10px 14px}
+.f{margin-bottom:10px}
+label.l{display:block;font-weight:600;font-size:13px;margin-bottom:3px}
+.req::after{content:" *";color:var(--err)}
+.hint{display:block;font-size:12px;color:var(--muted);margin:-1px 0 5px}
+input[type=text],input[type=email],input[type=date],textarea{width:100%;font:inherit;color:inherit;padding:7px 10px;border:1px solid var(--line);border-radius:7px;background:#FCFAF8}
+input:focus,textarea:focus{outline:none;border-color:var(--blue);background:#fff;box-shadow:0 0 0 3px rgba(0,117,228,.12)}
+textarea{resize:vertical;min-height:62px}
+textarea.tall{min-height:96px}
+.cards{display:grid;gap:8px}
+.c2{grid-template-columns:1fr 1fr}.c3{grid-template-columns:repeat(3,1fr)}.c4{grid-template-columns:1fr 1fr}
+.card{position:relative;display:block;border:1px solid var(--line);border-radius:8px;padding:8px 10px 8px 32px;cursor:pointer;background:#FCFAF8;transition:border-color .12s,background .12s}
+.card:hover{border-color:#C9C0D6}
+.card input{position:absolute;left:10px;top:10px;margin:0;accent-color:var(--blue)}
+.card b{display:block;font-size:13px;font-weight:600}
+.card small{display:block;font-size:11.5px;color:var(--muted);line-height:1.35;margin-top:1px}
+.card:has(input:checked){border-color:var(--blue);background:#EEF5FD}
+.card.lock{cursor:default;opacity:.75}
+.slides{grid-template-columns:repeat(3,1fr)}
+.slides .card{padding:7px 9px 7px 30px}
+.slides .n{color:var(--blue);font-weight:700;margin-right:4px}
+.check{display:flex;gap:8px;align-items:flex-start;cursor:pointer;font-size:13px}
+.check input{margin-top:2px;accent-color:var(--blue)}
+.tip{font-size:12px;color:var(--muted);background:var(--cream);border-radius:6px;padding:6px 9px;margin:-2px 0 10px}
+.actions{display:flex;align-items:center;gap:14px;margin-top:14px}
+button{font:inherit;font-weight:600;font-size:14px;border:0;border-radius:8px;padding:10px 22px;color:#fff;cursor:pointer;background:linear-gradient(90deg,var(--green),var(--blue))}
+button:disabled{opacity:.6;cursor:wait}
+.msg{font-size:13px}
+.msg.err{color:var(--err)}
+.hp{position:absolute;left:-5000px}
+.done{display:none;text-align:center;padding:36px 10px}
+.done h3{font-size:19px;margin:0 0 6px}
+.done p{color:var(--muted);margin:0 0 14px}
+.done a{color:var(--blue);font-weight:600;cursor:pointer}
+footer{text-align:center;font-size:11.5px;color:var(--muted);padding-bottom:24px}
+@media (max-width:620px){.row,.c2,.c3,.c4{grid-template-columns:1fr}.slides{grid-template-columns:1fr 1fr}form{padding:4px 14px 16px}}
+</style>
+</head>
+<body>
+<header><div class="wrap">
+<svg viewBox="0 0 175.24 41.66" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" class="logo" role="img" aria-label="evoila"><defs></defs><g><path d="M31.95 26.76C31.7 28.61 30.94 34.23 23.13 38.47 20.03 40.15 16.06 41.29 12.24 41.58 11.59 41.63 10.97 41.66 10.38 41.66 7.63 41.66 5.5 41.14 4.52 40.18 3.9 39.63 3.53 38.82 3.53 37.97 3.53 37.47 3.65 36.98 3.88 36.54 4.16 35.93 4.6 35.36 5.2 34.68L5.2 34.68C5.2 34.68 5.45 34.83 5.58 34.91 5.72 34.99 6.05 35.14 6.05 35.14 5.43 35.84 4.96 36.4 4.72 36.95L4.72 36.98C4.54 37.28 4.46 37.62 4.46 37.97 4.46 38.55 4.71 39.11 5.15 39.5 7.11 41.41 15.92 41.32 22.68 37.65 30.07 33.64 30.78 28.38 31.01 26.65 31.58 22.43 29.46 18.25 25.73 16.24 25.82 16.14 25.91 16.05 25.99 15.95 26.13 15.8 26.25 15.66 26.37 15.51 30.32 17.74 32.55 22.23 31.94 26.77Z" fill="#FFFFFF"/><path d="M25.73 16.23C25.12 16.9 24.44 17.62 23.79 18.49 21.7 21.34 21.47 24.64 21.14 26.97 20.32 32.82 14.94 36.9 9.13 36.07 8.03 35.92 7 35.59 6.05 35.13 6.17 35 6.29 34.86 6.41 34.73 6.97 34.11 7.61 33.41 8.2 32.59 10.13 29.94 10.51 26.88 10.79 24.65 10.83 24.38 10.86 24.13 10.89 23.88 11.26 21.17 12.64 18.77 14.81 17.11 16.97 15.45 19.64 14.74 22.33 15.11 23.52 15.27 24.64 15.63 25.69 16.19L25.69 16.19C25.69 16.19 25.73 16.22 25.73 16.22Z" fill="#FFFFFF"/><path d="M27.66 12.87C27.66 13.3 27.55 13.72 27.35 14.08 27.13 14.56 26.79 15.02 26.37 15.51 26.29 15.46 26.23 15.42 26.14 15.38L26.14 15.38C24.99 14.76 23.75 14.36 22.45 14.19 19.52 13.79 16.6 14.56 14.24 16.37 11.88 18.18 10.36 20.8 9.97 23.76 9.93 24.01 9.9 24.27 9.87 24.54 9.59 26.78 9.24 29.58 7.46 32.03 6.89 32.81 6.3 33.46 5.73 34.09 5.68 34.14 5.63 34.2 5.59 34.25L5.59 34.25C5.59 34.25 5.35 34.51 5.35 34.51 5.3 34.56 5.26 34.61 5.21 34.66 1.63 32.53-0.51 28.38 0.11 23.98 0.47 21.42 1.66 16.46 8.75 12.67 15.44 9.09 24.62 8.82 26.82 10.99 27.34 11.45 27.66 12.12 27.66 12.87Z" fill="#FFFFFF"/><path d="M5.58 34.26C5.5 34.35 5.42 34.44 5.34 34.52L5.2 34.67 5.2 34.67C5.25 34.62 5.29 34.57 5.34 34.52L5.58 34.25 5.58 34.25Z" fill="#FFFFFF"/></g><g id="Logo-2"><g><path d="M76.72 40.72 69.67 13.66 74.73 12.34 80.7 35.26 87.51 19.9C88.16 18.13 87.75 16.78 87.46 15.78 87.22 14.94 87 14.53 86.57 13.72L91.63 12.4C92.13 13.33 92.52 14.2 92.85 15.59 93.23 17.12 93.47 18.9 92.83 20.82L83.96 40.76 76.72 40.74 76.72 40.74Z" fill="#FFFFFF"/><path d="M97.33 30.8 97.31 23.18C97.29 16.04 100.91 12.42 108.96 12.42 117.01 12.42 120.78 16.09 120.75 23.18L120.77 30.8C120.82 37.42 117.2 41.61 109.12 41.61 101.04 41.61 97.33 37.1 97.33 30.8L97.33 30.8ZM115.82 23.18C115.8 18.58 113.88 16.68 109.25 16.66 104.53 16.66 102.71 18.55 102.71 23.18L102.71 30.8C102.71 34.9 104.53 37.34 109.33 37.34 114.13 37.34 115.83 35.18 115.83 30.8L115.83 23.18 115.83 23.18Z" fill="#FFFFFF"/><path d="M127.63 13.78 132.88 12.42 132.86 40.72 127.7 40.72 127.63 13.78Z" fill="#FFFFFF"/><path d="M140.43 1.37 145.66 0 145.66 40.7 140.43 40.7 140.43 1.37 140.43 1.37Z" fill="#FFFFFF"/><path d="M175.24 40.72 170.9 40.72 170.42 37.22C167.52 40.07 163.54 41.65 159.61 41.65 154.84 41.65 152.59 38.87 151.96 35.54 151.82 34.82 151.82 34.05 151.79 33.29L151.79 23.05C151.79 16.03 153.92 12.41 163.73 12.41 167.54 12.41 171.98 13.3 175.24 14.38L175.24 40.72 175.24 40.72ZM170.01 17.33C168.28 16.92 166.05 16.61 163.9 16.61 159.13 16.61 157.02 17.98 157.02 23.68L157.02 32.91C157.02 33.63 157.04 34.4 157.14 34.92 157.4 36.29 158.24 37.32 160.14 37.32 164.02 37.32 167.02 35.04 170.02 32.02L170.02 17.33 170.02 17.33Z" fill="#FFFFFF"/><circle cx="130.25" cy="6.59" r="2.85" fill="#FFFFFF"/><path d="M64.62 32.57C61.07 34.75 56.3 37.34 53.07 37.34 49.84 37.34 48.11 36.53 47.75 34.7 47.7 34.46 47.63 34.05 47.63 33.41L47.63 31.08C50.19 30.31 52.71 30.03 56.28 28.85 64.6 26.14 66.56 23.74 65.63 18.9 64.79 14.66 60.62 12.43 55.39 12.43 46.5 12.43 42.3 16.07 42.3 23.31L42.32 32.35C42.32 33.36 42.44 34.29 42.58 34.99 43.35 38.92 46.39 41.63 52.72 41.63 57.85 41.63 62.62 38.9 65.86 36.69L64.61 32.57 64.61 32.57ZM47.6 22.68C47.6 18.03 50.88 16.69 55.77 16.69 58.6 16.69 60.37 17.58 60.76 19.45 61.22 21.8 58.72 23.62 53.76 25.03 50.88 25.84 49.25 26.16 47.6 26.61L47.6 22.68 47.6 22.68Z" fill="#FFFFFF"/></g></g></svg>
+<h1>Request a meeting deck</h1>
+<p>Answer a few questions and your deck lands in your inbox as <b>PowerPoint and PDF in about 5 minutes</b>, with talking points in the speaker notes.</p>
+</div></header>
+<main class="wrap">
+<form id="f" novalidate>
+<input class="hp" type="text" name="website" tabindex="-1" autocomplete="off" aria-hidden="true">
+
+<section>
+<h2>1 &nbsp;You and the meeting</h2>
+<div class="row">
+ <div class="f"><label class="l req" for="name">Your name</label><input id="name" name="name" type="text" required autocomplete="name"></div>
+ <div class="f"><label class="l req" for="email">Your work email</label><input id="email" name="email" type="email" required autocomplete="email" placeholder="you@evoila.com"></div>
+ <div class="f"><label class="l req" for="company">Company you are meeting with</label><span class="hint">Printed on the cover as "Prepared for ..."</span><input id="company" name="company" type="text" required placeholder="e.g. Advocate Health"></div>
+ <div class="f"><label class="l" for="meeting_date">Meeting date</label><span class="hint">Printed on the cover. Leave blank if not set.</span><input id="meeting_date" name="meeting_date" type="date"></div>
+</div>
+<div class="f"><label class="l req">Who is presenting?</label><span class="hint">Pick one or two. They go on the cover and get contact cards on the last slide.</span>
+ <div class="cards c3" id="presenters">
+  <label class="card"><input type="checkbox" name="presenters" value="Glen Tindal"><b>Glen Tindal</b><small>CEO and Managing Director</small></label>
+  <label class="card"><input type="checkbox" name="presenters" value="Mark Maisano"><b>Mark Maisano</b><small>Director of Channels</small></label>
+  <label class="card"><input type="checkbox" name="presenters" value="Andrew Hald"><b>Andrew Hald</b><small>Lead Solution Architect</small></label>
+ </div></div>
+</section>
+
+<section>
+<h2>2 &nbsp;Audience and angle</h2>
+<div class="f"><label class="l req">Who is the audience?</label><span class="hint">Every slide has a version written for each audience.</span>
+ <div class="cards c4">
+  <label class="card"><input type="radio" name="audience" value="Executive" required><b>Customer executives</b><small>CIO, CTO, CFO, VP of infrastructure</small></label>
+  <label class="card"><input type="radio" name="audience" value="Technical team"><b>Customer technical team</b><small>Architects, engineers, admins</small></label>
+  <label class="card"><input type="radio" name="audience" value="Partner"><b>Partner</b><small>Reseller, VAR or delivery partner we work through</small></label>
+  <label class="card"><input type="radio" name="audience" value="Broadcom"><b>Broadcom</b><small>Field sellers, partner managers, specialists</small></label>
+ </div></div>
+<div class="f"><label class="l req">Deck focus</label><span class="hint">Sets the cover title and the problem and services slides.</span>
+ <div class="cards c2">
+  <label class="card"><input type="radio" name="framing" value="Company" required checked><b>evoila overall</b><small>Cover: "Private cloud, private AI and hybrid operations". Best for most meetings.</small></label>
+  <label class="card"><input type="radio" name="framing" value="VCF"><b>VMware Cloud Foundation</b><small>Cover: "VMware Cloud Foundation services". Use when the meeting is about a VCF renewal, upgrade, migration or VCF delivery.</small></label>
+ </div></div>
+</section>
+
+<section>
+<h2>3 &nbsp;Context <span>The more you give, the sharper the deck</span></h2>
+<div class="f"><label class="l req" for="notes">What do you know about this meeting?</label><span class="hint">Why it is happening, what they are dealing with (renewal, outage, cost pressure, cloud move, AI plans), what they think of us, concerns or competitors.</span>
+ <div class="tip">On a phone? Tap the microphone on your keyboard and talk.</div>
+ <textarea id="notes" name="notes" class="tall" required></textarea></div>
+<div class="row">
+ <div class="f"><label class="l" for="room">Who will be in the room?</label><span class="hint">Names and titles if you have them</span><textarea id="room" name="room" placeholder="Dana Lee, CIO; Raj Patel, VP Infrastructure"></textarea></div>
+ <div class="f"><label class="l" for="next_step">What do you want them to do next?</label><span class="hint">The one ask. The last slide steers toward it.</span><textarea id="next_step" name="next_step" placeholder="Agree to a readiness assessment"></textarea></div>
+</div>
+</section>
+
+<section>
+<h2>4 &nbsp;Slides <span>Optional. Leave all unchecked and we pick from your notes.</span></h2>
+<div class="cards slides" id="slides">
+ <label class="card lock"><input type="checkbox" checked disabled><b><span class="n">1</span>Cover</b><small>Always included</small></label>
+ <label class="card"><input type="checkbox" name="slides" value="2"><b><span class="n">2</span>Why we are different</b><small>Pace, scale and quality together</small></label>
+ <label class="card"><input type="checkbox" name="slides" value="3"><b><span class="n">3</span>The proof behind it</b><small>Pinnacle, Partner of the Year, global engineers</small></label>
+ <label class="card"><input type="checkbox" name="slides" value="4"><b><span class="n">4</span>Who we are</b><small>Specialty firm, accountable US team</small></label>
+ <label class="card"><input type="checkbox" name="slides" value="5"><b><span class="n">5</span>Problems we solve</b><small>Modernization, private AI, hybrid</small></label>
+ <label class="card"><input type="checkbox" name="slides" value="6"><b><span class="n">6</span>Our approach</b><small>What they get, a phased plan</small></label>
+ <label class="card"><input type="checkbox" name="slides" value="7"><b><span class="n">7</span>Built right, cheaper to run</b><small>Long-term cost and return case</small></label>
+ <label class="card"><input type="checkbox" name="slides" value="8"><b><span class="n">8</span>What we deliver</b><small>Services by business problem</small></label>
+ <label class="card"><input type="checkbox" name="slides" value="9"><b><span class="n">9</span>What we find</b><small>What assessments uncover</small></label>
+ <label class="card"><input type="checkbox" name="slides" value="10"><b><span class="n">10</span>Proof</b><small>Anonymized customer examples</small></label>
+ <label class="card"><input type="checkbox" name="slides" value="11"><b><span class="n">11</span>Global reach</b><small>Global engineering behind the US team</small></label>
+ <label class="card"><input type="checkbox" name="slides" value="12"><b><span class="n">12</span>How we work with you</b><small>Relationship model for this audience</small></label>
+ <label class="card lock"><input type="checkbox" checked disabled><b><span class="n">13</span>How to engage</b><small>Always included</small></label>
+</div>
+</section>
+
+<section>
+<h2>5 &nbsp;Need more? <span>Your standard deck still arrives automatically</span></h2>
+<div class="f"><label class="l" for="custom_request">Anything the library does not cover?</label><span class="hint">A slide on a specific product or partner, a customer story for their industry, their logo on the cover, answers to questions they asked. Kevin gets an email and follows up.</span><textarea id="custom_request" name="custom_request"></textarea></div>
+<div class="f"><label class="l" for="file_links">Links to helpful files</label><span class="hint">Their RFP, org chart, a deck they sent, your call notes (SharePoint, OneDrive or Google Drive links)</span><textarea id="file_links" name="file_links" style="min-height:44px"></textarea></div>
+</section>
+
+<div class="actions"><button type="submit" id="go">Build my deck</button><span class="msg" id="msg"></span></div>
+</form>
+<div class="done" id="done"><h3>Your deck is on its way</h3><p>Look for an email from evoila Deck Builder in about 5 minutes.</p><a id="again">Request another deck</a></div>
+</main>
+<footer>evoila US &middot; internal tool</footer>
+<script>
+const HOOK="https://hooks.airtable.com/workflows/v1/genericWebhook/appYVahdfC3gbtArV/wflWkbtgfhGOWOhfA/wtrePd45x5vrqwEDU";
+const ALLOWED=["evoila.com","evoila.de","piilogic.com","efour.ai"];
+const f=document.getElementById("f"),msg=document.getElementById("msg"),go=document.getElementById("go");
+function vals(n){return [...f.querySelectorAll('input[name="'+n+'"]:checked')].map(i=>i.value)}
+f.addEventListener("submit",async e=>{
+ e.preventDefault();msg.className="msg";msg.textContent="";
+ const v=id=>document.getElementById(id).value.trim();
+ const email=v("email").toLowerCase();
+ const missing=[];
+ if(!v("name"))missing.push("your name");
+ if(!email)missing.push("your email");
+ if(!v("company"))missing.push("the company");
+ if(!vals("presenters").length)missing.push("a presenter");
+ if(!vals("audience").length)missing.push("the audience");
+ if(!v("notes"))missing.push("what you know about the meeting");
+ if(missing.length){msg.className="msg err";msg.textContent="Please add "+missing.join(", ")+".";return}
+ if(!ALLOWED.some(d=>email.endsWith("@"+d))){msg.className="msg err";msg.textContent="Use your evoila work email.";return}
+ if(vals("presenters").length>2){msg.className="msg err";msg.textContent="Pick at most two presenters.";return}
+ const p=new URLSearchParams();
+ ["name","company","meeting_date","notes","room","next_step","custom_request","file_links"].forEach(k=>p.set(k,v(k)));
+ p.set("email",email);
+ p.set("presenters",vals("presenters").join("|"));
+ p.set("audience",vals("audience")[0]);
+ p.set("framing",vals("framing")[0]||"Company");
+ const s=vals("slides");p.set("slides",s.length?["1",...s,"13"].join("|"):"");
+ p.set("review","no");
+ p.set("website",f.website.value);
+ go.disabled=true;go.textContent="Sending...";
+ try{await fetch(HOOK,{method:"POST",mode:"no-cors",body:p});f.style.display="none";document.getElementById("done").style.display="block";window.scrollTo(0,0)}
+ catch(err){msg.className="msg err";msg.textContent="Could not send. Check your connection and try again."}
+ finally{go.disabled=false;go.textContent="Build my deck"}
+});
+document.getElementById("again").onclick=()=>{f.reset();f.style.display="block";document.getElementById("done").style.display="none"};
+</script>
+</body>
+</html>
