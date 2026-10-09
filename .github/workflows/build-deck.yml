@@ -17,14 +17,17 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-24.04
-    timeout-minutes: 15
+    timeout-minutes: 12
+    env:
+      RECORD_ID: ${{ github.event.client_payload.record_id || github.event.inputs.record_id }}
     steps:
       - uses: actions/checkout@v4
 
       - name: Install LibreOffice and fonts
+        timeout-minutes: 7
         run: |
-          sudo apt-get update -qq
-          sudo apt-get install -y -qq --no-install-recommends libreoffice-impress fonts-inter fonts-crosextra-carlito > /dev/null
+          for i in 1 2 3; do sudo timeout 120 apt-get update -qq -o Acquire::Retries=3 && break; echo "apt update retry $i"; sleep 5; done
+          sudo apt-get install -y -qq --no-install-recommends -o Acquire::Retries=3 libreoffice-impress fonts-inter fonts-crosextra-carlito > /dev/null
           mkdir -p ~/.config/fontconfig
           cp fonts.conf ~/.config/fontconfig/fonts.conf
           fc-cache -f > /dev/null
@@ -39,6 +42,21 @@ jobs:
       - name: Build deck
         env:
           AIRTABLE_TOKEN: ${{ secrets.AIRTABLE_TOKEN }}
-          RECORD_ID: ${{ github.event.client_payload.record_id || github.event.inputs.record_id }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: python run_request.py
+
+      - name: Flag the request if the build server failed
+        if: failure() || cancelled()
+        env:
+          AIRTABLE_TOKEN: ${{ secrets.AIRTABLE_TOKEN }}
+        run: |
+          python3 - <<'PY'
+          import json, os, urllib.request
+          url = "https://api.airtable.com/v0/appYVahdfC3gbtArV/tbl3bFM0jwCjANMYO/" + os.environ["RECORD_ID"]
+          h = {"Authorization": "Bearer " + os.environ["AIRTABLE_TOKEN"], "Content-Type": "application/json"}
+          rec = json.load(urllib.request.urlopen(urllib.request.Request(url + "?returnFieldsByFieldId=true", headers=h)))
+          if (rec["fields"].get("fldxQZCQ8OHA7sOTa") or "") == "Building":   # the script did not get to record its own error
+              body = {"typecast": True, "fields": {"fldxQZCQ8OHA7sOTa": "Error",
+                      "fldELZ4iyycJu7mOD": "The build server failed or timed out. Clear Status on this row to try again."}}
+              urllib.request.urlopen(urllib.request.Request(url, data=json.dumps(body).encode(), headers=h, method="PATCH"))
+          PY
