@@ -112,6 +112,7 @@ footer{text-align:center;font-size:11.5px;color:var(--muted);padding-bottom:24px
  <div class="f"><label class="l" for="room">Who will be in the room?</label><span class="hint">Names and titles if you have them</span><textarea id="room" name="room" placeholder="Dana Lee, CIO; Raj Patel, VP Infrastructure"></textarea></div>
  <div class="f"><label class="l" for="next_step">What do you want them to do next?</label><span class="hint">The one ask. The last slide steers toward it.</span><textarea id="next_step" name="next_step" placeholder="Agree to a readiness assessment"></textarea></div>
 </div>
+<div class="f"><label class="l" for="background">Paste background material</label><span class="hint">Optional. Paste an email thread, RFP text, their requirements or call notes. We read it when picking slides and writing talking points.</span><textarea id="background" name="background" class="tall" maxlength="40000" placeholder="Paste text here"></textarea></div>
 </section>
 
 <section>
@@ -136,12 +137,12 @@ footer{text-align:center;font-size:11.5px;color:var(--muted);padding-bottom:24px
 <section>
 <h2>5 &nbsp;Need more? <span>Your standard deck still arrives automatically</span></h2>
 <div class="f"><label class="l" for="custom_request">Anything the library does not cover?</label><span class="hint">A slide on a specific product or partner, a customer story for their industry, their logo on the cover, answers to questions they asked. Kevin gets an email and follows up.</span><textarea id="custom_request" name="custom_request"></textarea></div>
-<div class="f"><label class="l" for="file_links">Links to helpful files</label><span class="hint">Their RFP, org chart, a deck they sent, your call notes (SharePoint, OneDrive or Google Drive links)</span><textarea id="file_links" name="file_links" style="min-height:44px"></textarea></div>
+<div class="f"><label class="l" for="file_links">Links to helpful files</label><span class="hint">SharePoint, OneDrive or Google Drive links. Have the file itself? Reply to your deck email with it attached and it goes to Kevin.</span><textarea id="file_links" name="file_links" style="min-height:44px"></textarea></div>
 </section>
 
 <div class="actions"><button type="submit" id="go">Build my deck</button><span class="msg" id="msg"></span></div>
 </form>
-<div class="done" id="done"><h3>Your deck is on its way</h3><p>Look for an email from evoila Deck Builder in about 5 minutes.</p><a id="again">Request another deck</a></div>
+<div class="done" id="done"><h3>Your deck is on its way</h3><p>Look for an email from evoila Deck Builder in about 5 minutes. Have documents to share? Reply to that email with them attached.</p><a id="again">Request another deck</a></div>
 </main>
 <footer>evoila US &middot; internal tool</footer>
 <script>
@@ -164,7 +165,7 @@ f.addEventListener("submit",async e=>{
  if(!ALLOWED.some(d=>email.endsWith("@"+d))){msg.className="msg err";msg.textContent="Use your evoila work email.";return}
  if(vals("presenters").length>2){msg.className="msg err";msg.textContent="Pick at most two presenters.";return}
  const p=new URLSearchParams();
- ["name","company","meeting_date","notes","room","next_step","custom_request","file_links"].forEach(k=>p.set(k,v(k)));
+ ["name","company","meeting_date","notes","room","next_step","custom_request","file_links","background"].forEach(k=>p.set(k,v(k)));
  p.set("email",email);
  p.set("presenters",vals("presenters").join("|"));
  p.set("audience",vals("audience")[0]);
