@@ -111,6 +111,8 @@ def main():
     slides = chosen or list(dict.fromkeys(ai_slides)) or list(range(1, 14))
     if 1 not in slides:
         slides = [1] + slides           # every deck opens on the cover
+    if 13 not in slides:
+        slides = slides + [13]          # and closes on How to engage
     talking = {}
     for s in plan.get("slides", []):
         if isinstance(s, dict) and slide_no(str(s.get("slide"))):
