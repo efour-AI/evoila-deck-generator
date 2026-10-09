@@ -140,7 +140,7 @@ def main():
     stamp = (date_s or datetime.date.today().isoformat())
     base_name = f"evoila_{safe(prospect)}_{audience.replace(' ', '')}_{stamp}"
     pptx = os.path.join(WORK, base_name + ".pptx")
-    subprocess.run([sys.executable, os.path.join(ENGINE, "build_library.py"), tpl, pptx, "--request", req_path], check=True)
+    subprocess.run([sys.executable, os.path.join(ENGINE, "build_library.py"), tpl, pptx, "--request", req_path], check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
     # meeting talking points go on top of the library notes
     from pptx import Presentation
@@ -159,14 +159,14 @@ def main():
     prs.save(pptx)
 
     subprocess.run(["soffice", "--headless", "--convert-to", "pdf", "--outdir", WORK, pptx],
-                   check=True, timeout=240, stdout=subprocess.DEVNULL)
+                   check=True, timeout=240, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     pdf = pptx[:-5] + ".pdf"
 
     update({F["pptx"]: [], F["pdf"]: []})   # a rebuild replaces the old files instead of adding to them
     upload(F["pptx"], pptx, "application/vnd.openxmlformats-officedocument.presentationml.presentation")
     upload(F["pdf"], pdf, "application/pdf")
     update({F["status"]: "Ready", F["log"]: RUN_URL or None, F["error"]: ""})
-    print("done", pptx, len(slides), "slides")
+    print("done:", len(slides), "slides")   # no company names in logs; the repo is public
 
 
 if __name__ == "__main__":
@@ -174,9 +174,9 @@ if __name__ == "__main__":
         main()
     except Exception:
         err = traceback.format_exc()
-        print(err)
+        print("Build failed. Details are on the Airtable row (Error detail).")   # keep logs free of request data
         try:
             update({F["status"]: "Error", F["error"]: err[-3000:], F["log"]: RUN_URL or None})
         except Exception:
-            traceback.print_exc()
+            print("Could not write the error to Airtable.")
         sys.exit(1)
