@@ -1,15 +1,21 @@
 name: Build walking deck
 
-# Fired by the Airtable automation "Deck request: plan and build" (repository_dispatch),
-# or by hand from the Actions tab with a record ID (workflow_dispatch).
+# Fired by Airtable automations (repository_dispatch):
+#   build-deck     - "Deck request: plan and build" (record = Deck Requests row)
+#   check-library  - "Slide library: check new version" (record = Slide Library Versions row)
+# or by hand from the Actions tab (workflow_dispatch).
 on:
   repository_dispatch:
-    types: [build-deck]
+    types: [build-deck, check-library]
   workflow_dispatch:
     inputs:
       record_id:
-        description: "Deck Requests record ID (rec...)"
+        description: "Record ID (rec...)"
         required: true
+      mode:
+        description: "build-deck or check-library"
+        required: false
+        default: build-deck
 
 concurrency:
   group: deck-${{ github.event.client_payload.record_id || github.event.inputs.record_id }}
@@ -20,6 +26,7 @@ jobs:
     timeout-minutes: 12
     env:
       RECORD_ID: ${{ github.event.client_payload.record_id || github.event.inputs.record_id }}
+      MODE: ${{ github.event.action || github.event.inputs.mode || 'build-deck' }}
     steps:
       - uses: actions/checkout@v4
 
@@ -37,7 +44,7 @@ jobs:
           python-version: "3.12"
 
       - name: Install Python packages
-        run: pip install -q python-pptx==1.0.2 pillow lxml
+        run: pip install -q python-pptx==1.0.2 python-docx==1.2.0 pillow lxml
 
       - name: Build deck
         env:
@@ -45,18 +52,8 @@ jobs:
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: python run_request.py
 
-      - name: Flag the request if the build server failed
+      - name: Flag the row if the server failed
         if: failure() || cancelled()
         env:
           AIRTABLE_TOKEN: ${{ secrets.AIRTABLE_TOKEN }}
-        run: |
-          python3 - <<'PY'
-          import json, os, urllib.request
-          url = "https://api.airtable.com/v0/appYVahdfC3gbtArV/tbl3bFM0jwCjANMYO/" + os.environ["RECORD_ID"]
-          h = {"Authorization": "Bearer " + os.environ["AIRTABLE_TOKEN"], "Content-Type": "application/json"}
-          rec = json.load(urllib.request.urlopen(urllib.request.Request(url + "?returnFieldsByFieldId=true", headers=h)))
-          if (rec["fields"].get("fldxQZCQ8OHA7sOTa") or "") == "Building":   # the script did not get to record its own error
-              body = {"typecast": True, "fields": {"fldxQZCQ8OHA7sOTa": "Error",
-                      "fldELZ4iyycJu7mOD": "The build server failed or timed out. Clear Status on this row to try again."}}
-              urllib.request.urlopen(urllib.request.Request(url, data=json.dumps(body).encode(), headers=h, method="PATCH"))
-          PY
+        run: python3 run_request.py --mark-failed
