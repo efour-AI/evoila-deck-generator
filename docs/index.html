@@ -78,7 +78,8 @@ footer{text-align:center;font-size:11.5px;color:var(--muted);padding-bottom:24px
 <div class="row">
  <div class="f"><label class="l req" for="name">Your name</label><input id="name" name="name" type="text" required autocomplete="name"></div>
  <div class="f"><label class="l req" for="email">Your work email</label><input id="email" name="email" type="email" required autocomplete="email" placeholder="you@evoila.com"></div>
- <div class="f"><label class="l req" for="company">Company you are meeting with</label><span class="hint">Printed on the cover as "Prepared for ..."</span><input id="company" name="company" type="text" required placeholder="e.g. Advocate Health"></div>
+ <div class="f"><label class="l req" for="company">Company you are meeting with</label><span class="hint">Printed on the cover and used in the relationship diagrams.</span><input id="company" name="company" type="text" required placeholder="e.g. Advocate Health"></div>
+ <div class="f"><label class="l" for="company_site">Their website (optional)</label><span class="hint">We pull their logo from it for the cover and diagrams. Use only when they are fine with their logo on our slides.</span><input id="company_site" name="company_site" type="text" placeholder="e.g. advocatehealth.com" autocomplete="off"></div>
  <div class="f"><label class="l" for="meeting_date">Meeting date</label><span class="hint">Printed on the cover. Leave blank if not set.</span><input id="meeting_date" name="meeting_date" type="date"></div>
 </div>
 <div class="f"><label class="l req">Who is presenting?</label><span class="hint">Pick one or two. They go on the cover and get contact cards on the last slide.</span>
@@ -123,7 +124,7 @@ footer{text-align:center;font-size:11.5px;color:var(--muted);padding-bottom:24px
 <div class="cards slides" id="slides">
  <label class="card lock"><input type="checkbox" checked disabled><b><span class="n">1</span>Cover</b><small>Always included</small></label>
  <label class="card"><input type="checkbox" name="slides" value="2"><b><span class="n">2</span>Why we are different</b><small>Pace, scale and quality together</small></label>
- <label class="card"><input type="checkbox" name="slides" value="3"><b><span class="n">3</span>The proof behind it</b><small>Pinnacle, Partner of the Year, global engineers</small></label>
+ <label class="card"><input type="checkbox" name="slides" value="3"><b><span class="n">3</span>The proof behind it</b><small>Pinnacle, certifications, delivery numbers</small></label>
  <label class="card"><input type="checkbox" name="slides" value="4"><b><span class="n">4</span>Who we are</b><small>Specialty firm, accountable US team</small></label>
  <label class="card"><input type="checkbox" name="slides" value="5"><b><span class="n">5</span>Problems we solve</b><small>Modernization, private AI, hybrid</small></label>
  <label class="card"><input type="checkbox" name="slides" value="6"><b><span class="n">6</span>Our approach</b><small>What they get, a phased plan</small></label>
@@ -139,7 +140,7 @@ footer{text-align:center;font-size:11.5px;color:var(--muted);padding-bottom:24px
 
 <section>
 <h2>5 &nbsp;Need more? <span>Your standard deck still arrives automatically</span></h2>
-<div class="f"><label class="l" for="custom_request">Anything the library does not cover?</label><span class="hint">A slide on a specific product or partner, a customer story for their industry, their logo on the cover, answers to questions they asked. Kevin gets an email and follows up.</span><textarea id="custom_request" name="custom_request"></textarea></div>
+<div class="f"><label class="l" for="custom_request">Anything the library does not cover?</label><span class="hint">A slide on a specific product or partner, a customer story for their industry, answers to questions they asked. Kevin gets an email and follows up.</span><textarea id="custom_request" name="custom_request"></textarea></div>
 <div class="f"><label class="l" for="file_links">Links to helpful files</label><span class="hint">SharePoint, OneDrive or Google Drive links. Have the file itself? Reply to your deck email with it attached and it goes to Kevin.</span><textarea id="file_links" name="file_links" style="min-height:44px"></textarea></div>
 </section>
 
@@ -168,7 +169,7 @@ f.addEventListener("submit",async e=>{
  if(!ALLOWED.some(d=>email.endsWith("@"+d))){msg.className="msg err";msg.textContent="Use your evoila work email.";return}
  if(vals("presenters").length>2){msg.className="msg err";msg.textContent="Pick at most two presenters.";return}
  const p=new URLSearchParams();
- ["name","company","meeting_date","notes","room","next_step","custom_request","file_links","background"].forEach(k=>p.set(k,v(k)));
+ ["name","company","company_site","meeting_date","notes","room","next_step","custom_request","file_links","background"].forEach(k=>p.set(k,v(k)));
  p.set("email",email);
  p.set("presenters",vals("presenters").join("|"));
  p.set("audience",vals("audience")[0]);
