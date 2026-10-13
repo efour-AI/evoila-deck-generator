@@ -29,7 +29,7 @@ F = {  # Deck Requests field IDs
     "slides": "fldMOj09vHxxvahs5", "notes": "fldtrr3cxVa29DnrF", "status": "fldxQZCQ8OHA7sOTa",
     "plan": "fldE9rNtby6JwC4qk", "pptx": "fldxwsdZxpMOq0NiL", "pdf": "fldNi5sd61xg5OhcL",
     "log": "fldtBHsDTgcLuNQhb", "error": "fldELZ4iyycJu7mOD", "presenters": "fldyMIZMHeWaET7sz",
-    "libver": "fldxnMaaGGwVKqcb4",
+    "libver": "fldxnMaaGGwVKqcb4", "website": "fldELJzcC0UzkREuI", "logo": "fldcLJ4rbL8RQ3NGE",
 }
 P = {"name": "fldr4qcJSOTaspQGm", "title": "fld68D6bAxXqefbSR", "email": "fldv8VzsSsoySdCds"}
 A = {"name": "fldwyRdfc2x7SRlat", "file": "fld3T1O2M6dsaCeSy"}
@@ -144,6 +144,84 @@ def check_library():
     print("check:", "live" if ok else "problems")   # no doc content in logs; the repo is public
 
 
+UA = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0 Safari/537.36"}
+
+
+def fetch(url, timeout=20):
+    with urllib.request.urlopen(urllib.request.Request(url, headers=UA), timeout=timeout) as r:
+        return r.read(), r.headers.get("Content-Type", ""), r.geturl()
+
+
+def to_png(data, ctype, url, out):
+    """Save image bytes as PNG (SVG converted). Returns path or None if it is not a usable image."""
+    from PIL import Image
+    if "svg" in ctype or url.lower().split("?")[0].endswith(".svg") or data.lstrip()[:5] in (b"<svg ", b"<?xml"):
+        import cairosvg
+        cairosvg.svg2png(bytestring=data, write_to=out, output_width=800)
+    else:
+        with open(out, "wb") as fh:
+            fh.write(data)
+    im = Image.open(out)
+    if max(im.size) < 120:          # favicons and tiny icons look bad on a slide
+        return None
+    thumb = im.convert("RGB").resize((64, 64))
+    if len(set(thumb.getdata())) > 1800:   # photo, not a logo
+        return None
+    im.convert("RGBA").save(out)
+    return out
+
+
+def find_logo(site, out):
+    """Best effort: the company's logo from its home page. Returns a PNG path or None."""
+    import html as _h
+    from urllib.parse import urljoin
+    if not re.match(r"https?://", site):
+        site = "https://" + site.strip().strip("/")
+    page, _, base = fetch(site)
+    doc = page.decode("utf-8", "ignore")
+    cands = []
+    for tag in re.findall(r"<img\b[^>]*>", doc, re.I):           # <img> whose file, class or id says 'logo'
+        m = re.search(r"""\bsrc=["']([^"']+)["']""", tag, re.I) or re.search(r"""data-src=["']([^"']+)["']""", tag, re.I)
+        if not m or m.group(1).startswith("data:") or re.search(r"\.jpe?g(\?|$)", m.group(1), re.I):
+            continue
+        attrs = " ".join(re.findall(r"""\b(?:class|id)=["']([^"']*)["']""", tag, re.I))
+        if re.search(r"logo", m.group(1), re.I) or re.search(r"logo", attrs, re.I):
+            cands.append(m.group(1))
+    for m in re.finditer(r"""<link\b[^>]*rel=["'][^"']*apple-touch-icon[^"']*["'][^>]*>""", doc, re.I):
+        h = re.search(r"""href=["']([^"']+)["']""", m.group(0), re.I)
+        if h:
+            cands.append(h.group(1))
+    cands.append("/apple-touch-icon.png")
+    for c in cands[:8]:
+        try:
+            u = urljoin(base, _h.unescape(c))
+            data, ctype, real = fetch(u)
+            p = to_png(data, ctype, real, out)
+            if p:
+                return p
+        except Exception:
+            continue
+    return None
+
+
+def company_logo(f):
+    """Logo file on the row wins; otherwise look on the company website. Never fails the build."""
+    out = os.path.join(WORK, "company_logo.png")
+    try:
+        files = f.get(F["logo"]) or []
+        if files:
+            data, ctype, real = fetch(files[0]["url"], timeout=60)
+            return to_png(data, files[0].get("type", "") or ctype, files[0].get("filename", real), out)
+        if f.get(F["website"]):
+            p = find_logo(f[F["website"]], out)
+            if p:                          # keep it on the row so people can see it and swap it
+                upload(F["logo"], p, "image/png")
+            return p
+    except Exception:
+        return None
+    return None
+
+
 def slide_no(label):
     m = re.match(r"\s*(\d+)", label or "")
     return int(m.group(1)) if m else None
@@ -204,6 +282,9 @@ def main():
            "presenters": "  |  ".join(f"{p['name']}, {p['title']}" for p in people) or "[Presenter name, title]"}
     if people:
         req["contacts"] = people
+    logo = company_logo(f)
+    if logo:
+        req["logo"] = logo
     req_path = os.path.join(WORK, "request.json")
     json.dump(req, open(req_path, "w"))
 
