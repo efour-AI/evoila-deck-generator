@@ -307,6 +307,26 @@ def figure_on_page(body, cores, claim):
     return False
 
 
+def compact_figure(fig):
+    """'$7.42 million' -> '$7.42M', 'USD 4.4 billion' -> '$4.4B' so the number fits its tile on one line."""
+    f = re.sub(r"^USD\s*", "$", str(fig).strip())
+    f = re.sub(r"\s*(million|mn)\b", "M", f, flags=re.I)
+    f = re.sub(r"\s*(billion|bn)\b", "B", f, flags=re.I)
+    f = re.sub(r"\s*(trillion)\b", "T", f, flags=re.I)
+    return f
+
+
+def drop_lead_figure(claim, fig, cores):
+    """The big number already sits above the claim: drop it if the claim starts with it."""
+    c = str(claim).strip()
+    for core in sorted(set([fig] + list(cores or [])), key=len, reverse=True):
+        if core and c.lower().startswith(str(core).lower()):
+            c = c[len(core):].lstrip(" ,:-")
+            c = re.sub(r"^(million|billion|M|B)\b\s*", "", c)
+            break
+    return c[:1].upper() + c[1:] if c else str(claim)
+
+
 def verify_market(raw):
     """Keep only researched figures whose number appears on the cited page. Returns (market or None, report)."""
     try:
@@ -341,6 +361,8 @@ def verify_market(raw):
         if ok:
             if str(st.get("year") or "").strip() and str(st.get("year")).strip()[:4] in str(st.get("source") or ""):
                 st["year"] = ""          # the source name already carries the year
+            st["figure"] = compact_figure(st.get("figure", ""))
+            st["claim"] = drop_lead_figure(st.get("claim", ""), st["figure"], cores)
             kept.append(st)
             rep.append(f"USED (found on the page): {label} {url}")
         else:
