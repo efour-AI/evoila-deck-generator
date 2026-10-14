@@ -414,6 +414,10 @@ def verify_market(raw):
         if re.search(r"/(solutions?|products?|platform|pricing|demo|lp)(/|$)", urllib.parse.urlparse(url).path.lower()):
             rep.append(f"DROPPED (vendor product page, not a report): {label} {url}")
             continue
+        host = urllib.parse.urlparse(url).netloc.lower()
+        if re.search(r"/(blog|blogs|resources|insights)/", urllib.parse.urlparse(url).path.lower()) and not re.search(r"\.(gov|edu|org)$", host):
+            rep.append(f"DROPPED (company blog, not an independent source): {label} {url}")
+            continue
         try:
             body = page_text(url).replace(",", "")
             ok = figure_on_page(body, cores, st.get("claim", ""))
