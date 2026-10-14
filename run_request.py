@@ -306,8 +306,31 @@ def html_published(doc):
     return None
 
 
+BOT_WALL = re.compile(r"just a moment|verify you are human|performing security verification|enable javascript and cookies|access denied|captcha", re.I)
+
+
 def page_text(url):
-    """Visible text of a web page or PDF, lowercased, for checking a figure. '' if it cannot be read."""
+    """Visible text of a web page or PDF, lowercased. Sites that block automated visits are read through
+    the r.jina.ai reader instead; a page still behind a bot wall returns '' (the figure is then dropped)."""
+    try:
+        txt = page_text_direct(url)
+        if len(txt) > 1500 and not BOT_WALL.search(txt[:3000]):
+            return txt
+    except Exception:
+        pass
+    data, _, _ = fetch("https://r.jina.ai/" + url, timeout=60)
+    doc = data.decode("utf-8", "ignore")
+    head, _, body = doc.partition("Markdown Content:")
+    if "requiring CAPTCHA" in head or BOT_WALL.search(body[:1500]):
+        PAGE_DATE[url] = None
+        return ""
+    m = re.search(r"Published Time:\s*(\S+)", head)
+    PAGE_DATE[url] = parse_date(m.group(1)) if m else None
+    return re.sub(r"\s+", " ", body).lower()
+
+
+def page_text_direct(url):
+    """Visible text of a web page or PDF fetched directly, lowercased."""
     data, ctype, real = fetch(url, timeout=30)
     if "pdf" in ctype or real.lower().split("?")[0].endswith(".pdf") or data[:4] == b"%PDF":
         import pypdf
@@ -419,6 +442,11 @@ def verify_market(raw):
     if len(kept) < 2:
         return None, "\n".join(rep + ["No data slide: fewer than two figures could be confirmed."])
     m["stats"] = kept
+    for k in ("headline", "subhead", "takeaway", "talking_point"):     # house rule: no em dashes on slides
+        if isinstance(m.get(k), str):
+            m[k] = re.sub(r"\s*[\u2014\u2013]\s*", ", ", m[k])
+    for st in kept:
+        st["claim"] = re.sub(r"\s*[\u2014\u2013]\s*", ", ", st.get("claim", ""))
     return m, "\n".join(rep)
 
 
