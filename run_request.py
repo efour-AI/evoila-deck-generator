@@ -459,6 +459,23 @@ def clean_attendee(a):
     return a
 
 
+RESEARCH_WAIT = 360     # seconds the build waits for the research step, counted from the start of this script
+T0 = datetime.datetime.now()
+
+
+def wait_for_research():
+    """The research step runs in Airtable while this build starts. Poll the row until it writes the research
+    (or the wait runs out, in which case the deck is built without a data slide)."""
+    import time
+    while True:
+        raw = (get_record(T_REQ, REC).get(F["research"]) or "").strip()
+        if raw:
+            return raw
+        if (datetime.datetime.now() - T0).total_seconds() > RESEARCH_WAIT:
+            return ""
+        time.sleep(15)
+
+
 def slide_no(label):
     m = re.match(r"\s*(\d+)", label or "")
     return int(m.group(1)) if m else None
@@ -525,11 +542,14 @@ def main():
     att = plan.get("attendees") or []
     req["attendees"] = [clean_attendee(a) for a in att if str(a).strip()][:3] if isinstance(att, list) else []
     market, mreport = (None, "")
-    if f.get(F["research"]):
+    research = wait_for_research()
+    if research:
         try:
-            market, mreport = verify_market(f.get(F["research"]))
+            market, mreport = verify_market(research)
         except Exception:
             market, mreport = None, "The data check failed; no data slide."
+    else:
+        mreport = "The research step had not finished after six minutes (or failed); the deck was built without a data slide."
     if market:
         req["market"] = market
         slides = [1, "M"] + [n for n in slides if n != 1]
