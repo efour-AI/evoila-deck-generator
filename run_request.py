@@ -14,7 +14,7 @@ Word doc, writes a check report, attaches the library PowerPoint, and makes the 
 5. Upload both files back to the row and set Status = Ready (or Error with detail).
 """
 import base64, datetime, io, json, os, re, subprocess, sys, traceback, zipfile
-import urllib.request
+import urllib.request, urllib.parse
 
 BASE = "appYVahdfC3gbtArV"
 T_REQ = "tbl3bFM0jwCjANMYO"
@@ -330,12 +330,17 @@ def verify_market(raw):
         if not url.startswith("http") or not cores:
             rep.append(f"DROPPED (no source link or no number): {label}")
             continue
+        if re.search(r"/(solutions?|products?|platform|pricing|demo|lp)(/|$)", urllib.parse.urlparse(url).path.lower()):
+            rep.append(f"DROPPED (vendor product page, not a report): {label} {url}")
+            continue
         try:
             body = page_text(url).replace(",", "")
             ok = figure_on_page(body, cores, st.get("claim", ""))
         except Exception:
             ok = False
         if ok:
+            if str(st.get("year") or "").strip() and str(st.get("year")).strip()[:4] in str(st.get("source") or ""):
+                st["year"] = ""          # the source name already carries the year
             kept.append(st)
             rep.append(f"USED (found on the page): {label} {url}")
         else:
@@ -346,6 +351,15 @@ def verify_market(raw):
         return None, "\n".join(rep + ["No data slide: fewer than two figures could be confirmed."])
     m["stats"] = kept
     return m, "\n".join(rep)
+
+
+def clean_attendee(a):
+    """'Mickey Lettuce-CIO' -> 'Mickey Lettuce, CIO'. Hyphenated surnames are left alone."""
+    a = re.sub(r"\s+", " ", str(a)).strip(" ,-")
+    m = re.match(r"^(.*?[a-z])\s*[-:/]\s*([A-Z]{2,5}\b.*|(?:Chief|VP|Vice|Director|Head|Senior|Manager)\b.*)$", a)
+    if m and "," not in a:
+        a = f"{m.group(1).strip()}, {m.group(2).strip()}"
+    return a
 
 
 def slide_no(label):
@@ -412,7 +426,7 @@ def main():
     if logo:
         req["logo"] = logo
     att = plan.get("attendees") or []
-    req["attendees"] = [str(a).strip() for a in att if str(a).strip()][:3] if isinstance(att, list) else []
+    req["attendees"] = [clean_attendee(a) for a in att if str(a).strip()][:3] if isinstance(att, list) else []
     market, mreport = (None, "")
     if f.get(F["research"]):
         try:
