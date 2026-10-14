@@ -23,7 +23,7 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-24.04
-    timeout-minutes: 12
+    timeout-minutes: 16
     env:
       RECORD_ID: ${{ github.event.client_payload.record_id || github.event.inputs.record_id }}
       MODE: ${{ github.event.action || github.event.inputs.mode || 'build-deck' }}
