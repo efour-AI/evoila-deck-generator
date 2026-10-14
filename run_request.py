@@ -267,6 +267,45 @@ def company_logo(f):
     return None
 
 
+PAGE_DATE = {}      # url -> publication date found on the page itself (or None)
+MONTHS = {m: i for i, m in enumerate(["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"], 1)}
+
+
+def parse_date(v):
+    """'2026-03-15', '2026-03', '2026-03-15T10:00Z', 'March 2026', 'Mar 15, 2026' -> date, or None if no month is given."""
+    v = str(v or "").strip()
+    m = re.match(r"(\d{4})-(\d{1,2})(?:-(\d{1,2}))?", v)
+    if m:
+        try:
+            return datetime.date(int(m.group(1)), int(m.group(2)), int(m.group(3) or 1))
+        except ValueError:
+            return None
+    m = re.search(r"\b([A-Za-z]{3})[a-z]*\.?\s+(?:(\d{1,2}),?\s+)?(\d{4})\b", v)
+    if m and m.group(1).lower() in MONTHS:
+        try:
+            return datetime.date(int(m.group(3)), MONTHS[m.group(1).lower()], int(m.group(2) or 1))
+        except ValueError:
+            return None
+    return None
+
+
+DATE_PATTERNS = [
+    r"<meta[^>]+(?:property|name|itemprop)=[\"'](?:article:published_time|datePublished|citation_publication_date|citation_date|dc\.date(?:\.issued)?|pubdate|publish[-_]?date|date)[\"'][^>]*content=[\"']([^\"']+)[\"']",
+    r"<meta[^>]+content=[\"']([^\"']+)[\"'][^>]*(?:property|name|itemprop)=[\"'](?:article:published_time|datePublished|citation_publication_date|pubdate|publish[-_]?date)[\"']",
+    r"\"datePublished\"\s*:\s*\"([^\"]+)\"",
+    r"<time[^>]+datetime=[\"']([^\"']+)[\"']",
+]
+
+
+def html_published(doc):
+    """Publication date the page declares about itself (meta tags, JSON-LD datePublished, <time>)."""
+    for pat in DATE_PATTERNS:
+        m = re.search(pat, doc, re.I)
+        if m and parse_date(m.group(1)):
+            return parse_date(m.group(1))
+    return None
+
+
 def page_text(url):
     """Visible text of a web page or PDF, lowercased, for checking a figure. '' if it cannot be read."""
     data, ctype, real = fetch(url, timeout=30)
@@ -274,8 +313,14 @@ def page_text(url):
         import pypdf
         rd = pypdf.PdfReader(io.BytesIO(data))
         txt = " ".join((pg.extract_text() or "") for pg in rd.pages[:60])
+        try:
+            cd = rd.metadata.creation_date if rd.metadata else None
+            PAGE_DATE[url] = cd.date() if cd else None
+        except Exception:
+            PAGE_DATE[url] = None
     else:
         txt = data.decode("utf-8", "ignore")
+        PAGE_DATE[url] = html_published(txt)
         txt = re.sub(r"<script.*?</script>|<style.*?</style>", " ", txt, flags=re.S | re.I)
         txt = re.sub(r"<[^>]+>", " ", txt)
         import html as _h
@@ -336,17 +381,10 @@ def verify_market(raw):
     if not m.get("relevant", True):
         return None, "Research step judged a data slide not useful for this meeting."
     kept, rep = [], []
-    year_now = datetime.date.today().year
+    today = datetime.date.today()
     for st in (m.get("stats") or [])[:6]:
         url, cores = (st.get("url") or "").strip(), figure_core(st.get("figure"))
         label = f"{st.get('figure','')} {st.get('claim','')[:80]} ({st.get('source','')})"
-        try:
-            yr = int(str(st.get("year") or "0")[:4])
-        except ValueError:
-            yr = 0
-        if yr and yr < year_now - 2:
-            rep.append(f"DROPPED (older than two years): {label}")
-            continue
         if not url.startswith("http") or not cores:
             rep.append(f"DROPPED (no source link or no number): {label}")
             continue
@@ -358,13 +396,22 @@ def verify_market(raw):
             ok = figure_on_page(body, cores, st.get("claim", ""))
         except Exception:
             ok = False
+        # data must be less than 12 months old: the publication date on the page itself, else the date the research gave;
+        # with both, the older one counts. No month-level date at all -> dropped.
+        dates = [x for x in [PAGE_DATE.get(url), parse_date(st.get("published"))] if x and x <= today + datetime.timedelta(days=31)]
+        pub = min(dates) if dates else None
+        if ok and not pub:
+            rep.append(f"DROPPED (no publication date could be found): {label} {url}")
+            continue
+        if ok and (today - pub).days > 365:
+            rep.append(f"DROPPED (published {pub.strftime('%b %Y')}, older than 12 months): {label} {url}")
+            continue
         if ok:
-            if str(st.get("year") or "").strip() and str(st.get("year")).strip()[:4] in str(st.get("source") or ""):
-                st["year"] = ""          # the source name already carries the year
+            st["year"] = pub.strftime("%b %Y")      # printed after the source, e.g. "Source: HIPAA Journal, Mar 2026"
             st["figure"] = compact_figure(st.get("figure", ""))
             st["claim"] = drop_lead_figure(st.get("claim", ""), st["figure"], cores)
             kept.append(st)
-            rep.append(f"USED (found on the page): {label} {url}")
+            rep.append(f"USED (found on the page, published {pub.strftime('%b %Y')}): {label} {url}")
         else:
             rep.append(f"DROPPED (could not confirm on the page): {label} {url}")
         if len(kept) == 3:
