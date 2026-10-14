@@ -30,9 +30,10 @@ F = {  # Deck Requests field IDs
     "plan": "fldE9rNtby6JwC4qk", "pptx": "fldxwsdZxpMOq0NiL", "pdf": "fldNi5sd61xg5OhcL",
     "log": "fldtBHsDTgcLuNQhb", "error": "fldELZ4iyycJu7mOD", "presenters": "fldyMIZMHeWaET7sz",
     "libver": "fldxnMaaGGwVKqcb4", "website": "fldELJzcC0UzkREuI", "logo": "fldcLJ4rbL8RQ3NGE",
+    "research": "fldgjfqb7yBy9ziyq", "rcheck": "fldqFZN5K6Xgi0A5i",
 }
 P = {"name": "fldr4qcJSOTaspQGm", "title": "fld68D6bAxXqefbSR", "email": "fldv8VzsSsoySdCds"}
-A = {"name": "fldwyRdfc2x7SRlat", "file": "fld3T1O2M6dsaCeSy"}
+A = {"name": "fldwyRdfc2x7SRlat", "file": "fld3T1O2M6dsaCeSy", "code": "fldNtFG2NXXI44B69"}
 
 TOKEN = os.environ["AIRTABLE_TOKEN"]
 REC = os.environ["RECORD_ID"].strip()
@@ -80,6 +81,10 @@ def fetch_assets():
     z = os.path.join(WORK, "assets.zip")
     download(by["Engine and icons"][0]["url"], z)
     zipfile.ZipFile(z).extractall(ENGINE)   # build_library.py, pptkit.py, icons/, earth_src.jpeg
+    for r in rows:                           # newer engine code kept as text on the row wins over the zip copy
+        code = (r["fields"].get(A["code"]) or "").strip()
+        if code:
+            zipfile.ZipFile(io.BytesIO(base64.b64decode(code))).extractall(ENGINE)
     return tpl
 
 
@@ -174,29 +179,69 @@ def to_png(data, ctype, url, out):
 def find_logo(site, out):
     """Best effort: the company's logo from its home page. Returns a PNG path or None."""
     import html as _h
-    from urllib.parse import urljoin
+    from urllib.parse import urljoin, urlparse
     if not re.match(r"https?://", site):
         site = "https://" + site.strip().strip("/")
-    page, _, base = fetch(site)
-    doc = page.decode("utf-8", "ignore")
-    cands = []
-    for tag in re.findall(r"<img\b[^>]*>", doc, re.I):           # <img> whose file, class or id says 'logo'
-        m = re.search(r"""\bsrc=["']([^"']+)["']""", tag, re.I) or re.search(r"""data-src=["']([^"']+)["']""", tag, re.I)
+    try:
+        page, _, base = fetch(site)
+        doc = page.decode("utf-8", "ignore")
+    except Exception:                            # site blocks automated visits: use its site icon from Google
+        try:
+            data, ctype, real = fetch("https://www.google.com/s2/favicons?sz=256&domain=" + urlparse(site).netloc)
+            return to_png(data, ctype, real, out)
+        except Exception:
+            return None
+    cands = []                                   # (kind, value): kind 'url' or 'svg'
+
+    def img_src(tag):
+        m = (re.search(r"""\bsrc=["']([^"']+)["']""", tag, re.I) or re.search(r"""data-src=["']([^"']+)["']""", tag, re.I)
+             or re.search(r"""srcset=["']([^"'\s,]+)""", tag, re.I))
         if not m or m.group(1).startswith("data:") or re.search(r"\.jpe?g(\?|$)", m.group(1), re.I):
-            continue
+            return None
+        return m.group(1)
+
+    # 1. <img> whose file, class or id says logo/brand
+    for tag in re.findall(r"<img\b[^>]*>", doc, re.I):
+        src = img_src(tag)
         attrs = " ".join(re.findall(r"""\b(?:class|id)=["']([^"']*)["']""", tag, re.I))
-        if re.search(r"logo", m.group(1), re.I) or re.search(r"logo", attrs, re.I):
-            cands.append(m.group(1))
-    for m in re.finditer(r"""<link\b[^>]*rel=["'][^"']*apple-touch-icon[^"']*["'][^>]*>""", doc, re.I):
+        if src and (re.search(r"logo|brand", src, re.I) or re.search(r"logo|brand", attrs, re.I)):
+            cands.append(("url", src))
+    # 2. first image or inline svg inside an element labelled logo/brand (e.g. <a class="header__brand">)
+    for m in re.finditer(r"""\b(?:class|id|aria-label)=["'][^"']*(?:logo|brand)[^"']*["'][^>]*>""", doc, re.I):
+        win = doc[m.end(): m.end() + 2500]
+        im = re.search(r"<img\b[^>]*>", win, re.I)
+        sv = re.search(r"<svg\b.*?</svg>", win, re.I | re.S)
+        if sv and (not im or sv.start() < im.start()):
+            cands.append(("svg", sv.group(0)))
+        elif im and img_src(im.group(0)):
+            cands.append(("url", img_src(im.group(0))))
+    # 3. first image inside <header>
+    hm = re.search(r"<header\b.*?</header>", doc, re.I | re.S)
+    if hm:
+        im = re.search(r"<img\b[^>]*>", hm.group(0), re.I)
+        if im and img_src(im.group(0)):
+            cands.append(("url", img_src(im.group(0))))
+    # 4. app icons
+    for m in re.finditer(r"""<link\b[^>]*rel=["'][^"']*(?:apple-touch-icon|icon)[^"']*["'][^>]*>""", doc, re.I):
         h = re.search(r"""href=["']([^"']+)["']""", m.group(0), re.I)
         if h:
-            cands.append(h.group(1))
-    cands.append("/apple-touch-icon.png")
-    for c in cands[:8]:
+            cands.append(("url", h.group(1)))
+    cands.append(("url", "/apple-touch-icon.png"))
+    cands.append(("url", "https://www.google.com/s2/favicons?sz=256&domain=" + urlparse(base).netloc))
+    seen = set()
+    for kind, v in cands:
+        if v in seen:
+            continue
+        seen.add(v)
+        if len(seen) > 12:
+            break
         try:
-            u = urljoin(base, _h.unescape(c))
-            data, ctype, real = fetch(u)
-            p = to_png(data, ctype, real, out)
+            if kind == "svg":
+                svg = v if "xmlns" in v else v.replace("<svg", '<svg xmlns="http://www.w3.org/2000/svg"', 1)
+                p = to_png(svg.encode(), "image/svg+xml", "inline.svg", out)
+            else:
+                data, ctype, real = fetch(urljoin(base, _h.unescape(v)))
+                p = to_png(data, ctype, real, out)
             if p:
                 return p
         except Exception:
@@ -220,6 +265,87 @@ def company_logo(f):
     except Exception:
         return None
     return None
+
+
+def page_text(url):
+    """Visible text of a web page or PDF, lowercased, for checking a figure. '' if it cannot be read."""
+    data, ctype, real = fetch(url, timeout=30)
+    if "pdf" in ctype or real.lower().split("?")[0].endswith(".pdf") or data[:4] == b"%PDF":
+        import pypdf
+        rd = pypdf.PdfReader(io.BytesIO(data))
+        txt = " ".join((pg.extract_text() or "") for pg in rd.pages[:60])
+    else:
+        txt = data.decode("utf-8", "ignore")
+        txt = re.sub(r"<script.*?</script>|<style.*?</style>", " ", txt, flags=re.S | re.I)
+        txt = re.sub(r"<[^>]+>", " ", txt)
+        import html as _h
+        txt = _h.unescape(txt)
+    return re.sub(r"\s+", " ", txt).lower()
+
+
+def figure_core(fig):
+    """'$4.88 million' -> ['4.88'], '1 in 3' -> ['1 in 3'], '48%' -> ['48']."""
+    f = (fig or "").lower().replace(",", "")
+    m = re.search(r"\d+\s+(?:in|of|out of)\s+\d+", f)
+    if m:
+        return [m.group(0)]
+    return re.findall(r"\d+(?:\.\d+)?", f)[:1]
+
+
+STOP = set("about after their there which would could should these those with from that this have been were into more than most also only over such they them what when where your ours".split())
+
+
+def figure_on_page(body, cores, claim):
+    """The figure must appear on the page near at least two words of its claim (or one, for short claims)."""
+    words = [w for w in re.findall(r"[a-z]{5,}", (claim or "").lower()) if w not in STOP]
+    need = 2 if len(words) >= 4 else 1
+    for core in cores:
+        for m in re.finditer(r"(?<![\d.])" + re.escape(core) + r"(?![\d])", body):
+            win = body[max(0, m.start() - 250): m.end() + 250]
+            if sum(1 for w in set(words) if w[:6] in win) >= need:
+                return True
+    return False
+
+
+def verify_market(raw):
+    """Keep only researched figures whose number appears on the cited page. Returns (market or None, report)."""
+    try:
+        m = json.loads(re.search(r"\{.*\}", raw or "", re.S).group(0))
+    except Exception:
+        return None, "No usable research on the row."
+    if not m.get("relevant", True):
+        return None, "Research step judged a data slide not useful for this meeting."
+    kept, rep = [], []
+    year_now = datetime.date.today().year
+    for st in (m.get("stats") or [])[:6]:
+        url, cores = (st.get("url") or "").strip(), figure_core(st.get("figure"))
+        label = f"{st.get('figure','')} {st.get('claim','')[:80]} ({st.get('source','')})"
+        try:
+            yr = int(str(st.get("year") or "0")[:4])
+        except ValueError:
+            yr = 0
+        if yr and yr < year_now - 2:
+            rep.append(f"DROPPED (older than two years): {label}")
+            continue
+        if not url.startswith("http") or not cores:
+            rep.append(f"DROPPED (no source link or no number): {label}")
+            continue
+        try:
+            body = page_text(url).replace(",", "")
+            ok = figure_on_page(body, cores, st.get("claim", ""))
+        except Exception:
+            ok = False
+        if ok:
+            kept.append(st)
+            rep.append(f"USED (found on the page): {label} {url}")
+        else:
+            rep.append(f"DROPPED (could not confirm on the page): {label} {url}")
+        if len(kept) == 3:
+            break
+    if len(kept) < 2:
+        return None, "\n".join(rep + ["No data slide: fewer than two figures could be confirmed."])
+    m["stats"] = kept
+    return m, "\n".join(rep)
 
 
 def slide_no(label):
@@ -285,6 +411,18 @@ def main():
     logo = company_logo(f)
     if logo:
         req["logo"] = logo
+    att = plan.get("attendees") or []
+    req["attendees"] = [str(a).strip() for a in att if str(a).strip()][:3] if isinstance(att, list) else []
+    market, mreport = (None, "")
+    if f.get(F["research"]):
+        try:
+            market, mreport = verify_market(f.get(F["research"]))
+        except Exception:
+            market, mreport = None, "The data check failed; no data slide."
+    if market:
+        req["market"] = market
+        slides = [1, "M"] + [n for n in slides if n != 1]
+        req["slides"] = slides
     req_path = os.path.join(WORK, "request.json")
     json.dump(req, open(req_path, "w"))
 
@@ -299,7 +437,7 @@ def main():
     # meeting talking points go on top of the library notes
     from pptx import Presentation
     prs = Presentation(pptx)
-    for slide, n in zip(prs.slides, slides):
+    for slide, n in zip(prs.slides, slides):     # "M" (data slide) carries its own notes
         pts = [p for p in talking.get(n, []) if str(p).strip()]
         if not pts:
             continue
@@ -320,7 +458,8 @@ def main():
     upload(F["pptx"], pptx, "application/vnd.openxmlformats-officedocument.presentationml.presentation")
     upload(F["pdf"], pdf, "application/pdf")
     update({F["status"]: "Ready", F["log"]: RUN_URL or None, F["error"]: "",
-            F["libver"]: lib_ver or "built-in wording (no Live library version)"})
+            F["libver"]: lib_ver or "built-in wording (no Live library version)",
+            F["rcheck"]: mreport or None})
     print("done:", len(slides), "slides")   # no company names in logs; the repo is public
 
 
