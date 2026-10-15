@@ -395,62 +395,92 @@ def drop_lead_figure(claim, fig, cores):
     return c[:1].upper() + c[1:] if c else str(claim)
 
 
+def month_end(d):
+    nxt = datetime.date(d.year + (d.month == 12), d.month % 12 + 1, 1)
+    return nxt - datetime.timedelta(days=1)
+
+
+def check_stat(st, today):
+    """One researched figure -> (True, None) if usable, else (False, reason). Fills the printed date and tidies text."""
+    url, cores = (st.get("url") or "").strip(), figure_core(st.get("figure"))
+    path = urllib.parse.urlparse(url).path.lower()
+    host = urllib.parse.urlparse(url).netloc.lower()
+    if not url.startswith("http") or not cores:
+        return False, "no source link or no number"
+    if re.search(r"/(solutions?|products?|platform|pricing|demo|lp)(/|$)", path):
+        return False, "vendor product page, not a report"
+    if re.search(r"/(blog|blogs|resources|insights)/", path) and not re.search(r"\.(gov|edu|org)$", host):
+        return False, "company blog, not an independent source"
+    # the numbers themselves must be recent: the period the data covers has to end within the last 12 months
+    pe = parse_date(st.get("period_end"))
+    if not pe or pe > today + datetime.timedelta(days=31):
+        return False, "no data period given (the month the data runs to)"
+    if (today - month_end(pe)).days > 365:
+        return False, f"data covers a period ending {pe.strftime('%b %Y')}, older than 12 months"
+    try:
+        body = page_text(url).replace(",", "")
+        ok = figure_on_page(body, cores, st.get("claim", ""))
+    except Exception:
+        ok = False
+    if not ok:
+        return False, "could not confirm on the page"
+    # and the source must be published within 12 months: the date on the page itself, else the research date;
+    # with both, the older one counts. No month-level date at all -> dropped.
+    dates = [x for x in [PAGE_DATE.get(url), parse_date(st.get("published"))] if x and x <= today + datetime.timedelta(days=31)]
+    pub = min(dates) if dates else None
+    if not pub:
+        return False, "no publication date could be found"
+    if (today - pub).days > 365:
+        return False, f"published {pub.strftime('%b %Y')}, older than 12 months"
+    st["year"] = pub.strftime("%b %Y")      # printed after the source, e.g. "Source: HIPAA Journal, Mar 2026"
+    st["figure"] = compact_figure(st.get("figure", ""))
+    st["claim"] = re.sub(r"\s*[\u2014\u2013]\s*", ", ", drop_lead_figure(st.get("claim", ""), st["figure"], cores))
+    st["_pub"] = pub
+    return True, None
+
+
 def verify_market(raw):
-    """Keep only researched figures whose number appears on the cited page. Returns (market or None, report)."""
+    """Check every researched figure. Industry figures feed the data slide before Problems we solve ("M");
+    figures tagged to a slide 8 service feed "Their pain, what we deliver" ("M2"). Each slide needs 2+ figures.
+    Returns (market or None, report)."""
     try:
         m = json.loads(re.search(r"\{.*\}", raw or "", re.S).group(0))
     except Exception:
         return None, "No usable research on the row."
     if not m.get("relevant", True):
-        return None, "Research step judged a data slide not useful for this meeting."
-    kept, rep = [], []
+        return None, "Research step judged data slides not useful for this meeting."
     today = datetime.date.today()
-    for st in (m.get("stats") or [])[:6]:
-        url, cores = (st.get("url") or "").strip(), figure_core(st.get("figure"))
-        label = f"{st.get('figure','')} {st.get('claim','')[:80]} ({st.get('source','')})"
-        if not url.startswith("http") or not cores:
-            rep.append(f"DROPPED (no source link or no number): {label}")
+    ind, dlv, rep, seen = [], [], [], set()
+    for st in (m.get("stats") or [])[:12]:
+        use = "delivery" if str(st.get("use", "")).lower().startswith("deliver") and st.get("service") else "industry"
+        label = f"[{use}] {st.get('figure','')} {st.get('claim','')[:80]} ({st.get('source','')})"
+        key = (compact_figure(st.get("figure", "")), (st.get("source") or "").lower())
+        if key in seen:
+            rep.append(f"DROPPED (same figure already used): {label}")
             continue
-        if re.search(r"/(solutions?|products?|platform|pricing|demo|lp)(/|$)", urllib.parse.urlparse(url).path.lower()):
-            rep.append(f"DROPPED (vendor product page, not a report): {label} {url}")
+        target = dlv if use == "delivery" else ind
+        if len(target) >= 3:
+            rep.append(f"NOT NEEDED (slide already has three figures): {label}")
             continue
-        host = urllib.parse.urlparse(url).netloc.lower()
-        if re.search(r"/(blog|blogs|resources|insights)/", urllib.parse.urlparse(url).path.lower()) and not re.search(r"\.(gov|edu|org)$", host):
-            rep.append(f"DROPPED (company blog, not an independent source): {label} {url}")
+        ok, why = check_stat(st, today)
+        if not ok:
+            rep.append(f"DROPPED ({why}): {label} {st.get('url','')}")
             continue
-        try:
-            body = page_text(url).replace(",", "")
-            ok = figure_on_page(body, cores, st.get("claim", ""))
-        except Exception:
-            ok = False
-        # data must be less than 12 months old: the publication date on the page itself, else the date the research gave;
-        # with both, the older one counts. No month-level date at all -> dropped.
-        dates = [x for x in [PAGE_DATE.get(url), parse_date(st.get("published"))] if x and x <= today + datetime.timedelta(days=31)]
-        pub = min(dates) if dates else None
-        if ok and not pub:
-            rep.append(f"DROPPED (no publication date could be found): {label} {url}")
-            continue
-        if ok and (today - pub).days > 365:
-            rep.append(f"DROPPED (published {pub.strftime('%b %Y')}, older than 12 months): {label} {url}")
-            continue
-        if ok:
-            st["year"] = pub.strftime("%b %Y")      # printed after the source, e.g. "Source: HIPAA Journal, Mar 2026"
-            st["figure"] = compact_figure(st.get("figure", ""))
-            st["claim"] = drop_lead_figure(st.get("claim", ""), st["figure"], cores)
-            kept.append(st)
-            rep.append(f"USED (found on the page, published {pub.strftime('%b %Y')}): {label} {url}")
-        else:
-            rep.append(f"DROPPED (could not confirm on the page): {label} {url}")
-        if len(kept) == 3:
-            break
-    if len(kept) < 2:
-        return None, "\n".join(rep + ["No data slide: fewer than two figures could be confirmed."])
-    m["stats"] = kept
-    for k in ("headline", "subhead", "takeaway", "talking_point"):     # house rule: no em dashes on slides
-        if isinstance(m.get(k), str):
+        seen.add(key)
+        target.append(st)
+        rep.append(f"USED ({'data slide' if use == 'industry' else 'pain-to-delivery slide, ' + st.get('service','')}; found on the page, "
+                   f"published {st['_pub'].strftime('%b %Y')}, data to {parse_date(st.get('period_end')).strftime('%b %Y')}): {label} {st['url']}")
+    for st in ind + dlv:
+        st.pop("_pub", None)
+    rep.append("Industry data slide: " + ("included" if len(ind) >= 2 else "left out, fewer than two figures confirmed") + ".")
+    rep.append("Pain-to-delivery slide: " + ("included" if len(dlv) >= 2 else "left out, fewer than two figures confirmed") + ".")
+    if len(ind) < 2 and len(dlv) < 2:
+        return None, "\n".join(rep)
+    m["stats"] = ind if len(ind) >= 2 else []
+    m["delivery"] = dlv if len(dlv) >= 2 else []
+    for k in ("headline", "subhead", "takeaway", "talking_point", "delivery_headline", "delivery_takeaway", "delivery_talking_point"):
+        if isinstance(m.get(k), str):     # house rule: no em dashes on slides
             m[k] = re.sub(r"\s*[\u2014\u2013]\s*", ", ", m[k])
-    for st in kept:
-        st["claim"] = re.sub(r"\s*[\u2014\u2013]\s*", ", ", st.get("claim", ""))
     return m, "\n".join(rep)
 
 
@@ -480,7 +510,14 @@ def wait_for_research():
         time.sleep(15)
 
 
+ORDER = [1, 2, 3, 4, "M", 5, 6, 7, 8, "M2", 9, 10, 11, 12, 13]   # data slides sit before Problems we solve and after What we deliver
+
+
 def slide_no(label):
+    """'5 Problems we solve' -> 5, 'Data: Industry pain' -> 'M', 'Data: Their pain, what we deliver' -> 'M2'."""
+    low = (label or "").strip().lower()
+    if low.startswith("data"):
+        return "M2" if "deliver" in low else "M"
     m = re.match(r"\s*(\d+)", label or "")
     return int(m.group(1)) if m else None
 
@@ -511,10 +548,12 @@ def main():
     plan = parse_plan(f.get(F["plan"]))
 
     # slide order: explicit form choice wins, then AI plan, then the full 13
-    chosen = sorted(n for n in (slide_no(s) for s in f.get(F["slides"], [])) if n)
+    chosen = [n for n in (slide_no(s) for s in f.get(F["slides"], [])) if n]
+    chosen = sorted(set(chosen), key=ORDER.index) if [n for n in chosen if isinstance(n, int)] else []
     ai_slides = [slide_no(str(s.get("slide"))) for s in plan.get("slides", []) if isinstance(s, dict)]
-    ai_slides = [n for n in ai_slides if n and 1 <= n <= 13]
+    ai_slides = [n for n in ai_slides if isinstance(n, int) and 1 <= n <= 13]
     slides = chosen or list(dict.fromkeys(ai_slides)) or list(range(1, 14))
+    picked = bool(chosen)               # with an explicit pick, data slides appear only if ticked
     if 1 not in slides:
         slides = [1] + slides           # every deck opens on the cover
     if 13 not in slides:
@@ -554,10 +593,12 @@ def main():
             market, mreport = None, "The data check failed; no data slide."
     else:
         mreport = "The research step had not finished after six minutes (or failed); the deck was built without a data slide."
+    slides = [n for n in slides if n not in ("M", "M2")]
     if market:
         req["market"] = market
-        slides = [1, "M"] + [n for n in slides if n != 1]
-        req["slides"] = slides
+        want = [k for k, key in (("M", "stats"), ("M2", "delivery")) if market.get(key) and (not picked or k in chosen)]
+        slides = sorted(set(slides) | set(want), key=ORDER.index)   # the build also skips M2 if no figure maps to a slide 8 card
+    req["slides"] = slides
     req_path = os.path.join(WORK, "request.json")
     json.dump(req, open(req_path, "w"))
 
@@ -572,7 +613,13 @@ def main():
     # meeting talking points go on top of the library notes
     from pptx import Presentation
     prs = Presentation(pptx)
-    for slide, n in zip(prs.slides, slides):     # "M" (data slide) carries its own notes
+    built = []                                   # map built slides back to slide numbers; data slides carry their own notes
+    nums = iter([n for n in slides if n not in ("M", "M2")])
+    for slide in prs.slides:
+        head = slide.notes_slide.notes_text_frame.text[:40] if slide.has_notes_slide else ""
+        built.append("M" if head.startswith("MARKET DATA") else "M2" if head.startswith("THEIR PAIN") else next(nums, None))
+    slides = built
+    for slide, n in zip(prs.slides, slides):
         pts = [p for p in talking.get(n, []) if str(p).strip()]
         if not pts:
             continue
