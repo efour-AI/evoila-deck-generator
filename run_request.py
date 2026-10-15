@@ -424,6 +424,19 @@ def trusted_host(host):
     return any(h == d or h.endswith("." + d) for d in TRUSTED)
 
 
+FILE_HOSTS = ("cdn.sanity.io", "amazonaws.com", "cloudfront.net", "hubspotusercontent", "hs-sites.com", "azureedge.net",
+              "ctfassets.net", "contentful.com", "wpengine", "squarespace-cdn.com", "storage.googleapis.com")
+
+
+def trusted_file_host(host, source):
+    """A report file on a CDN counts when the named publisher is on the trusted list (e.g. a HIMSS PDF on cdn.sanity.io)."""
+    if not any(f in host.lower() for f in FILE_HOSTS):
+        return False
+    src = re.sub(r"[^a-z0-9 ]", " ", str(source or "").lower()).split()
+    stems = {d.split(".")[0] for d in TRUSTED if len(d.split(".")[0]) >= 3}
+    return bool(stems & set(src))
+
+
 def nodash(t):
     """House rule, no em dashes: '10–16' -> '10 to 16'; a dash used as punctuation -> comma."""
     t = re.sub(r"(\d)\s*[\u2013\u2014]\s*(\d)", r"\1 to \2", str(t or ""))
@@ -444,7 +457,7 @@ def check_stat(st, today):
         return False, "no source link or no number"
     if re.search(r"/(solutions?|products?|platform|pricing|demo|lp)(/|$)", path):
         return False, "vendor product page, not a report"
-    if not trusted_host(host):
+    if not trusted_host(host) and not trusted_file_host(host, st.get("source")):
         return False, f"{host} is not on the trusted source list"
     if re.search(r"/(blog|blogs)/", path) and not re.search(r"\.(gov|edu|org)$", host):
         return False, "company blog, not an independent source"
