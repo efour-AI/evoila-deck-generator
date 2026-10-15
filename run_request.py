@@ -395,6 +395,41 @@ def drop_lead_figure(claim, fig, cores):
     return c[:1].upper() + c[1:] if c else str(claim)
 
 
+# Sources a data figure may come from. Government, education, military and international bodies always count;
+# everything else must be on this list (analysts, major annual studies, associations, established news and trade press).
+TRUSTED = """
+gartner.com idc.com forrester.com mckinsey.com bcg.com bain.com deloitte.com pwc.com kpmg.com ey.com accenture.com
+ibm.com verizon.com uptimeinstitute.com flexera.com sophos.com mandiant.com crowdstrike.com paloaltonetworks.com
+ponemon.org isc2.org isaca.org sans.org cisa.gov ic3.gov hhs.gov nist.gov
+aha.org himss.org chime.org ahima.org mgma.com kff.org
+hipaajournal.com healthcareitnews.com fiercehealthcare.com beckershospitalreview.com modernhealthcare.com statnews.com
+healthcaredive.com cybersecuritydive.com ciodive.com bankingdive.com utilitydive.com
+reuters.com apnews.com bloomberg.com wsj.com ft.com nytimes.com washingtonpost.com cnbc.com axios.com forbes.com fortune.com
+darkreading.com securityweek.com theregister.com bleepingcomputer.com scmagazine.com infosecurity-magazine.com
+techtarget.com computerweekly.com computerworld.com networkworld.com cio.com csoonline.com infoworld.com zdnet.com crn.com
+govtech.com statescoop.com nextgov.com fedscoop.com route-fifty.com govexec.com americanbanker.com
+pewresearch.org brookings.edu rand.org nascio.org naco.org ncsl.org
+""".split()
+SOCIAL = ("linkedin.com", "facebook.com", "x.com", "twitter.com", "medium.com", "reddit.com", "youtube.com", "substack.com", "quora.com")
+
+
+def trusted_host(host):
+    h = host.lower().split(":")[0]
+    if h.startswith("www."):
+        h = h[4:]
+    if any(h == d or h.endswith("." + d) for d in SOCIAL):
+        return False
+    if re.search(r"\.(gov|edu|mil|int)(\.[a-z]{2})?$", h):
+        return True
+    return any(h == d or h.endswith("." + d) for d in TRUSTED)
+
+
+def nodash(t):
+    """House rule, no em dashes: '10–16' -> '10 to 16'; a dash used as punctuation -> comma."""
+    t = re.sub(r"(\d)\s*[\u2013\u2014]\s*(\d)", r"\1 to \2", str(t or ""))
+    return re.sub(r"\s*[\u2014\u2013]\s*", ", ", t)
+
+
 def month_end(d):
     nxt = datetime.date(d.year + (d.month == 12), d.month % 12 + 1, 1)
     return nxt - datetime.timedelta(days=1)
@@ -409,7 +444,9 @@ def check_stat(st, today):
         return False, "no source link or no number"
     if re.search(r"/(solutions?|products?|platform|pricing|demo|lp)(/|$)", path):
         return False, "vendor product page, not a report"
-    if re.search(r"/(blog|blogs|resources|insights)/", path) and not re.search(r"\.(gov|edu|org)$", host):
+    if not trusted_host(host):
+        return False, f"{host} is not on the trusted source list"
+    if re.search(r"/(blog|blogs)/", path) and not re.search(r"\.(gov|edu|org)$", host):
         return False, "company blog, not an independent source"
     # the numbers themselves must be recent: the period the data covers has to end within the last 12 months
     pe = parse_date(st.get("period_end"))
@@ -434,7 +471,7 @@ def check_stat(st, today):
         return False, f"published {pub.strftime('%b %Y')}, older than 12 months"
     st["year"] = pub.strftime("%b %Y")      # printed after the source, e.g. "Source: HIPAA Journal, Mar 2026"
     st["figure"] = compact_figure(st.get("figure", ""))
-    st["claim"] = re.sub(r"\s*[\u2014\u2013]\s*", ", ", drop_lead_figure(st.get("claim", ""), st["figure"], cores))
+    st["claim"] = nodash(drop_lead_figure(st.get("claim", ""), st["figure"], cores))
     st["_pub"] = pub
     return True, None
 
@@ -480,7 +517,7 @@ def verify_market(raw):
     m["delivery"] = dlv if len(dlv) >= 2 else []
     for k in ("headline", "subhead", "takeaway", "talking_point", "delivery_headline", "delivery_takeaway", "delivery_talking_point"):
         if isinstance(m.get(k), str):     # house rule: no em dashes on slides
-            m[k] = re.sub(r"\s*[\u2014\u2013]\s*", ", ", m[k])
+            m[k] = nodash(m[k])
     return m, "\n".join(rep)
 
 
