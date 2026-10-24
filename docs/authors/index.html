@@ -1,0 +1,208 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<title>evoila author desk</title>
+<style>
+:root{--indigo:#0D09B5;--violet:#1F1534;--cream:#F6F0EB;--green:#0BD7A1;--blue:#0075E4;--ink:#1F1534;--muted:#6b6478;--line:#e4dcd3;--card:#fff;--bg:#F6F0EB;--warn:#b45309;--bad:#b42318}
+@media (prefers-color-scheme:dark){:root{--ink:#F6F0EB;--muted:#b9b2c4;--line:#3a3150;--card:#2a2042;--bg:#1F1534}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+header{background:var(--violet);color:#fff;padding:16px}
+header .wrap{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.brand{font-weight:700;font-size:20px;letter-spacing:-.2px}.brand span{color:var(--green)}
+.who{font-size:13px;opacity:.85}
+.wrap{max-width:760px;margin:0 auto}
+main{padding:16px}
+h2{font-size:15px;text-transform:none;color:var(--muted);font-weight:600;margin:24px 0 8px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;margin:0 0 12px}
+.card.wait{border:2px solid var(--indigo)}
+.row{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
+.pill{font-size:12px;padding:2px 9px;border-radius:999px;background:#ece7ff;color:var(--indigo);white-space:nowrap}
+.pill.ok{background:#d9fbef;color:#065f46}.pill.grey{background:#ece8e3;color:#57534e}.pill.warn{background:#fef3c7;color:#92400e}
+.title{font-weight:650;margin:8px 0 6px;font-size:16px}
+.meta{font-size:13px;color:var(--muted)}
+img.thumb{width:100%;max-height:360px;object-fit:contain;border-radius:10px;background:#00000010;margin:6px 0}
+textarea,input[type=text],input[type=date]{width:100%;font:inherit;font-size:15px;color:var(--ink);background:transparent;border:1px solid var(--line);border-radius:10px;padding:10px}
+textarea.copy{min-height:220px}
+label{display:block;font-size:13px;color:var(--muted);margin:10px 0 4px}
+.btns{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+button{font:inherit;font-size:15px;padding:11px 12px;border-radius:10px;border:1px solid var(--line);background:transparent;color:var(--ink);cursor:pointer}
+button.primary{background:var(--indigo);border-color:var(--indigo);color:#fff}
+button:disabled{opacity:.55;cursor:wait}
+.full{grid-column:1/-1}
+.hold{display:flex;gap:8px;margin-top:8px}.hold input{flex:1}
+details summary{cursor:pointer;color:var(--blue);font-size:14px;margin-top:6px}
+pre.view{white-space:pre-wrap;font:inherit;font-size:14px;margin:6px 0 0}
+.msg{padding:12px 14px;border-radius:10px;margin:12px 0;font-size:14px}
+.msg.err{background:#fde8e7;color:var(--bad)}.msg.okm{background:#d9fbef;color:#065f46}
+.empty{color:var(--muted);font-size:14px;padding:4px 0 8px}
+a{color:var(--blue)}
+.hidden{display:none}
+</style>
+</head>
+<body>
+<header><div class="wrap"><div><div class="brand">evoila <span>author desk</span></div><div class="who" id="who">Loading…</div></div><button id="newBtn" style="color:#fff;border-color:#ffffff55">+ New post</button></div></header>
+<main class="wrap">
+<div id="flash"></div>
+<section id="newForm" class="card hidden">
+ <div class="title">New post</div>
+ <div class="meta">Give us the gist. Marketing turns it into a draft in your voice and sends it back for your approval.</div>
+ <label for="nTitle">Working title (optional)</label><input type="text" id="nTitle" maxlength="140">
+ <label for="nBullets">What do you want to say?</label><textarea id="nBullets" style="min-height:140px" placeholder="A few bullets or a rough paragraph is plenty."></textarea>
+ <label for="nPhoto">Your photo (optional, JPG or PNG, under 5 MB)</label><input type="file" id="nPhoto" accept="image/jpeg,image/png">
+ <div class="btns"><button class="primary" id="nSend">Send to marketing</button><button id="nCancel">Cancel</button></div>
+</section>
+<div id="content"></div>
+</main>
+<script>
+const API="https://hook.us2.make.com/o28rqytj8ifgm1o2tckavp2194d8jbqt";
+const $=s=>document.querySelector(s);
+function store(k,v){try{v===undefined?localStorage.removeItem(k):localStorage.setItem(k,v)}catch(e){}}
+function load(k){try{return localStorage.getItem(k)}catch(e){return null}}
+let token=null;
+const h=new URLSearchParams(location.hash.slice(1));
+if(h.get("t")){token=h.get("t");store("evoila_desk_t",token);history.replaceState(null,"",location.pathname);}else{token=load("evoila_desk_t");}
+
+async function call(params){
+  const body=new URLSearchParams(Object.assign({t:token},params));
+  const r=await fetch(API,{method:"POST",body});
+  const txt=await r.text();
+  let j=null;try{j=JSON.parse(txt)}catch(e){}
+  if(r.status===401)throw new Error("auth");
+  if(!r.ok||!j)throw new Error(txt||("Error "+r.status));
+  return j;
+}
+function flash(text,kind){const d=$("#flash");d.innerHTML="";if(!text)return;const m=document.createElement("div");m.className="msg "+(kind||"okm");m.textContent=text;d.appendChild(m);window.scrollTo({top:0,behavior:"smooth"});}
+function fmt(d){if(!d)return"";const x=new Date(d.length===10?d+"T12:00:00":d);return x.toLocaleDateString(undefined,{weekday:"short",month:"short",day:"numeric"});}
+function el(tag,cls,text){const e=document.createElement(tag);if(cls)e.className=cls;if(text!=null)e.textContent=text;return e;}
+
+const WAIT=["Marketing Approved"];
+function postGroup(f){
+  const s=f.Status||"";
+  if(WAIT.includes(s))return"wait";
+  if(s.startsWith("Approved by"))return"sched";
+  if(s==="Published")return"done";
+  if(s.startsWith("Post Rejected"))return"skip";
+  return"mkt";
+}
+function artGroup(f){
+  const s=f.Status||"";
+  if(s==="Marketing Approved")return"wait";
+  if(/Approved by|Article Approved|Sent to Corporate/.test(s))return"sched";
+  if(s==="Published")return"done";
+  if(s==="Archived")return"skip";
+  return"mkt";
+}
+function pill(group,status){
+  const p=el("span","pill",status||"Drafting from your bullets");
+  if(group==="sched"||group==="done")p.className="pill ok";
+  if(group==="skip")p.className="pill grey";
+  if(group==="mkt")p.className="pill warn";
+  if(group==="wait"){p.className="pill";p.textContent="Waiting on you";}
+  return p;
+}
+
+function card(rec,kind){
+  const f=rec.fields, isPost=kind==="post";
+  const g=isPost?postGroup(f):artGroup(f);
+  const c=el("div","card"+(g==="wait"?" wait":""));
+  const top=el("div","row");
+  top.appendChild(el("span","meta",(isPost?"LinkedIn post":"Article")+(isPost&&f["Date Posted"]?" · "+fmt(f["Date Posted"]):(!isPost&&f["Scheduled Date"]?" · "+fmt(f["Scheduled Date"]):""))));
+  top.appendChild(pill(g,f.Status));
+  c.appendChild(top);
+  const title=isPost?(f["Post Title Preference"]||"Untitled post"):(f.Title||"Untitled article");
+  c.appendChild(el("div","title",title));
+  const img=isPost&&f.Image&&f.Image[0];
+  if(img){const i=document.createElement("img");i.className="thumb";i.alt="Post image";i.loading="lazy";i.src=(img.thumbnails&&img.thumbnails.large&&img.thumbnails.large.url)||img.url;c.appendChild(i);}
+  const copyText=isPost?(f["Post Copy"]||""):(f["Article Copy"]||"");
+  if(g==="wait"){
+    c.appendChild(el("label",null,"Copy (edit anything you want changed)"));
+    const ta=el("textarea","copy");ta.value=copyText;c.appendChild(ta);
+    c.appendChild(el("label",null,"Note to marketing (needed if you request changes)"));
+    const note=el("textarea");note.style.minHeight="70px";c.appendChild(note);
+    const b=el("div","btns");
+    const ap=el("button","primary","Approve");const ch=el("button",null,"Request changes");const sv=el("button","full","Save my edits without approving");
+    b.append(ap,ch,sv);c.appendChild(b);
+    const edited=()=>ta.value!==copyText?ta.value:"";
+    const go=async(a,btn,okText)=>{
+      if(a==="changes"&&!note.value.trim()&&!edited()){flash("Add a note or edit the copy so marketing knows what to change.","err");return;}
+      [ap,ch,sv].forEach(x=>x.disabled=true);btn.textContent="Saving…";
+      try{await call({a,table:kind,id:rec.id,copy:edited(),notes:note.value.trim()});flash(okText);await refresh();}
+      catch(e){handleErr(e);[ap,ch,sv].forEach(x=>x.disabled=false);btn.textContent={approve:"Approve",changes:"Request changes",save:"Save my edits without approving"}[a];}
+    };
+    ap.onclick=()=>go("approve",ap,isPost?"Approved. It will post on its scheduled date.":"Approved. Marketing will take it from here.");
+    ch.onclick=()=>go("changes",ch,"Sent back to marketing with your notes.");
+    sv.onclick=()=>go("save",sv,"Your edits are saved.");
+    if(isPost){
+      const hd=el("div","hold");const di=document.createElement("input");di.type="date";di.min=new Date().toISOString().slice(0,10);
+      const hb=el("button",null,"Hold until");hd.append(di,hb);
+      c.appendChild(el("label",null,"Hold this post until a later date"));c.appendChild(hd);
+      hb.onclick=async()=>{if(!di.value){flash("Pick a date first.","err");return;}hb.disabled=true;hb.textContent="Saving…";
+        try{await call({a:"hold",table:"post",id:rec.id,hold:di.value});flash("Held until "+fmt(di.value)+". Approve it and it will wait until then.");await refresh();}
+        catch(e){handleErr(e);hb.disabled=false;hb.textContent="Hold until";}};
+    }
+  }else{
+    const body=copyText||(isPost&&f["Bullets on the topic"]?"Your bullets:\n"+f["Bullets on the topic"]:"");
+    if(body){const d=document.createElement("details");d.appendChild(el("summary",null,isPost?"Show post":"Show article"));d.appendChild(el("pre","view",body));c.appendChild(d);}
+    if(f["Published URL"]){const a=el("a",null,"View it live");a.href=f["Published URL"];a.target="_blank";a.rel="noopener";const p=el("div","meta");p.appendChild(a);c.appendChild(p);}
+  }
+  return c;
+}
+
+function section(title,items,emptyText){
+  const s=document.createElement("section");s.appendChild(el("h2",null,title));
+  if(!items.length&&emptyText)s.appendChild(el("div","empty",emptyText));
+  items.forEach(i=>s.appendChild(i));return s;
+}
+
+let busy=false;
+async function refresh(){
+  if(busy)return;busy=true;
+  try{
+    const d=await call({a:"list"});
+    $("#who").textContent="Signed in as "+d.author;
+    const posts=d.posts||[],arts=d.articles||[];
+    const buckets={wait:[],mkt:[],sched:[],done:[],skip:[]};
+    posts.forEach(p=>buckets[postGroup(p.fields)].push(card(p,"post")));
+    arts.forEach(a=>buckets[artGroup(a.fields)].push(card(a,"article")));
+    const ct=$("#content");ct.innerHTML="";
+    ct.appendChild(section("Waiting on you",buckets.wait,"Nothing needs your approval right now."));
+    if(buckets.mkt.length)ct.appendChild(section("With marketing",buckets.mkt));
+    if(buckets.sched.length)ct.appendChild(section("Approved and scheduled",buckets.sched));
+    if(buckets.done.length)ct.appendChild(section("Published",buckets.done));
+    if(buckets.skip.length)ct.appendChild(section("Not publishing",buckets.skip));
+  }catch(e){handleErr(e);}finally{busy=false;}
+}
+function handleErr(e){
+  if(e.message==="auth"){store("evoila_desk_t");$("#who").textContent="Not signed in";$("#content").innerHTML="";flash("This link isn't recognized. Use the personal link from your invite email, or ask Kevin for a new one.","err");return;}
+  flash("Something went wrong saving that. Try again in a minute; if it keeps happening, email Kevin.","err");
+}
+
+$("#newBtn").onclick=()=>{$("#newForm").classList.remove("hidden");$("#nBullets").focus();};
+$("#nCancel").onclick=()=>{$("#newForm").classList.add("hidden");};
+$("#nSend").onclick=async()=>{
+  const bullets=$("#nBullets").value.trim();if(!bullets){flash("Add a few bullets first.","err");return;}
+  const btn=$("#nSend");btn.disabled=true;btn.textContent="Sending…";
+  try{
+    const params={a:"new",title:$("#nTitle").value.trim(),bullets};
+    const file=$("#nPhoto").files[0];
+    if(file){
+      if(file.size>5*1024*1024)throw new Error("big");
+      const b64=await new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(String(r.result).split(",")[1]);r.onerror=rej;r.readAsDataURL(file);});
+      Object.assign(params,{file:b64,fileName:file.name,fileType:file.type==="image/png"?"image/png":"image/jpeg"});
+    }
+    await call(params);
+    $("#nTitle").value="";$("#nBullets").value="";$("#nPhoto").value="";$("#newForm").classList.add("hidden");
+    flash("Sent. You'll get the draft back for approval.");await refresh();
+  }catch(e){if(e.message==="big")flash("That photo is over 5 MB. Try a smaller one.","err");else handleErr(e);}
+  finally{btn.disabled=false;btn.textContent="Send to marketing";}
+};
+
+if(!token){$("#who").textContent="Not signed in";flash("Open this page from the personal link in your invite email.","err");}
+else refresh();
+</script>
+</body>
+</html>
