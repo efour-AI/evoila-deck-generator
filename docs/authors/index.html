@@ -41,6 +41,12 @@ pre.view{white-space:pre-wrap;font:inherit;font-size:14px;margin:6px 0 0}
 .empty{color:var(--muted);font-size:14px;padding:4px 0 8px}
 a{color:var(--blue)}
 .hidden{display:none}
+.lines{padding:4px 14px}
+.line{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--line)}
+.line:last-child{border-bottom:0}
+.ltitle{font-size:15px;font-weight:550;color:var(--ink);text-decoration:none}
+a.ltitle{color:var(--blue)}
+.when{font-size:13px;color:var(--muted);white-space:nowrap}.when.posted{color:#065f46}
 </style>
 </head>
 <body>
@@ -62,9 +68,12 @@ const API="https://hook.us2.make.com/o28rqytj8ifgm1o2tckavp2194d8jbqt";
 const $=s=>document.querySelector(s);
 function store(k,v){try{v===undefined?localStorage.removeItem(k):localStorage.setItem(k,v)}catch(e){}}
 function load(k){try{return localStorage.getItem(k)}catch(e){return null}}
-let token=null;
+let token=null,admin=false;
 const h=new URLSearchParams(location.hash.slice(1));
-if(h.get("t")){token=h.get("t");store("evoila_desk_t",token);history.replaceState(null,"",location.pathname);}else{token=load("evoila_desk_t");}
+if(h.get("k")){token=h.get("k");store("evoila_desk_k",token);history.replaceState(null,"",location.pathname+"?m");admin=true;}
+else if(h.get("t")){token=h.get("t");store("evoila_desk_t",token);history.replaceState(null,"",location.pathname);}
+else if(location.search.indexOf("m")>=0&&load("evoila_desk_k")){token=load("evoila_desk_k");admin=true;}
+else{token=load("evoila_desk_t");}
 
 async function call(params){
   const body=new URLSearchParams(Object.assign({t:token},params));
@@ -152,28 +161,106 @@ function card(rec,kind){
   return c;
 }
 
+function line(rec,kind,g){
+  const f=rec.fields,isPost=kind==="post";
+  const title=isPost?(f["Post Title Preference"]||"Untitled post"):(f.Title||"Untitled article");
+  let when,label;
+  if(g==="done"){when=f["Published Date"]||f["Date Posted"]||f["Date Published"];label="Posted ";}
+  else{when=isPost?f["Date Posted"]:f["Scheduled Date"];label=when?"Scheduled ":"Approved";}
+  const row=el("div","line");
+  const left=el("div",null);
+  const t=f["Published URL"]?el("a","ltitle",title):el("span","ltitle",title);
+  if(f["Published URL"]){t.href=f["Published URL"];t.target="_blank";t.rel="noopener";}
+  left.appendChild(t);left.appendChild(el("div","meta",isPost?"LinkedIn post":"Article"));
+  row.appendChild(left);
+  row.appendChild(el("span","when"+(g==="done"?" posted":""),label+(when?fmt(when):"")));
+  return {el:row,sortKey:String(when||"0000")};
+}
+
 function section(title,items,emptyText){
   const s=document.createElement("section");s.appendChild(el("h2",null,title));
   if(!items.length&&emptyText)s.appendChild(el("div","empty",emptyText));
   items.forEach(i=>s.appendChild(i));return s;
 }
 
+function mcard(rec,kind){
+  const f=rec.fields,isPost=kind==="post";
+  const c=el("div","card wait");
+  const top=el("div","row");
+  top.appendChild(el("span","meta",(f["Author / Profile"]||"No author")+" · "+(isPost?"LinkedIn post":"Article")));
+  const st=f.Status||(f["Generate Copy"]?"Drafting from bullets":"");
+  const p=el("span","pill warn",st);if(st==="Changes Requested")p.className="pill";top.appendChild(p);
+  c.appendChild(top);
+  c.appendChild(el("div","title",isPost?(f["Post Title Preference"]||"Untitled post"):(f.Title||"Untitled article")));
+  const img=isPost&&f.Image&&f.Image[0];
+  if(img){const i=document.createElement("img");i.className="thumb";i.alt="Post image";i.loading="lazy";i.src=(img.thumbnails&&img.thumbnails.large&&img.thumbnails.large.url)||img.url;c.appendChild(i);}
+  if(f["Author Change Notes"]){const d=document.createElement("details");d.appendChild(el("summary",null,"Notes on this "+(isPost?"post":"article")));d.appendChild(el("pre","view",f["Author Change Notes"]));c.appendChild(d);}
+  const copyText=isPost?(f["Post Copy"]||""):(f["Article Copy"]||"");
+  if(!copyText&&isPost&&f["Bullets on the topic"]){c.appendChild(el("div","meta","Still drafting from the author's bullets:"));c.appendChild(el("pre","view",f["Bullets on the topic"]));return c;}
+  c.appendChild(el("label",null,"Copy"));
+  const ta=el("textarea","copy");ta.value=copyText;c.appendChild(ta);
+  let di=null;
+  if(isPost){c.appendChild(el("label",null,"Post date"));di=document.createElement("input");di.type="date";di.value=(f["Date Posted"]||"").slice(0,10);c.appendChild(di);}
+  c.appendChild(el("label",null,"Note for the author (optional)"));
+  const note=el("textarea");note.style.minHeight="60px";c.appendChild(note);
+  const b=el("div","btns");
+  const sd=el("button","primary full","Send to "+((f["Author / Profile"]||"author").split(" ")[0])+" for approval");
+  const sv=el("button",null,"Save");const rj=el("button",null,isPost?"Reject":"Archive");
+  b.append(sd,sv,rj);c.appendChild(b);
+  const orig=(f["Date Posted"]||"").slice(0,10);
+  const go=async(a,btn,okText)=>{
+    if(a==="reject"&&!confirm("Reject this "+(isPost?"post":"article")+"? It will not publish."))return;
+    [sd,sv,rj].forEach(x=>x.disabled=true);const old=btn.textContent;btn.textContent="Saving…";
+    try{await call({a,table:kind,id:rec.id,copy:ta.value!==copyText?ta.value:"",notes:note.value.trim(),date:di&&di.value&&di.value!==orig?di.value:""});flash(okText);await refresh();}
+    catch(e){handleErr(e);[sd,sv,rj].forEach(x=>x.disabled=false);btn.textContent=old;}
+  };
+  sd.onclick=()=>go("send",sd,"Sent. The author has been emailed their desk link.");
+  sv.onclick=()=>go("msave",sv,"Saved.");
+  rj.onclick=()=>go("reject",rj,isPost?"Rejected.":"Archived.");
+  return c;
+}
+function mline(rec,kind){
+  const f=rec.fields,isPost=kind==="post";
+  const row=el("div","line");const left=el("div",null);
+  left.appendChild(el("span","ltitle",isPost?(f["Post Title Preference"]||"Untitled post"):(f.Title||"Untitled article")));
+  left.appendChild(el("div","meta",(f["Author / Profile"]||"")+" · "+(isPost?"LinkedIn post":"Article")));
+  row.appendChild(left);
+  const when=isPost?f["Date Posted"]:f["Scheduled Date"];
+  row.appendChild(el("span","when",when?fmt(when):""));
+  return row;
+}
+async function mrefresh(){
+  const d=await call({a:"mlist"});
+  $("#who").textContent="Marketing review";
+  const review=[],waiting=[];
+  (d.posts||[]).forEach(p=>{(p.fields.Status==="Marketing Approved"?waiting:review).push(p.fields.Status==="Marketing Approved"?mline(p,"post"):mcard(p,"post"));});
+  (d.articles||[]).forEach(a=>{(a.fields.Status==="Marketing Approved"?waiting:review).push(a.fields.Status==="Marketing Approved"?mline(a,"article"):mcard(a,"article"));});
+  const ct=$("#content");ct.innerHTML="";
+  ct.appendChild(section("Needs your review",review,"Nothing waiting on you."));
+  const s=section("Waiting on authors",[]);
+  if(!waiting.length)s.appendChild(el("div","empty","Nothing is sitting with the authors."));
+  else{const box=el("div","card lines");waiting.forEach(x=>box.appendChild(x));s.appendChild(box);}
+  ct.appendChild(s);
+}
+
 let busy=false;
 async function refresh(){
   if(busy)return;busy=true;
+  if(admin){try{await mrefresh();}catch(e){handleErr(e);}finally{busy=false;}return;}
   try{
     const d=await call({a:"list"});
     $("#who").textContent="Signed in as "+d.author;
     const posts=d.posts||[],arts=d.articles||[];
-    const buckets={wait:[],mkt:[],sched:[],done:[],skip:[]};
-    posts.forEach(p=>buckets[postGroup(p.fields)].push(card(p,"post")));
-    arts.forEach(a=>buckets[artGroup(a.fields)].push(card(a,"article")));
+    const wait=[],done=[];
+    posts.forEach(p=>{const g=postGroup(p.fields);if(g==="wait")wait.push(card(p,"post"));else if(g==="sched"||g==="done")done.push(line(p,"post",g));});
+    arts.forEach(a=>{const g=artGroup(a.fields);if(g==="wait")wait.push(card(a,"article"));else if(g==="sched"||g==="done")done.push(line(a,"article",g));});
+    done.sort((x,y)=>y.sortKey.localeCompare(x.sortKey));
     const ct=$("#content");ct.innerHTML="";
-    ct.appendChild(section("Waiting on you",buckets.wait,"Nothing needs your approval right now."));
-    if(buckets.mkt.length)ct.appendChild(section("With marketing",buckets.mkt));
-    if(buckets.sched.length)ct.appendChild(section("Approved and scheduled",buckets.sched));
-    if(buckets.done.length)ct.appendChild(section("Published",buckets.done));
-    if(buckets.skip.length)ct.appendChild(section("Not publishing",buckets.skip));
+    ct.appendChild(section("Waiting on you",wait,"Nothing needs your approval right now."));
+    const s=section("You approved",[]);
+    if(!done.length)s.appendChild(el("div","empty","Posts you approve will be listed here."));
+    else{const box=el("div","card lines");done.forEach(x=>box.appendChild(x.el));s.appendChild(box);}
+    ct.appendChild(s);
   }catch(e){handleErr(e);}finally{busy=false;}
 }
 function handleErr(e){
@@ -201,6 +288,7 @@ $("#nSend").onclick=async()=>{
   finally{btn.disabled=false;btn.textContent="Send to marketing";}
 };
 
+if(admin){$("#newBtn").classList.add("hidden");document.title="evoila marketing review";document.querySelector(".brand span").textContent="marketing review";}
 if(!token){$("#who").textContent="Not signed in";flash("Open this page from the personal link in your invite email.","err");}
 else refresh();
 </script>
