@@ -26,15 +26,20 @@ notes; red notes go under OWNER NOTES.
 ## Flow for a deck
 
 1. Someone submits the request page (audience, framing, prospect, date, presenters, meeting notes).
-2. Airtable automation "Deck request: plan and build" asks Airtable AI to pick slides and write talking
-   points, saves the plan to the row, sets Status = Building and fires `build-deck`.
-3. `.github/workflows/build-deck.yml` runs `run_request.py`: downloads the master template, the engine zip
-   and the Live slide library doc, builds the deck, puts the talking points in the speaker notes, converts
-   to PDF with LibreOffice and uploads both files to the row. Status = Ready (or Error with detail).
-4. Airtable automation "Deck ready: email requester" emails the PPTX and PDF, sends Kevin a separate copy,
+2. Airtable automation "Deck request: plan and build" clears the old plan and research, sets
+   Status = Building and fires `build-deck`. (No Airtable AI.)
+3. `.github/workflows/build-deck.yml` runs `build.py`. When the row has no plan, Claude (`ai_steps.py`)
+   picks the slides and writes talking points, and in parallel researches the two data slides with web
+   search. Both are saved to the row. If a Claude step fails, the deck still builds (default slides, no
+   data slides) and the reason goes in Market data check.
+4. `build.py` then runs `run_request.py`: downloads the master template, the engine zip and the Live
+   slide library doc, builds the deck, puts the talking points in the speaker notes, converts to PDF with
+   LibreOffice and uploads both files to the row. Status = Ready (or Error with detail).
+5. Airtable automation "Deck ready: email requester" emails the PPTX and PDF, sends Kevin a separate copy,
    and sets Status = Sent.
 
-Repo secret needed: `AIRTABLE_TOKEN` (Airtable personal access token with `data.records:read` and
+Repo secrets needed: `ANTHROPIC_API_KEY` (Claude API key, with web search enabled in the Claude Console)
+and `AIRTABLE_TOKEN` (Airtable personal access token with `data.records:read` and
 `data.records:write` on the evoila Content Portal base).
 
 The repo is public, so the build logs print no request data or slide copy.
