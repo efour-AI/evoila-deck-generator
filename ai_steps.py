@@ -116,16 +116,31 @@ def make_plan(f, F, presenter_names):
         room=_name(f.get(F["room"])), next_step=_name(f.get(F["next_step"])),
         picked=_name(f.get(F["slides"])), notes=_name(f.get(F["notes"])),
         background=_name(f.get(F["background"])))
-    resp = _call({
-        "model": MODEL, "max_tokens": 4000, "temperature": 0.2,
-        "tools": [{"name": "submit_plan", "description": "Submit the deck plan.", "input_schema": PLAN_SCHEMA}],
-        "tool_choice": {"type": "tool", "name": "submit_plan"},
-        "messages": [{"role": "user", "content": prompt}],
-    }, timeout=180)
-    for b in resp.get("content", []):
-        if b.get("type") == "tool_use" and b.get("name") == "submit_plan":
-            p = b.get("input") or {}
+    tools = [{"name": "submit_plan", "description": "Submit the deck plan.", "input_schema": PLAN_SCHEMA}]
+    messages = [{"role": "user", "content": prompt}]
+    for _ in range(2):     # this model does not accept a forced tool call; ask, and ask once more if needed
+        resp = _call({"model": MODEL, "max_tokens": 4000, "tools": tools, "messages": messages}, timeout=180)
+        content = resp.get("content", [])
+        p = None
+        for b in content:
+            if b.get("type") == "tool_use" and b.get("name") == "submit_plan":
+                p = b.get("input") or {}
+        if p is None:      # answered in text instead: take JSON from it if present
+            text = " ".join(b.get("text", "") for b in content if b.get("type") == "text")
+            m = re.search(r"\{.*\}", text, re.S)
+            try:
+                p = json.loads(m.group(0)) if m else None
+            except Exception:
+                p = None
+        if isinstance(p, dict) and p.get("slides"):
             return {"summary": p.get("summary", ""), "slides": p.get("slides", []), "attendees": p.get("attendees", [])}
+        messages.append({"role": "assistant", "content": content})
+        if resp.get("stop_reason") == "tool_use":
+            messages.append({"role": "user", "content": [
+                {"type": "tool_result", "tool_use_id": b["id"], "content": "Missing slides. Call submit_plan again with the full plan."}
+                for b in content if b.get("type") == "tool_use"]})
+        else:
+            messages.append({"role": "user", "content": "Now call submit_plan with the plan."})
     raise RuntimeError("Claude returned no plan")
 
 
@@ -216,7 +231,7 @@ def make_research(f, F, today):
     ]
     messages = [{"role": "user", "content": prompt}]
     for _ in range(6):     # server-side search can pause a long turn; continue it
-        resp = _call({"model": MODEL, "max_tokens": 8000, "temperature": 0.1, "tools": tools, "messages": messages},
+        resp = _call({"model": MODEL, "max_tokens": 8000, "tools": tools, "messages": messages},
                      timeout=300)
         content = resp.get("content", [])
         for b in content:
