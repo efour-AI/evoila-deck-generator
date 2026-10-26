@@ -49,8 +49,9 @@ jobs:
       - name: Build deck
         env:
           AIRTABLE_TOKEN: ${{ secrets.AIRTABLE_TOKEN }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-        run: python run_request.py
+        run: python build.py
 
       - name: Flag the row if the server failed
         if: failure() || cancelled()
