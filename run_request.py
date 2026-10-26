@@ -603,7 +603,7 @@ def main():
     ai_slides = [slide_no(str(s.get("slide"))) for s in plan.get("slides", []) if isinstance(s, dict)]
     ai_slides = [n for n in ai_slides if isinstance(n, int) and 1 <= n <= 13]
     slides = chosen or list(dict.fromkeys(ai_slides)) or list(range(1, 14))
-    picked = bool(chosen)               # with an explicit pick, data slides appear only if ticked
+    picked = bool(chosen)               # explicit pick (data slides are added either way when research passes)
     if 1 not in slides:
         slides = [1] + slides           # every deck opens on the cover
     if 13 not in slides:
@@ -646,7 +646,7 @@ def main():
     slides = [n for n in slides if n not in ("M", "M2")]
     if market:
         req["market"] = market
-        want = [k for k, key in (("M", "stats"), ("M2", "delivery")) if market.get(key) and (not picked or k in chosen)]
+        want = [k for k, key in (("M", "stats"), ("M2", "delivery")) if market.get(key)]   # research slides go in every deck; presenters can delete them
         slides = sorted(set(slides) | set(want), key=ORDER.index)   # the build also skips M2 if no figure maps to a slide 8 card
     req["slides"] = slides
     req_path = os.path.join(WORK, "request.json")
