@@ -91,7 +91,7 @@ function render(text){
     ul=null;c.appendChild(el("p",null,t));});
 }
 async function go(){
-  if(!token){$("#voice").innerHTML="";flash("Open this page from your personal hub link.","err");$("#suggest").classList.add("hidden");return;}
+  if(!token){$("#voice").classList.add("hidden");flash("Open this page from your personal hub link.","err");$("#suggest").classList.add("hidden");return;}
   try{
     const j=await post(ACT,{a:"voice",who});
     const rec=(j.records||[])[0];
@@ -103,7 +103,7 @@ async function go(){
     const av=$("#av");if(PHOTOS[name])av.style.backgroundImage="url('"+PHOTOS[name]+"')";else av.textContent=name.split(" ").map(x=>x[0]).join("");
     render(rec.fields.Text||"");
     const pk=$("#pick");pk.innerHTML="";AUTHORS.forEach(a=>{const l=el("a",a===name?"on":"",a.split(" ")[0]);l.href="?who="+encodeURIComponent(a);pk.appendChild(l);});
-  }catch(e){$("#voice").innerHTML="";flash(e.message==="auth"?"This link isn't recognized. Use the personal link Kevin sent you.":"Couldn't load this just now. Refresh in a minute.","err");}
+  }catch(e){$("#voice").classList.add("hidden");flash(e.message==="auth"?"This link isn't recognized. Use the personal link Kevin sent you.":"Couldn't load this just now. Refresh in a minute.","err");}
 }
 $("#send").onclick=async()=>{
   const d=$("#chg").value.trim();if(!d){$("#chg").focus();return;}
