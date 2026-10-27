@@ -14,30 +14,38 @@
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#17102A;--card:#231A3B;--ink:#F3EEF8;--muted:#B5ACC4;--line:#3A3052;--soft:#2A2046;
 --okbg:#0F3B30;--ok:#7BE8C6;--warnbg:#45330C;--warn:#F5C66B;--badbg:#4A1A1A;--bad:#FF9C93;--idlebg:#342B48;--idle:#CFC7DB;--donebg:#0D3442;--done:#8BD6EE}}
 *{box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:64px}
 body{margin:0;background:var(--bg);color:var(--ink);font:14.5px/1.5 Inter,system-ui,-apple-system,"Segoe UI",sans-serif}
 a{color:var(--blue)}
-header{background:var(--violet);color:#fff;padding:18px 16px 54px}
+header{background:var(--violet);color:#fff;padding:18px 16px 58px}
 .wrap{max-width:1120px;margin:0 auto}
 .top{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
 .logo{height:24px;width:auto;display:block}
 .who{font-size:13px;color:rgba(255,255,255,.75)}
 h1{font-size:24px;font-weight:700;margin:16px 0 2px;letter-spacing:-.01em}
 .sub{color:rgba(255,255,255,.72);margin:0;font-size:14px}
-main{margin:-38px auto 40px;padding:0 16px}
+nav.tabs{position:sticky;top:0;z-index:5;background:var(--violet);border-top:1px solid rgba(255,255,255,.08);margin-top:-44px}
+nav.tabs .wrap{display:flex;gap:4px;overflow-x:auto;padding:6px 16px;scrollbar-width:none}
+nav.tabs a{flex:none;color:rgba(255,255,255,.78);text-decoration:none;font-size:13px;font-weight:600;padding:7px 12px;border-radius:999px}
+nav.tabs a:hover,nav.tabs a.on{background:rgba(255,255,255,.12);color:#fff}
+main{margin:16px auto 40px;padding:0 16px}
 .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;margin:0 0 14px}
-h2{font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--blue);margin:0 0 12px;display:flex;align-items:center;gap:8px}
+section{scroll-margin-top:60px}
+h2{font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--blue);margin:0 0 12px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 h2 .note{margin-left:auto;font-weight:500;letter-spacing:0;text-transform:none;color:var(--muted);font-size:12px}
 .grid{display:grid;gap:14px}
-@media(min-width:900px){.grid.two{grid-template-columns:1.6fr 1fr}}
-.tools{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px}
-.tool{display:block;text-decoration:none;color:var(--ink);background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 14px;transition:border-color .12s}
-.tool:hover{border-color:var(--blue)}
-.tool b{display:block;font-size:14px}
-.tool span{display:block;font-size:12.5px;color:var(--muted)}
+@media(min-width:900px){.grid.two{grid-template-columns:1.6fr 1fr}.grid.half{grid-template-columns:1fr 1fr}}
+.actions{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;margin:0 0 14px}
+.act{display:flex;gap:12px;align-items:center;text-decoration:none;color:var(--ink);background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;cursor:pointer;font:inherit;text-align:left;width:100%}
+.act:hover{border-color:var(--blue)}
+.act .ic{flex:none;width:38px;height:38px;border-radius:10px;display:grid;place-items:center;background:linear-gradient(135deg,var(--green),var(--blue));color:#fff;font-weight:700;font-size:18px}
+.act b{display:block;font-size:14px}
+.act span{display:block;font-size:12.5px;color:var(--muted)}
 .alert{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;background:var(--card);border:2px solid var(--indigo);border-radius:14px;padding:14px 16px;margin:0 0 14px}
 .alert.quiet{border:1px solid var(--line)}
 .alert b{font-size:15px}
 .btn{display:inline-block;font:inherit;font-weight:600;font-size:14px;border:0;border-radius:9px;padding:9px 16px;color:#fff;background:var(--indigo);text-decoration:none;cursor:pointer}
+.btn.sm{font-size:12.5px;padding:6px 11px}
 .btn.ghost{background:transparent;color:var(--ink);border:1px solid var(--line)}
 .btn:disabled{opacity:.6;cursor:wait}
 .goal{border-top:1px solid var(--line);padding-top:14px;margin-top:14px}
@@ -71,16 +79,35 @@ details[open] .iname::before{transform:rotate(90deg)}
 .tasks li span.t{flex:1}
 .tasks .small{color:var(--muted);font-size:12px;white-space:nowrap}
 .edit{display:grid;gap:6px;margin-top:10px;padding-top:10px;border-top:1px solid var(--line)}
-.edit select,.edit textarea{font:inherit;font-size:13.5px;color:var(--ink);background:var(--card);border:1px solid var(--line);border-radius:8px;padding:7px 9px;width:100%}
-.edit textarea{min-height:56px;resize:vertical}
+select,textarea,input[type=text],input[type=date],input[type=url],input[type=file]{font:inherit;font-size:13.5px;color:var(--ink);background:var(--card);border:1px solid var(--line);border-radius:8px;padding:7px 9px;width:100%}
+textarea{min-height:56px;resize:vertical}
+label.l{display:block;font-size:12.5px;font-weight:600;margin:8px 0 3px}
 .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 .list{list-style:none;margin:0;padding:0}
 .list li{display:flex;justify-content:space-between;gap:12px;padding:8px 0;border-top:1px solid var(--line);font-size:13.5px}
 .list li:first-child{border-top:0}
 .list .l{flex:1;min-width:0}
-.list .l b{font-weight:600;display:block;overflow:hidden;text-overflow:ellipsis}
+.list .l b{font-weight:600;display:block}
 .list .l span{font-size:12px;color:var(--muted)}
 .list .r{text-align:right;font-size:12.5px;color:var(--muted);white-space:nowrap}
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 12px}
+.chip{font:inherit;font-size:12.5px;font-weight:600;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:999px;padding:5px 12px;cursor:pointer}
+.chip.on{background:var(--violet);border-color:var(--violet);color:#fff}
+.res{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:10px}
+.rc{border:1px solid var(--line);border-radius:12px;padding:12px 14px;background:var(--soft);display:flex;flex-direction:column;gap:6px}
+.rc .top2{display:flex;justify-content:space-between;gap:8px;align-items:flex-start}
+.rc b{font-size:14px}
+.rc p{margin:0;font-size:12.5px;color:var(--muted);flex:1}
+.rc .meta{font-size:11.5px;color:var(--muted)}
+.tag{font-size:10.5px;font-weight:700;letter-spacing:.03em;text-transform:uppercase;padding:2px 7px;border-radius:6px;white-space:nowrap}
+.tag.int{background:var(--badbg);color:var(--bad)}.tag.cust{background:var(--okbg);color:var(--ok)}.tag.part{background:var(--donebg);color:var(--done)}
+.ext{font-size:11px;font-weight:700;color:var(--muted);border:1px solid var(--line);border-radius:5px;padding:1px 5px;margin-right:6px}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px}
+.kpi{border:1px solid var(--line);border-radius:12px;padding:12px;background:var(--soft)}
+.kpi .k{font-size:12px;color:var(--muted);font-weight:600}
+.kpi .v{font-size:26px;font-weight:700;letter-spacing:-.02em;font-variant-numeric:tabular-nums;margin:2px 0}
+.kpi .c{font-size:12px;color:var(--ok)}
+.grp{font-size:12px;font-weight:700;color:var(--muted);margin:14px 0 8px;text-transform:uppercase;letter-spacing:.06em}
 .score{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
 .sc{border:1px solid var(--line);border-radius:12px;padding:12px;background:var(--soft)}
 .sc h5{margin:0 0 8px;font-size:14px}
@@ -93,10 +120,20 @@ details[open] .iname::before{transform:rotate(90deg)}
 .people th{text-align:left;font-weight:600;color:var(--muted);font-size:12px;padding:4px 6px;border-bottom:1px solid var(--line)}
 .people td{padding:7px 6px;border-bottom:1px solid var(--line);font-variant-numeric:tabular-nums}
 .people tr:last-child td{border-bottom:0}
+.bar{height:8px;border-radius:4px;background:linear-gradient(90deg,var(--green),var(--blue));min-width:2px}
+.feed{list-style:none;margin:0;padding:0}
+.feed li{display:flex;gap:10px;padding:7px 0;border-top:1px solid var(--line);font-size:13.5px;align-items:baseline}
+.feed li:first-child{border-top:0}
+.feed .d{flex:none;width:52px;font-size:12px;color:var(--muted)}
+.feed .w{flex:none;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--blue);width:70px}
 .msg{padding:12px 14px;border-radius:10px;margin:0 0 14px;font-size:14px}
 .msg.err{background:var(--badbg);color:var(--bad)}.msg.ok{background:var(--okbg);color:var(--ok)}
 .loading{color:var(--muted);padding:30px 0;text-align:center}
 .hidden{display:none}
+dialog{border:0;border-radius:16px;padding:0;max-width:560px;width:calc(100% - 32px);background:var(--card);color:var(--ink)}
+dialog::backdrop{background:rgba(23,16,42,.55)}
+dialog form{padding:18px}
+dialog h3{margin:0 0 6px;font-size:18px}
 footer{text-align:center;font-size:12px;color:var(--muted);padding:0 16px 28px}
 </style>
 </head>
@@ -104,21 +141,52 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 16px 28px}
 <header><div class="wrap">
  <div class="top"><svg viewBox="0 0 175.24 41.66" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" class="logo" role="img" aria-label="evoila"><defs></defs><g><path d="M31.95 26.76C31.7 28.61 30.94 34.23 23.13 38.47 20.03 40.15 16.06 41.29 12.24 41.58 11.59 41.63 10.97 41.66 10.38 41.66 7.63 41.66 5.5 41.14 4.52 40.18 3.9 39.63 3.53 38.82 3.53 37.97 3.53 37.47 3.65 36.98 3.88 36.54 4.16 35.93 4.6 35.36 5.2 34.68L5.2 34.68C5.2 34.68 5.45 34.83 5.58 34.91 5.72 34.99 6.05 35.14 6.05 35.14 5.43 35.84 4.96 36.4 4.72 36.95L4.72 36.98C4.54 37.28 4.46 37.62 4.46 37.97 4.46 38.55 4.71 39.11 5.15 39.5 7.11 41.41 15.92 41.32 22.68 37.65 30.07 33.64 30.78 28.38 31.01 26.65 31.58 22.43 29.46 18.25 25.73 16.24 25.82 16.14 25.91 16.05 25.99 15.95 26.13 15.8 26.25 15.66 26.37 15.51 30.32 17.74 32.55 22.23 31.94 26.77Z" fill="#FFFFFF"/><path d="M25.73 16.23C25.12 16.9 24.44 17.62 23.79 18.49 21.7 21.34 21.47 24.64 21.14 26.97 20.32 32.82 14.94 36.9 9.13 36.07 8.03 35.92 7 35.59 6.05 35.13 6.17 35 6.29 34.86 6.41 34.73 6.97 34.11 7.61 33.41 8.2 32.59 10.13 29.94 10.51 26.88 10.79 24.65 10.83 24.38 10.86 24.13 10.89 23.88 11.26 21.17 12.64 18.77 14.81 17.11 16.97 15.45 19.64 14.74 22.33 15.11 23.52 15.27 24.64 15.63 25.69 16.19L25.69 16.19C25.69 16.19 25.73 16.22 25.73 16.22Z" fill="#FFFFFF"/><path d="M27.66 12.87C27.66 13.3 27.55 13.72 27.35 14.08 27.13 14.56 26.79 15.02 26.37 15.51 26.29 15.46 26.23 15.42 26.14 15.38L26.14 15.38C24.99 14.76 23.75 14.36 22.45 14.19 19.52 13.79 16.6 14.56 14.24 16.37 11.88 18.18 10.36 20.8 9.97 23.76 9.93 24.01 9.9 24.27 9.87 24.54 9.59 26.78 9.24 29.58 7.46 32.03 6.89 32.81 6.3 33.46 5.73 34.09 5.68 34.14 5.63 34.2 5.59 34.25L5.59 34.25C5.59 34.25 5.35 34.51 5.35 34.51 5.3 34.56 5.26 34.61 5.21 34.66 1.63 32.53-0.51 28.38 0.11 23.98 0.47 21.42 1.66 16.46 8.75 12.67 15.44 9.09 24.62 8.82 26.82 10.99 27.34 11.45 27.66 12.12 27.66 12.87Z" fill="#FFFFFF"/><path d="M5.58 34.26C5.5 34.35 5.42 34.44 5.34 34.52L5.2 34.67 5.2 34.67C5.25 34.62 5.29 34.57 5.34 34.52L5.58 34.25 5.58 34.25Z" fill="#FFFFFF"/></g><g id="Logo-2"><g><path d="M76.72 40.72 69.67 13.66 74.73 12.34 80.7 35.26 87.51 19.9C88.16 18.13 87.75 16.78 87.46 15.78 87.22 14.94 87 14.53 86.57 13.72L91.63 12.4C92.13 13.33 92.52 14.2 92.85 15.59 93.23 17.12 93.47 18.9 92.83 20.82L83.96 40.76 76.72 40.74 76.72 40.74Z" fill="#FFFFFF"/><path d="M97.33 30.8 97.31 23.18C97.29 16.04 100.91 12.42 108.96 12.42 117.01 12.42 120.78 16.09 120.75 23.18L120.77 30.8C120.82 37.42 117.2 41.61 109.12 41.61 101.04 41.61 97.33 37.1 97.33 30.8L97.33 30.8ZM115.82 23.18C115.8 18.58 113.88 16.68 109.25 16.66 104.53 16.66 102.71 18.55 102.71 23.18L102.71 30.8C102.71 34.9 104.53 37.34 109.33 37.34 114.13 37.34 115.83 35.18 115.83 30.8L115.83 23.18 115.83 23.18Z" fill="#FFFFFF"/><path d="M127.63 13.78 132.88 12.42 132.86 40.72 127.7 40.72 127.63 13.78Z" fill="#FFFFFF"/><path d="M140.43 1.37 145.66 0 145.66 40.7 140.43 40.7 140.43 1.37 140.43 1.37Z" fill="#FFFFFF"/><path d="M175.24 40.72 170.9 40.72 170.42 37.22C167.52 40.07 163.54 41.65 159.61 41.65 154.84 41.65 152.59 38.87 151.96 35.54 151.82 34.82 151.82 34.05 151.79 33.29L151.79 23.05C151.79 16.03 153.92 12.41 163.73 12.41 167.54 12.41 171.98 13.3 175.24 14.38L175.24 40.72 175.24 40.72ZM170.01 17.33C168.28 16.92 166.05 16.61 163.9 16.61 159.13 16.61 157.02 17.98 157.02 23.68L157.02 32.91C157.02 33.63 157.04 34.4 157.14 34.92 157.4 36.29 158.24 37.32 160.14 37.32 164.02 37.32 167.02 35.04 170.02 32.02L170.02 17.33 170.02 17.33Z" fill="#FFFFFF"/><circle cx="130.25" cy="6.59" r="2.85" fill="#FFFFFF"/><path d="M64.62 32.57C61.07 34.75 56.3 37.34 53.07 37.34 49.84 37.34 48.11 36.53 47.75 34.7 47.7 34.46 47.63 34.05 47.63 33.41L47.63 31.08C50.19 30.31 52.71 30.03 56.28 28.85 64.6 26.14 66.56 23.74 65.63 18.9 64.79 14.66 60.62 12.43 55.39 12.43 46.5 12.43 42.3 16.07 42.3 23.31L42.32 32.35C42.32 33.36 42.44 34.29 42.58 34.99 43.35 38.92 46.39 41.63 52.72 41.63 57.85 41.63 62.62 38.9 65.86 36.69L64.61 32.57 64.61 32.57ZM47.6 22.68C47.6 18.03 50.88 16.69 55.77 16.69 58.6 16.69 60.37 17.58 60.76 19.45 61.22 21.8 58.72 23.62 53.76 25.03 50.88 25.84 49.25 26.16 47.6 26.61L47.6 22.68 47.6 22.68Z" fill="#FFFFFF"/></g></g></svg><div class="who" id="who">Loading…</div></div>
  <h1>Marketing hub</h1>
- <p class="sub">Where we are headed, what is moving, and the tools to help sell.</p>
+ <p class="sub">Where we are headed, what is moving, and everything you need to sell.</p>
 </div></header>
+<nav class="tabs" id="tabs"><div class="wrap">
+ <a href="#home">Home</a><a href="#strategy">Strategy</a><a href="#library">Library</a><a href="#decks">Decks</a>
+ <a href="#linkedin">LinkedIn</a><a href="#analytics">Analytics</a><a href="#requests">Requests</a><a href="#usage" class="hidden" id="usageTab">Usage</a>
+</div></nav>
 <main class="wrap">
  <div id="flash"></div>
  <div id="app"><div class="card loading">Loading the latest from Airtable…</div></div>
 </main>
 <footer>evoila US &middot; internal &middot; <span id="asof"></span></footer>
+
+<dialog id="askDlg"><form method="dialog" id="askForm">
+ <h3>Ask marketing</h3>
+ <div class="owners">A slide, a customer story, a post, an event. You'll see the status here on the hub.</div>
+ <label class="l" for="askTitle">What do you need?</label><input type="text" id="askTitle" maxlength="140" placeholder="e.g. A one-slide summary of our DR offering">
+ <label class="l" for="askKind">Kind</label>
+ <select id="askKind"><option>Slide or deck</option><option>Customer story or proof</option><option>LinkedIn post</option><option>Event or webinar</option><option>Other</option></select>
+ <label class="l" for="askDetails">Details</label><textarea id="askDetails" style="min-height:90px" placeholder="Who it's for, the context, links to anything useful"></textarea>
+ <label class="l" for="askNeed">Needed by (optional)</label><input type="date" id="askNeed">
+ <div class="row" style="margin-top:14px;justify-content:flex-end"><button class="btn ghost" value="cancel" type="button" id="askCancel">Cancel</button><button class="btn" id="askSend" type="button">Send to marketing</button></div>
+</form></dialog>
+
+<dialog id="resDlg"><form method="dialog">
+ <h3>Add to the library</h3>
+ <label class="l" for="rTitle">Name</label><input type="text" id="rTitle" maxlength="120">
+ <div class="row"><div style="flex:1"><label class="l" for="rCat">Category</label><select id="rCat"><option>Sales enablement</option><option>Customer-ready</option><option>Decks</option><option>Messaging</option><option>Brand</option></select></div>
+ <div style="flex:1"><label class="l" for="rShare">Sharing</label><select id="rShare"><option>Internal only</option><option>OK to share with customers</option><option>OK to share with partners</option></select></div></div>
+ <label class="l" for="rDesc">One-line description</label><textarea id="rDesc"></textarea>
+ <label class="l" for="rFile">File (up to 4 MB) or a link</label><input type="file" id="rFile">
+ <input type="url" id="rLink" placeholder="https://… (SharePoint, Drive, website)" style="margin-top:6px">
+ <div class="row" style="margin-top:14px;justify-content:flex-end"><button class="btn ghost" type="button" id="resCancel">Cancel</button><button class="btn" id="resSend" type="button">Add</button></div>
+</form></dialog>
+
 <script>
 const API="https://hook.us2.make.com/o28rqytj8ifgm1o2tckavp2194d8jbqt";
 const BASE=location.pathname.replace(/hub\/?(index\.html)?$/,"");
 const AIRTABLE_PLAN="https://airtable.com/appYVahdfC3gbtArV/tblvX1fUfz9wSvKWK";
-const AIRTABLE_SCORE="https://airtable.com/appYVahdfC3gbtArV/tblNvERSxvvxNPYvk";
+const AIRTABLE_LIB="https://airtable.com/appYVahdfC3gbtArV/tblYQvkJUWlEhtg6s";
+const AIRTABLE_MET="https://airtable.com/appYVahdfC3gbtArV/tbls80oDnn2mXzO95";
+const AIRTABLE_REQ="https://airtable.com/appYVahdfC3gbtArV/tblUDkUbEKQEOc7Us";
+const ANALYTICS_URL="https://claude.ai/artifact/Gj7nCXY9v9N1YuPkxd5r6w";
 const AUTHORS=["Glen Tindal","Mark Maisano","Andrew Hald"];
 const PEOPLE=["Kevin O'Brien","Glen Tindal","Mark Maisano","Andrew Hald","Tom MacKay","Julie Tindal"];
 const STATUSES=["Not started","On track","At risk","Blocked","Done"];
+const DEV=/Mobi|Android|iPhone|iPad/i.test(navigator.userAgent)?"phone":"desktop";
 
 function store(k,v){try{v===undefined?localStorage.removeItem(k):localStorage.setItem(k,v)}catch(e){}}
 function load(k){try{return localStorage.getItem(k)}catch(e){return null}}
@@ -131,23 +199,26 @@ else{const s=load("evoila_hub");if(s){mode=s.slice(0,1);token=s.slice(2);}}
 
 const $=s=>document.querySelector(s);
 function el(tag,cls,text){const e=document.createElement(tag);if(cls)e.className=cls;if(text!=null)e.textContent=text;return e;}
-function flash(text,kind){const d=$("#flash");d.innerHTML="";if(!text)return;d.appendChild(el("div","msg "+(kind||"ok"),text));}
+function flash(text,kind){const d=$("#flash");d.innerHTML="";if(!text)return;d.appendChild(el("div","msg "+(kind||"ok"),text));window.scrollTo({top:0,behavior:"smooth"});}
 function fmt(d,opt){if(!d)return"";const x=new Date(String(d).length===10?d+"T12:00:00":d);return x.toLocaleDateString(undefined,opt||{month:"short",day:"numeric"});}
 function days(d){if(!d)return null;const x=new Date(String(d).length===10?d+"T12:00:00":d);return Math.round((x-Date.now())/864e5);}
 function first(n){return String(n||"").split(" ")[0];}
 function num(n){return n==null?"–":Number(n).toLocaleString();}
 function pill(s){const p=el("span","pill",s||"Not started");p.className="pill"+({"On track":" on","At risk":" risk","Blocked":" block","Done":" done"}[s]||"");return p;}
+function section(id,title,note){const s=el("section","card");s.id=id;const hd=el("h2",null,title);if(note)hd.appendChild(el("span","note",note));s.appendChild(hd);return s;}
 async function call(params){
-  const r=await fetch(API,{method:"POST",body:new URLSearchParams(Object.assign({t:token},params))});
+  const r=await fetch(API,{method:"POST",body:new URLSearchParams(Object.assign({t:token,dev:DEV},params))});
   const txt=await r.text();let j=null;try{j=JSON.parse(txt)}catch(e){}
   if(r.status===401)throw new Error("auth");
   if(!r.ok||!j)throw new Error(txt||("Error "+r.status));
   return j;
 }
+function track(type,item){try{fetch(API,{method:"POST",keepalive:true,body:new URLSearchParams({t:token,dev:DEV,a:"track",type,item:String(item||"").slice(0,190)})});}catch(e){}}
+function fileExt(name){const m=String(name||"").match(/\.([a-z0-9]+)$/i);return m?m[1].toUpperCase():"";}
 
 let D=null;
 async function refresh(){
-  try{D=await call({a:"hub"});render();}
+  try{D=await call({a:"hub",page:"Hub"});render();}
   catch(e){
     if(e.message==="auth"){store("evoila_hub");$("#who").textContent="Not signed in";$("#app").innerHTML="";flash("This link isn't recognized. Use the personal link Kevin sent you.","err");return;}
     $("#app").innerHTML="";flash("Couldn't load the hub just now. Refresh in a minute; if it keeps happening, tell Kevin.","err");
@@ -158,19 +229,24 @@ function render(){
   const me=D.person,admin=D.admin==="yes",author=D.author;
   $("#who").textContent="Signed in as "+me+(admin?" · admin":"");
   $("#asof").textContent="Live from Airtable, "+fmt(new Date().toISOString(),{weekday:"short",month:"short",day:"numeric",hour:"numeric",minute:"2-digit"});
+  if(admin)$("#usageTab").classList.remove("hidden");
   const app=$("#app");app.innerHTML="";
-  app.appendChild(waiting(me,admin,author));
-  app.appendChild(tools(admin,author));
-  const g=el("div","grid two");
-  const left=el("div"),right=el("div");
-  left.appendChild(strategy(admin));
-  right.appendChild(owes());
-  right.appendChild(calendar());
-  right.appendChild(decks(me,admin));
-  g.append(left,right);app.appendChild(g);
-  app.appendChild(scorecard(admin));
+  const home=el("div");home.id="home";
+  home.appendChild(waiting(me,admin,author));
+  home.appendChild(actions(admin,author));
+  const g0=el("div","grid half");g0.appendChild(whatsNew());g0.appendChild(owes());home.appendChild(g0);
+  app.appendChild(home);
+  app.appendChild(strategy(admin));
+  app.appendChild(library(admin));
+  app.appendChild(decks(me,admin));
+  app.appendChild(linkedin());
+  app.appendChild(analytics(admin));
+  app.appendChild(requests(me,admin));
+  if(admin)app.appendChild(usage());
+  spy();
 }
 
+/* ---------- home ---------- */
 function waiting(me,admin,author){
   const posts=D.posts.map(p=>p.fields),arts=D.articles.map(a=>a.fields);
   const box=el("div","alert");
@@ -184,31 +260,64 @@ function waiting(me,admin,author){
   if(admin){
     const review=posts.filter(p=>p.Status==="Pending Marketing Review"||p.Status==="Changes Requested"||p["Generate Copy"]).length+arts.filter(a=>a.Status==="Pending Marketing Review"||a.Status==="Changes Requested").length;
     const withAuthors={};posts.concat(arts).filter(x=>x.Status==="Marketing Approved").forEach(x=>{const k=first(x["Author / Profile"]);withAuthors[k]=(withAuthors[k]||0)+1;});
+    const newReq=D.requests.map(r=>r.fields).filter(r=>(r.Status||"New")==="New").length;
     const left=el("div");
-    left.appendChild(el("b",null,review+" waiting on marketing review"));
+    left.appendChild(el("b",null,review+" waiting on marketing review"+(newReq?" · "+newReq+" new request"+(newReq>1?"s":""):"")));
     const parts=Object.entries(withAuthors).map(([k,v])=>k+" "+v);
     left.appendChild(el("div","owners",parts.length?"Waiting on authors: "+parts.join(", "):"Nothing is sitting with the authors."));
     const a=el("a","btn","Open marketing review");a.href=BASE+"authors/?m";box.append(left,a);return box;
   }
   box.className="alert quiet";
-  const left=el("div");left.appendChild(el("b",null,"Welcome, "+first(me)));left.appendChild(el("div","owners","Need a deck for a meeting? It lands in your inbox in about five minutes."));
+  const left=el("div");left.appendChild(el("b",null,"Welcome, "+first(me)));left.appendChild(el("div","owners","Meeting coming up? Get a tailored deck in your inbox in about five minutes."));
   const a=el("a","btn","Request a deck");a.href=BASE;box.append(left,a);return box;
 }
 
-function tools(admin,author){
-  const c=el("div","card");c.appendChild(el("h2",null,"Tools"));
-  const t=el("div","tools");
-  const add=(href,b,s,ext)=>{const a=el("a","tool");a.href=href;if(ext){a.target="_blank";a.rel="noopener";}a.appendChild(el("b",null,b));a.appendChild(el("span",null,s));t.appendChild(a);};
-  add(BASE,"Request a meeting deck","PowerPoint and PDF by email in about 5 minutes");
-  if(author)add(BASE+"authors/","My posts","Approve, edit, hold, or start a new post");
-  if(admin){add(BASE+"authors/?m","Marketing review","Edit and send drafts to authors");add(AIRTABLE_PLAN,"Edit the plan","Goals, objectives and initiatives in Airtable",true);add(AIRTABLE_SCORE,"Scorecard numbers","Weekly follower counts in Airtable",true);}
-  add("mailto:kevin@efour.ai?subject=Marketing%20request","Ask marketing","A slide, a story, a post, anything else");
+function actions(admin,author){
+  const g=el("div","actions");
+  const add=(ic,b,s,href,fn)=>{const a=el(href?"a":"button","act");if(href)a.href=href;else a.type="button";if(fn)a.onclick=fn;
+    const i=el("span","ic",ic);const t=el("div");t.appendChild(el("b",null,b));t.appendChild(el("span",null,s));a.append(i,t);g.appendChild(a);};
+  add("▣","Walking deck","Pick an audience, get a tailored deck by email",BASE,()=>track("Request deck","Walking deck"));
+  add("✎","Build your own deck","Outline it slide by slide, we build it on brand",BASE+"build/",()=>track("Custom deck","Opened builder"));
+  if(author)add("✦","Start a post","A few bullets in, a draft in your voice back",BASE+"authors/");
+  add("?","Ask marketing","A slide, a story, a post, an event",null,()=>$("#askDlg").showModal());
+  return g;
+}
+
+function whatsNew(){
+  const c=section("new","What's new","Last 14 days");
+  const since=Date.now()-14*864e5,items=[];
+  D.resources.forEach(r=>{const f=r.fields,t=Date.parse(f.Added||r.createdTime);if(t>=since)items.push([t,"Library",f.Name]);});
+  D.decks.forEach(r=>{const f=r.fields,t=Date.parse(f["Requested at"]||r.createdTime);if(t>=since&&f.Status==="Sent")items.push([t,"Deck",(f["Company you are meeting with"]||"Deck")+" · "+first(f["Your name"])]);});
+  D.posts.forEach(r=>{const f=r.fields,t=Date.parse(f["Published Date"]||"");if(t>=since&&f.Status==="Published")items.push([t,"Posted",first(f["Author / Profile"])+": "+(f["Post Title Preference"]||"LinkedIn post")]);});
+  D.plan.forEach(r=>{const f=r.fields,u=(f["Latest update"]||"").match(/^\[(\d{4}-\d\d-\d\d)\]\s*([^:]+):\s*(.*)/);if(u){const t=Date.parse(u[1]+"T12:00:00");if(t>=since)items.push([t,"Plan",f.Name+": "+u[3].split("\n")[0]]);}});
+  items.sort((a,b)=>b[0]-a[0]);
+  if(!items.length){c.appendChild(el("div","empty","Quiet fortnight. New decks, posts and library files show up here."));return c;}
+  const ul=el("ul","feed");
+  items.slice(0,8).forEach(([t,w,txt])=>{const li=el("li");li.append(el("span","d",fmt(new Date(t).toISOString())),el("span","w",w),el("span",null,txt));ul.appendChild(li);});
+  c.appendChild(ul);return c;
+}
+
+function owes(){
+  const c=section("owes","Who owes what","Open initiatives and tasks");
+  const plan=D.plan.map(r=>r.fields).filter(p=>p.Level==="Initiative"&&p.Status!=="Done");
+  const tasks=D.items.map(i=>i.fields).filter(t=>t.Status!=="Closed");
+  const approvals={};D.posts.map(p=>p.fields).concat(D.articles.map(a=>a.fields)).filter(x=>x.Status==="Marketing Approved").forEach(x=>{approvals[x["Author / Profile"]]=(approvals[x["Author / Profile"]]||0)+1;});
+  const t=el("table","people");const hr=el("tr");["","Initiatives","Tasks","Approvals"].forEach(x=>hr.appendChild(el("th",null,x)));t.appendChild(hr);
+  PEOPLE.forEach(p=>{
+    const ni=plan.filter(x=>(x.Owner||[]).includes(p)).length;
+    const risky=plan.filter(x=>(x.Owner||[]).includes(p)&&(x.Status==="At risk"||x.Status==="Blocked")).length;
+    const nt=tasks.filter(x=>(x.Owner||[]).includes(p)).length;
+    const na=approvals[p]||0;
+    const tr=el("tr");tr.appendChild(el("td",null,first(p)));
+    const tdi=el("td",null,String(ni));if(risky){tdi.appendChild(document.createTextNode(" "));const pp=pill(risky+" at risk");pp.className="pill risk";tdi.appendChild(pp);}
+    tr.append(tdi,el("td",null,String(nt)),el("td",null,na?String(na):"–"));t.appendChild(tr);
+  });
   c.appendChild(t);return c;
 }
 
+/* ---------- strategy ---------- */
 function strategy(admin){
-  const c=el("div","card");
-  const hd=el("h2",null,"Strategy");hd.appendChild(el("span","note","Tap an initiative for detail and tasks"));c.appendChild(hd);
+  const c=section("strategy","Strategy","Tap an initiative for detail and tasks");
   const plan=D.plan.map(r=>Object.assign({id:r.id},r.fields));
   const byParent={};plan.forEach(p=>{(p.Parent||["_"]).forEach(par=>{(byParent[par]=byParent[par]||[]).push(p);});});
   const sort=a=>a.sort((x,y)=>(x.Order||99)-(y.Order||99));
@@ -230,6 +339,7 @@ function strategy(admin){
     });
     c.appendChild(gd);
   });
+  if(admin){const a=el("a",null,"Edit the plan in Airtable");a.href=AIRTABLE_PLAN;a.target="_blank";a.rel="noopener";const p=el("div","owners");p.style.marginTop="10px";p.appendChild(a);c.appendChild(p);}
   return c;
 }
 
@@ -270,79 +380,196 @@ function initiative(i,items,admin){
   d.appendChild(b);return d;
 }
 
-function owes(){
-  const c=el("div","card");const hd=el("h2",null,"Who owes what");hd.appendChild(el("span","note","Open initiatives and tasks"));c.appendChild(hd);
-  const plan=D.plan.map(r=>r.fields).filter(p=>p.Level==="Initiative"&&p.Status!=="Done");
-  const tasks=D.items.map(i=>i.fields).filter(t=>t.Status!=="Closed");
-  const approvals={};D.posts.map(p=>p.fields).concat(D.articles.map(a=>a.fields)).filter(x=>x.Status==="Marketing Approved").forEach(x=>{approvals[x["Author / Profile"]]=(approvals[x["Author / Profile"]]||0)+1;});
-  const t=el("table","people");const hr=el("tr");["","Initiatives","Tasks","Approvals"].forEach(x=>hr.appendChild(el("th",null,x)));t.appendChild(hr);
-  PEOPLE.forEach(p=>{
-    const ni=plan.filter(x=>(x.Owner||[]).includes(p)).length;
-    const risky=plan.filter(x=>(x.Owner||[]).includes(p)&&(x.Status==="At risk"||x.Status==="Blocked")).length;
-    const nt=tasks.filter(x=>(x.Owner||[]).includes(p)).length;
-    const na=approvals[p]||0;
-    const tr=el("tr");tr.appendChild(el("td",null,first(p)));
-    const tdi=el("td",null,String(ni));if(risky){tdi.appendChild(document.createTextNode(" "));const pp=pill(risky+" at risk");pp.className="pill risk";tdi.appendChild(pp);}
-    tr.append(tdi,el("td",null,String(nt)),el("td",null,na?String(na):"–"));t.appendChild(tr);
-  });
-  c.appendChild(t);return c;
+/* ---------- library ---------- */
+let libFilter="All";
+function library(admin){
+  const c=section("library","Resource library","Only people with a hub link can open these");
+  const res=D.resources.map(r=>Object.assign({id:r.id},r.fields)).sort((a,b)=>(a.Order||99)-(b.Order||99));
+  const cats=["All"].concat([...new Set(res.map(r=>r.Category).filter(Boolean))]);
+  const chips=el("div","chips");const grid=el("div","res");
+  const draw=()=>{grid.innerHTML="";chips.querySelectorAll(".chip").forEach(x=>x.classList.toggle("on",x.dataset.c===libFilter));
+    const show=res.filter(r=>libFilter==="All"||r.Category===libFilter);
+    if(!show.length)grid.appendChild(el("div","empty","Nothing here yet."));
+    show.forEach(r=>grid.appendChild(resCard(r)));};
+  cats.forEach(cat=>{const b=el("button","chip",cat);b.type="button";b.dataset.c=cat;b.onclick=()=>{libFilter=cat;draw();};chips.appendChild(b);});
+  c.append(chips,grid);draw();
+  if(admin){const row=el("div","row");row.style.marginTop="12px";const b=el("button","btn ghost sm","+ Add to the library");b.type="button";b.onclick=()=>$("#resDlg").showModal();
+    const a=el("a",null,"Manage in Airtable");a.href=AIRTABLE_LIB;a.target="_blank";a.rel="noopener";a.style.fontSize="12.5px";row.append(b,a);c.appendChild(row);}
+  return c;
+}
+function resCard(r){
+  const d=el("div","rc");
+  const t=el("div","top2");t.appendChild(el("b",null,r.Name||"Untitled"));
+  const sh=r.Sharing||"Internal only";const tg=el("span","tag "+(sh.startsWith("Internal")?"int":sh.includes("customers")?"cust":"part"),sh.startsWith("Internal")?"Internal":sh.includes("customers")?"Share with customers":"Share with partners");
+  t.appendChild(tg);d.appendChild(t);
+  if(r.Description)d.appendChild(el("p",null,r.Description));
+  d.appendChild(el("div","meta",[r.Owner,r["Version date"]?"updated "+fmt(r["Version date"],{month:"short",day:"numeric",year:"numeric"}):""].filter(Boolean).join(" · ")));
+  const row=el("div","row");
+  (r.File||[]).slice(0,2).forEach(f=>{const a=el("a","btn sm");a.href=f.url;a.target="_blank";a.rel="noopener";a.appendChild(el("span","ext",fileExt(f.filename)));a.appendChild(document.createTextNode("Download"));a.onclick=()=>track("Open resource",r.Name);row.appendChild(a);});
+  if(r.Link){const a=el("a","btn ghost sm","Open link");a.href=r.Link;a.target="_blank";a.rel="noopener";a.onclick=()=>track("Open resource",r.Name);row.appendChild(a);}
+  d.appendChild(row);return d;
 }
 
-function calendar(){
-  const c=el("div","card");const hd=el("h2",null,"Coming up on LinkedIn");hd.appendChild(el("span","note","Next 3 weeks"));c.appendChild(hd);
-  const now=Date.now(),end=now+21*864e5;
-  const up=D.posts.map(p=>p.fields).filter(p=>{const t=Date.parse(p["Date Posted"]||"");return t&&t>=now-864e5&&t<=end&&p.Status!=="Published"&&!/Rejected/.test(p.Status||"");})
-    .sort((a,b)=>Date.parse(a["Date Posted"])-Date.parse(b["Date Posted"]));
-  if(!up.length){c.appendChild(el("div","empty","Nothing scheduled in the next three weeks."));return c;}
-  const ul=el("ul","list");
-  up.forEach(p=>{const li=el("li");const l=el("div","l");l.appendChild(el("b",null,p["Post Title Preference"]||"Untitled post"));
-    const st=/^Approved by/.test(p.Status)?"Approved":p.Status==="Marketing Approved"?"Waiting on "+first(p["Author / Profile"]):p.Status==="Pending Marketing Review"?"In marketing review":(p.Status||"Drafting");
-    l.appendChild(el("span",null,first(p["Author / Profile"])+" · "+st));li.append(l,el("div","r",fmt(p["Date Posted"],{weekday:"short",month:"short",day:"numeric"})));ul.appendChild(li);});
-  c.appendChild(ul);return c;
-}
-
+/* ---------- decks ---------- */
 function decks(me,admin){
-  const c=el("div","card");const hd=el("h2",null,admin?"Recent decks":"My decks");c.appendChild(hd);
-  let list=D.decks.map(d=>d.fields);
-  if(!admin)list=list.filter(d=>(d["Your email"]||"").toLowerCase()===String(D.email).toLowerCase()||first(d["Your name"]).toLowerCase()===first(me).toLowerCase());
-  list=list.slice(0,6);
-  if(!list.length){c.appendChild(el("div","empty","No decks yet. "));const a=el("a",null,"Request one");a.href=BASE;c.lastChild.appendChild(a);return c;}
+  const c=section("decks","Recent decks","Built by the team · reuse anything");
+  const list=D.decks.map(d=>d.fields).filter(d=>d.Status==="Sent"||d.Status==="Ready"||d.Status==="Building").slice(0,12);
+  const row=el("div","row");row.style.marginBottom="10px";
+  const a1=el("a","btn sm","Request a walking deck");a1.href=BASE;const a2=el("a","btn ghost sm","Build your own deck");a2.href=BASE+"build/";row.append(a1,a2);c.appendChild(row);
+  if(!list.length){c.appendChild(el("div","empty","No decks yet."));return c;}
   const ul=el("ul","list");
-  list.forEach(d=>{const li=el("li");const l=el("div","l");l.appendChild(el("b",null,d["Company you are meeting with"]||"Deck #"+d.Request));
-    l.appendChild(el("span",null,[admin?first(d["Your name"]):null,d["Who is the audience?"],d["Meeting date"]?"meeting "+fmt(d["Meeting date"]):null].filter(Boolean).join(" · ")));
+  list.forEach(d=>{const li=el("li");const l=el("div","l");
+    const mine=(d["Your email"]||"").toLowerCase()===String(D.email).toLowerCase();
+    l.appendChild(el("b",null,(d["Company you are meeting with"]||"Deck #"+d.Request)+(mine?"  · yours":"")));
+    l.appendChild(el("span",null,[first(d["Your name"]),d["Who is the audience?"],d["Meeting date"]?"meeting "+fmt(d["Meeting date"]):"built "+fmt(d["Requested at"])].filter(Boolean).join(" · ")));
     const r=el("div","r");const files=[["PPTX",d["Deck PPTX"]],["PDF",d["Deck PDF"]]].filter(x=>x[1]&&x[1][0]);
-    if(files.length)files.forEach(([lab,f],ix)=>{const a=el("a",null,lab);a.href=f[0].url;a.target="_blank";a.rel="noopener";if(ix)r.appendChild(document.createTextNode(" · "));r.appendChild(a);});
-    else r.textContent=d.Status||"Building";
+    if(files.length)files.forEach(([lab,f],ix)=>{const a=el("a",null,lab);a.href=f[0].url;a.target="_blank";a.rel="noopener";a.onclick=()=>track("Download deck",(d["Company you are meeting with"]||"")+" "+lab);if(ix)r.appendChild(document.createTextNode(" · "));r.appendChild(a);});
+    else r.textContent=d.Status==="Building"?"Building…":(d.Status||"");
     li.append(l,r);ul.appendChild(li);});
   c.appendChild(ul);return c;
 }
 
-function scorecard(admin){
-  const c=el("div","card");const hd=el("h2",null,"LinkedIn scorecard");hd.appendChild(el("span","note","Published posts, last 30 days"));c.appendChild(hd);
+/* ---------- linkedin ---------- */
+function linkedin(){
+  const c=section("linkedin","LinkedIn posts","Approved, scheduled and recently live");
+  const posts=D.posts.map(p=>p.fields);const now=Date.now();
+  const approved=posts.filter(p=>/^Approved by/.test(p.Status||"")).sort((a,b)=>Date.parse(a["Date Posted"]||0)-Date.parse(b["Date Posted"]||0));
+  const waiting=posts.filter(p=>p.Status==="Marketing Approved").sort((a,b)=>Date.parse(a["Date Posted"]||0)-Date.parse(b["Date Posted"]||0));
+  const live=posts.filter(p=>p.Status==="Published").sort((a,b)=>Date.parse(b["Published Date"]||b["Date Posted"]||0)-Date.parse(a["Published Date"]||a["Date Posted"]||0)).slice(0,8);
+  const g=el("div","grid half");
+  const col=(title,rows,emptyText,right)=>{const box=el("div");box.appendChild(el("div","grp",title));
+    if(!rows.length){box.appendChild(el("div","empty",emptyText));return box;}
+    const ul=el("ul","list");rows.forEach(p=>{const li=el("li");const l=el("div","l");
+      const t=p["Published URL"]?el("a",null,p["Post Title Preference"]||"Untitled post"):el("b",null,p["Post Title Preference"]||"Untitled post");
+      if(p["Published URL"]){t.href=p["Published URL"];t.target="_blank";t.rel="noopener";t.style.fontWeight="600";t.style.display="block";}
+      l.appendChild(t);l.appendChild(el("span",null,p["Author / Profile"]||""));li.append(l,el("div","r",right(p)));ul.appendChild(li);});
+    box.appendChild(ul);return box;};
+  g.appendChild(col("Approved and scheduled ("+approved.length+")",approved,"Nothing approved and waiting to go out.",p=>fmt(p["Date Posted"],{weekday:"short",month:"short",day:"numeric"})));
+  const right=el("div");
+  right.appendChild(col("Waiting on the author ("+waiting.length+")",waiting,"No posts waiting on authors.",p=>fmt(p["Date Posted"])));
+  right.appendChild(col("Recently live",live,"Nothing published in the last 90 days.",p=>"Posted "+fmt(p["Published Date"]||p["Date Posted"])));
+  g.appendChild(right);c.appendChild(g);return c;
+}
+
+/* ---------- analytics ---------- */
+function analytics(admin){
+  const c=section("analytics","Analytics","");
+  const m=D.metrics.map(r=>r.fields).sort((a,b)=>(a.Order||99)-(b.Order||99));
+  const asof=m.map(x=>x["As of"]).filter(Boolean).sort().pop();
+  c.querySelector("h2 .note")?.remove();
+  const hn=el("span","note",asof?"Company page numbers as of "+fmt(asof,{month:"short",day:"numeric",year:"numeric"}):"");c.querySelector("h2").appendChild(hn);
+  ["Company page","US audience","Engagement"].forEach(gname=>{
+    const rows=m.filter(x=>x.Group===gname);if(!rows.length)return;
+    c.appendChild(el("div","grp",gname));const k=el("div","kpis");
+    rows.forEach(x=>{const d=el("div","kpi");d.appendChild(el("div","k",x.Metric));d.appendChild(el("div","v",x.Display||""));if(x.Change)d.appendChild(el("div","c",x.Change));if(x.Note)d.title=x.Note;k.appendChild(d);});
+    c.appendChild(k);
+  });
+  const top=m.filter(x=>x.Group==="Top posts");
+  if(top.length){c.appendChild(el("div","grp","Best US posts on the company page"));const ul=el("ul","list");
+    top.forEach(x=>{const li=el("li");const l=el("div","l");const a=el(x.Link?"a":"b",null,x.Metric);if(x.Link){a.href=x.Link;a.target="_blank";a.rel="noopener";a.style.fontWeight="600";a.style.display="block";}
+      l.appendChild(a);if(x.Change)l.appendChild(el("span",null,x.Change));li.append(l,el("div","r",x.Display||""));ul.appendChild(li);});c.appendChild(ul);}
+  c.appendChild(el("div","grp","Personal profiles · last 30 days"));
+  c.appendChild(scorecard());
+  if(admin){const p=el("div","owners");p.style.marginTop="10px";
+    const a=el("a",null,"Full LinkedIn dashboard");a.href=ANALYTICS_URL;a.target="_blank";a.rel="noopener";
+    const b=el("a",null,"update these numbers");b.href=AIRTABLE_MET;b.target="_blank";b.rel="noopener";
+    p.append(a,document.createTextNode(" · "),b);c.appendChild(p);}
+  return c;
+}
+function scorecard(){
   const since=Date.now()-30*864e5;
-  const posts=D.posts.map(p=>p.fields);
-  const scores=D.scores.map(s=>s.fields);
-  const g=el("div","score");
-  let anyMetrics=false;
+  const posts=D.posts.map(p=>p.fields);const scores=D.scores.map(s=>s.fields);
+  const g=el("div","score");let any=false;
   AUTHORS.forEach(a=>{
     const mine=posts.filter(p=>p["Author / Profile"]===a);
     const pub=mine.filter(p=>p.Status==="Published"&&Date.parse(p["Published Date"]||p["Date Posted"]||0)>=since);
-    const sum=k=>{const v=pub.map(p=>p[k]).filter(x=>x!=null);if(v.length)anyMetrics=true;return v.length?v.reduce((x,y)=>x+y,0):null;};
-    const sched=mine.filter(p=>/^Approved by/.test(p.Status||"")).length;
-    const waiting=mine.filter(p=>p.Status==="Marketing Approved").length;
+    const sum=k=>{const v=pub.map(p=>p[k]).filter(x=>x!=null);if(v.length)any=true;return v.length?v.reduce((x,y)=>x+y,0):null;};
     const fol=scores.filter(s=>s.Person===a&&s.Followers!=null).sort((x,y)=>(y["Week of"]||"").localeCompare(x["Week of"]||""));
     const sc=el("div","sc");sc.appendChild(el("h5",null,a));
     sc.appendChild(el("div","big",String(pub.length)));sc.appendChild(el("div","owners","posts published"));
     const kv=(k,v)=>{const r=el("div","kv");r.append(el("span",null,k),el("b",null,v));sc.appendChild(r);};
-    kv("Impressions",num(sum("Impressions")));kv("Reactions",num(sum("Reactions")));kv("Comments",num(sum("Comments")));kv("Reposts",num(sum("Reposts")));
+    kv("Impressions",num(sum("Impressions")));kv("Reactions",num(sum("Reactions")));kv("Comments",num(sum("Comments")));
     if(fol.length){const ch=fol[1]?fol[0].Followers-fol[1].Followers:null;kv("Followers",num(fol[0].Followers)+(ch?" ("+(ch>0?"+":"")+ch+")":""));}
-    kv("Scheduled",String(sched));kv("Waiting approval",waiting?String(waiting):"–");
+    kv("Scheduled",String(mine.filter(p=>/^Approved by/.test(p.Status||"")).length));
     g.appendChild(sc);
   });
-  c.appendChild(g);
-  if(!anyMetrics)c.appendChild(el("p","measure","Reach and engagement numbers start showing once the weekly metrics update is running. Post counts and approvals are live now."));
+  const wrap=el("div");wrap.appendChild(g);
+  if(!any)wrap.appendChild(el("p","measure","Reach numbers for personal posts appear once the weekly metrics update runs. Post counts are live now."));
+  return wrap;
+}
+
+/* ---------- requests ---------- */
+function requests(me,admin){
+  const c=section("requests",admin?"Marketing requests":"My requests to marketing","");
+  const btn=el("button","btn sm","+ Ask marketing");btn.type="button";btn.onclick=()=>$("#askDlg").showModal();
+  const row=el("div","row");row.style.marginBottom="10px";row.appendChild(btn);
+  if(admin){const a=el("a",null,"Reply or update status in Airtable");a.href=AIRTABLE_REQ;a.target="_blank";a.rel="noopener";a.style.fontSize="12.5px";row.appendChild(a);}
+  c.appendChild(row);
+  let list=D.requests.map(r=>r.fields);if(!admin)list=list.filter(r=>r["Requested by"]===me);
+  if(!list.length){c.appendChild(el("div","empty",admin?"No requests in the last 90 days.":"You haven't asked for anything yet. Requests and replies show up here."));return c;}
+  const ul=el("ul","list");
+  list.forEach(r=>{const li=el("li");const l=el("div","l");l.appendChild(el("b",null,r.Request||""));
+    l.appendChild(el("span",null,[admin?first(r["Requested by"]):null,r.Kind,r["Needed by"]?"needed "+fmt(r["Needed by"]):null,"asked "+fmt(r.Submitted)].filter(Boolean).join(" · ")));
+    if(r.Reply){const rp=el("div","update",r.Reply);rp.style.margin="6px 0 0";l.appendChild(rp);}
+    const st=r.Status||"New";const p=pill(st);p.className="pill"+({"In progress":" risk","Done":" on","Not doing":""}[st]||" done");
+    const rr=el("div","r");rr.appendChild(p);li.append(l,rr);ul.appendChild(li);});
+  c.appendChild(ul);return c;
+}
+
+/* ---------- usage (admins) ---------- */
+function usage(){
+  const c=section("usage","Hub usage","Last 30 days · admins only");
+  const act=D.activity.map(a=>a.fields);
+  const t=el("table","people");const hr=el("tr");["","Visits","Last visit","Files opened","Decks","Bar"].forEach((x,i)=>hr.appendChild(el("th",null,i===5?"":x)));t.appendChild(hr);
+  const max=Math.max(1,...PEOPLE.map(p=>act.filter(a=>a.Person===p&&a.Type==="Visit").length));
+  PEOPLE.forEach(p=>{const mine=act.filter(a=>a.Person===p);const v=mine.filter(a=>a.Type==="Visit");
+    const last=mine.map(a=>a.When).sort().pop();
+    const tr=el("tr");tr.appendChild(el("td",null,first(p)));tr.appendChild(el("td",null,String(v.length)));
+    tr.appendChild(el("td",null,last?fmt(last,{month:"short",day:"numeric"}):"Not yet"));
+    tr.appendChild(el("td",null,String(mine.filter(a=>a.Type==="Open resource").length)));
+    tr.appendChild(el("td",null,String(mine.filter(a=>a.Type==="Request deck"||a.Type==="Custom deck"||a.Type==="Download deck").length)));
+    const td=el("td");td.style.width="30%";const b=el("div","bar");b.style.width=(100*v.length/max)+"%";td.appendChild(b);tr.appendChild(td);t.appendChild(tr);});
+  c.appendChild(t);
+  const opens={};act.filter(a=>a.Type==="Open resource").forEach(a=>{opens[a.Item]=(opens[a.Item]||0)+1;});
+  const top=Object.entries(opens).sort((a,b)=>b[1]-a[1]).slice(0,5);
+  c.appendChild(el("div","grp","Most opened files"));
+  if(!top.length)c.appendChild(el("div","empty","No files opened yet."));
+  else{const ul=el("ul","list");top.forEach(([k,v])=>{const li=el("li");li.append(el("div","l",k),el("div","r",v+" open"+(v>1?"s":"")));ul.appendChild(li);});c.appendChild(ul);}
+  const ph=act.filter(a=>a.Type==="Visit"&&a.Device==="phone").length,vis=act.filter(a=>a.Type==="Visit").length;
+  if(vis)c.appendChild(el("p","measure",Math.round(100*ph/vis)+"% of visits from a phone."));
   return c;
 }
+
+/* ---------- nav highlight ---------- */
+function spy(){
+  const links=[...document.querySelectorAll("#tabs a")];
+  const io=new IntersectionObserver(es=>{es.forEach(e=>{if(e.isIntersecting){links.forEach(a=>a.classList.toggle("on",a.getAttribute("href")==="#"+e.target.id));}});},{rootMargin:"-40% 0px -55% 0px"});
+  links.forEach(a=>{const s=document.querySelector(a.getAttribute("href"));if(s)io.observe(s);});
+}
+
+/* ---------- dialogs ---------- */
+$("#askCancel").onclick=()=>$("#askDlg").close();
+$("#askSend").onclick=async()=>{
+  const title=$("#askTitle").value.trim();if(!title){$("#askTitle").focus();return;}
+  const b=$("#askSend");b.disabled=true;b.textContent="Sending…";
+  try{await call({a:"ask",title,kind:$("#askKind").value,details:$("#askDetails").value.trim(),need:$("#askNeed").value});
+    $("#askDlg").close();$("#askForm").reset();flash("Sent. Kevin has it, and you'll see the status under My requests.");await refresh();}
+  catch(e){flash("That didn't send. Try again in a minute.","err");}
+  finally{b.disabled=false;b.textContent="Send to marketing";}
+};
+$("#resCancel").onclick=()=>$("#resDlg").close();
+$("#resSend").onclick=async()=>{
+  const title=$("#rTitle").value.trim();if(!title){$("#rTitle").focus();return;}
+  const file=$("#rFile").files[0],link=$("#rLink").value.trim();
+  if(!file&&!link){flash("Add a file or a link.","err");return;}
+  if(file&&file.size>4*1024*1024){flash("That file is over 4 MB. Add it in Airtable instead, or link to it.","err");return;}
+  const b=$("#resSend");b.disabled=true;b.textContent="Adding…";
+  try{const p={a:"addres",title,category:$("#rCat").value,sharing:$("#rShare").value,description:$("#rDesc").value.trim(),link};
+    if(file){p.file=await new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(String(r.result).split(",")[1]);r.onerror=rej;r.readAsDataURL(file);});p.fileName=file.name;p.fileType=file.type||"application/octet-stream";}
+    await call(p);$("#resDlg").close();flash("Added. The file can take a few seconds to appear.");setTimeout(refresh,4000);}
+  catch(e){flash("That didn't save. Try again in a minute.","err");}
+  finally{b.disabled=false;b.textContent="Add";}
+};
 
 if(!token){$("#who").textContent="Not signed in";$("#app").innerHTML="";flash("Open this page from the personal link Kevin sent you.","err");}
 else refresh();
