@@ -14,6 +14,12 @@ MODE=meeting-overviews  Backfill: writes a short Meeting Overview on Call Transc
                     60 days that have a transcript and no overview yet. New calls get theirs from the
                     Fireflies scenario in Make.
 
+MODE=voice-cards    Weekly (and on demand). Rebuilds the "Voice: <author>" rows in Hub Knowledge that the
+                    hub's My voice page shows, from the newest "msg:" row (the voices, language and
+                    governance parts of the Brand Messaging Platform, pushed by marketing whenever the
+                    document changes) plus verbatim voice phrases from the last 30 days of call
+                    transcripts. Older "msg:" rows are removed.
+
 Public repository: never print document text, post copy or request data to the log.
 """
 import base64, json, os, re, sys, textwrap, time, urllib.error, urllib.parse, urllib.request
@@ -56,6 +62,40 @@ PARTICIPANTS: {parts}
 
 TRANSCRIPT:
 {text}"""
+VOICE_PROMPT = """You write the "My voice" card that {author} ({title}) reads on evoila's internal marketing hub. It tells
+him, in second person ("you"), exactly how his LinkedIn posts are written: the persona the drafting system uses.
+Base it on the Brand Messaging Platform excerpt below (his section in Part Four first, plus the language
+standards, AI position and governance rules that apply to his posts). Be detailed and specific: carry over his
+named phrases, framings, positions, habits, hashtags, boundaries and gate questions rather than summarizing them
+away. Where the document quotes him, keep the quote short (under 15 words) and in quotation marks.
+
+{recent}
+
+Rules:
+- Leave out: health or personal details, internal pipeline figures, prices, customer, partner and competitor
+  names, anything marked intelligence or [VERIFY], open-decision IDs (D-1 etc.), note numbers, other people's
+  personas, and anything about how marketing operates internally.
+- Plain text. Headings are lines that start with "## ". Bullets start with "- ". No bold, no tables, no em dashes.
+  Write evoila in lowercase.
+- Use these headings, in this order, skipping any that do not apply to him:
+## Your role
+## Who reads you
+## What you talk about
+## Positions you hold
+## How you sound
+## Heard recently
+## Your post shape
+## How you open and close
+## Words and moves to avoid
+## What stays out
+## Your gate
+## Hashtags
+- "Heard recently" lists up to six of the recent phrases below that best show how he talks, each as
+  - "phrase" (topic, Mon DD). Skip the heading if there are none.
+- 600 to 1,000 words. Reply with the card text only.
+
+BRAND MESSAGING PLATFORM EXCERPT:
+{doc}"""
 CHUNK = 90000          # Airtable long text holds 100,000 characters
 
 
@@ -341,6 +381,43 @@ def meeting_overviews():
     print(f"wrote {done} overviews")
 
 
+def voice_cards():
+    msgs = rows(T_KB, "LEFT({Source file}, 4)='msg:'")
+    if not msgs:
+        raise RuntimeError("no msg: row in Hub Knowledge")
+    msgs.sort(key=lambda r: r.get("createdTime", ""), reverse=True)
+    doc = msgs[0]["fields"].get(K["text"], "")
+    calls = rows(T_CALL, "IS_AFTER({Meeting Date}, DATEADD(TODAY(), -30, 'days'))")
+    phrase_field = {"Glen Tindal": "fldtjdShVGV6RWhs3", "Mark Maisano": "fldZpZVI2zKOH0RgM"}
+    cards = {r["fields"].get(K["name"], ""): r["id"] for r in rows(T_KB, "LEFT({Name}, 6)='Voice:'")}
+    for author in ["Glen Tindal", "Mark Maisano", "Andrew Hald"]:
+        recent = ""
+        fid = phrase_field.get(author)
+        if fid:
+            bits = [f"[{c['fields'].get(C['date'], '')}] {c['fields'][fid]}" for c in calls if c["fields"].get(fid)]
+            if bits:
+                recent = "RECENT VOICE PHRASES FROM CALL TRANSCRIPTS (verbatim, last 30 days):\n" + "\n".join(bits)[:12000]
+        prompt = VOICE_PROMPT.format(author=author, title=TITLES.get(author, ""), doc=doc[:95000],
+                                     recent=recent or "There are no recent transcript phrases for him; skip Heard recently.")
+        resp = ai_steps._call({"model": ai_steps.MODEL, "max_tokens": 4000,
+                               "messages": [{"role": "user", "content": prompt}]}, timeout=240)
+        out = "".join(b.get("text", "") for b in resp.get("content", []) if b.get("type") == "text").strip()
+        out = out.replace("\u2014", ", ").replace("Evoila", "evoila")
+        if len(out) < 400:
+            print("short card skipped for one author")
+            continue
+        fields = {K["name"]: "Voice: " + author, K["text"]: out[:90000], K["share"]: "Internal only", K["use"]: False,
+                  K["src"]: "voice: built " + time.strftime("%Y-%m-%d") + " from " + msgs[0]["fields"].get(K["src"], "msg:")[4:].strip()}
+        rid = cards.get("Voice: " + author)
+        if rid:
+            api("PATCH", f"https://api.airtable.com/v0/{BASE}/{T_KB}/{rid}", {"fields": fields})
+        else:
+            api("POST", f"https://api.airtable.com/v0/{BASE}/{T_KB}", {"records": [{"fields": fields}]})
+        print("card written")
+    for old in msgs[1:]:
+        api("DELETE", f"https://api.airtable.com/v0/{BASE}/{T_KB}/{old['id']}")
+
+
 if __name__ == "__main__":
     try:
         if MODE == "index-library":
@@ -349,6 +426,8 @@ if __name__ == "__main__":
             build_post()
         elif MODE == "meeting-overviews":
             meeting_overviews()
+        elif MODE == "voice-cards":
+            voice_cards()
         else:
             raise SystemExit(f"unknown MODE {MODE!r}")
     except Exception as e:

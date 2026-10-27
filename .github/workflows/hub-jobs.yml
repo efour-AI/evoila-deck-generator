@@ -6,11 +6,13 @@ name: Hub jobs
 # or by hand from the Actions tab.
 on:
   repository_dispatch:
-    types: [build-post, index-library, meeting-overviews]
+    types: [build-post, index-library, meeting-overviews, voice-cards]
+  schedule:
+    - cron: "17 12 * * 1"   # Mondays: rebuild the My voice cards
   workflow_dispatch:
     inputs:
       mode:
-        description: "build-post, index-library or meeting-overviews"
+        description: "build-post, index-library, meeting-overviews or voice-cards"
         required: true
         default: index-library
       record_id:
@@ -18,14 +20,14 @@ on:
         required: false
 
 concurrency:
-  group: hub-${{ github.event.action || github.event.inputs.mode }}-${{ github.event.client_payload.record_id || github.event.inputs.record_id || 'all' }}
+  group: hub-${{ github.event.action || github.event.inputs.mode || 'voice-cards' }}-${{ github.event.client_payload.record_id || github.event.inputs.record_id || 'all' }}
 
 jobs:
   run:
     runs-on: ubuntu-24.04
     timeout-minutes: 30
     env:
-      MODE: ${{ github.event.action || github.event.inputs.mode }}
+      MODE: ${{ github.event.action || github.event.inputs.mode || 'voice-cards' }}
       RECORD_ID: ${{ github.event.client_payload.record_id || github.event.inputs.record_id }}
     steps:
       - uses: actions/checkout@v4
