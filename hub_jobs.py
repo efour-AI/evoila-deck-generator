@@ -20,6 +20,10 @@ MODE=voice-cards    Weekly (and on demand). Rebuilds the "Voice: <author>" rows 
                     document changes) plus verbatim voice phrases from the last 30 days of call
                     transcripts. Older "msg:" rows are removed.
 
+MODE=meeting-overviews also rebuilds the "TEAM CONVERSATIONS" rows in Hub Knowledge (source "calls:"): meeting
+                    overviews plus Glen's and Mark's phrases, topics and stories and customer quotes from
+                    the last 90 days, so the question bar can answer with what the team actually says.
+
 Public repository: never print document text, post copy or request data to the log.
 """
 import base64, json, os, re, sys, textwrap, time, urllib.error, urllib.parse, urllib.request
@@ -364,6 +368,42 @@ def build_post():
     print("post drafted")
 
 
+CALL_FIELDS = [("Glen, in his words", "fldtjdShVGV6RWhs3"), ("Glen's focus", "fldJkAFlNFQSjZ0Tw"),
+               ("Glen's stories", "fldSbZoo0MWv9pvCQ"), ("Mark, in his words", "fldZpZVI2zKOH0RgM"),
+               ("Mark's focus", "fld4Dl5BWQoS3xJC1"), ("Mark's stories", "fldJICiTOzwN9M6RP"),
+               ("Customer and partner quotes", "fldhN3U4ZYUZIieCO"), ("Market signals", "fldQ6TsoMnS9x2S4D")]
+
+
+def team_conversations():
+    calls = rows(T_CALL, "AND({Full Transcript}!='', IS_AFTER({Meeting Date}, DATEADD(TODAY(), -90, 'days')))")
+    calls.sort(key=lambda r: r["fields"].get(C["date"], ""), reverse=True)
+    parts = []
+    for c in calls:
+        f = c["fields"]
+        block = [f"### {f.get(C['title'], 'Meeting')} ({f.get(C['date'], '')})"]
+        if f.get(C["overview"]):
+            block.append("Overview:\n" + f[C["overview"]].strip())
+        for label, fid in CALL_FIELDS:
+            v = str(f.get(fid, "") or "").strip()
+            if v:
+                block.append(label + ":\n" + v)
+        if len(block) > 1:
+            parts.append("\n".join(block))
+    text = ("What the evoila US team has said in recorded meetings over the last 90 days, newest first. These are the "
+            "team's own talking points and stories, not approved copy. Lines marked [NOT FOR PUBLICATION] are internal only.\n\n"
+            + "\n\n".join(parts))
+    pieces = [text[i:i + CHUNK] for i in range(0, len(text), CHUNK)] if parts else []
+    old = [r["id"] for r in rows(T_KB, "LEFT({Source file}, 6)='calls:'")]
+    for i in range(0, len(old), 10):
+        api("DELETE", f"https://api.airtable.com/v0/{BASE}/{T_KB}?" + "&".join("records[]=" + x for x in old[i:i + 10]))
+    recs = [{"fields": {K["name"]: "TEAM CONVERSATIONS: what the team has said in meetings" + ("" if len(pieces) == 1 else f" (part {n} of {len(pieces)})"),
+                        K["share"]: "Internal only", K["text"]: p, K["use"]: True, K["src"]: "calls: " + time.strftime("%Y-%m-%d")}}
+            for n, p in enumerate(pieces, 1)]
+    for i in range(0, len(recs), 10):
+        api("POST", f"https://api.airtable.com/v0/{BASE}/{T_KB}", {"records": recs[i:i + 10]})
+    print(f"team conversations: {len(parts)} meetings, {len(text)} characters, {len(pieces)} rows")
+
+
 def meeting_overviews():
     recs = rows(T_CALL, "AND({Meeting Overview}='', {Full Transcript}!='', IS_AFTER({Meeting Date}, DATEADD(TODAY(), -60, 'days')))")
     print(f"{len(recs)} meetings to summarize")
@@ -385,6 +425,7 @@ def meeting_overviews():
         api("PATCH", f"https://api.airtable.com/v0/{BASE}/{T_CALL}/{r['id']}", {"fields": {C["overview"]: out[:5000]}})
         done += 1
     print(f"wrote {done} overviews")
+    team_conversations()
 
 
 def voice_cards():

@@ -9,6 +9,7 @@ on:
     types: [build-post, index-library, meeting-overviews, voice-cards]
   schedule:
     - cron: "17 12 * * 1"   # Mondays: rebuild the My voice cards
+    - cron: "41 11 * * *"   # daily: meeting overviews and the team conversations the question bar reads
   workflow_dispatch:
     inputs:
       mode:
@@ -20,14 +21,14 @@ on:
         required: false
 
 concurrency:
-  group: hub-${{ github.event.action || github.event.inputs.mode || 'voice-cards' }}-${{ github.event.client_payload.record_id || github.event.inputs.record_id || 'all' }}
+  group: hub-${{ github.event.action || github.event.inputs.mode || github.event.schedule }}-${{ github.event.client_payload.record_id || github.event.inputs.record_id || 'all' }}
 
 jobs:
   run:
     runs-on: ubuntu-24.04
     timeout-minutes: 30
     env:
-      MODE: ${{ github.event.action || github.event.inputs.mode || 'voice-cards' }}
+      MODE: ${{ github.event.action || github.event.inputs.mode || (github.event.schedule == '41 11 * * *' && 'meeting-overviews' || 'voice-cards') }}
       RECORD_ID: ${{ github.event.client_payload.record_id || github.event.inputs.record_id }}
     steps:
       - uses: actions/checkout@v4
