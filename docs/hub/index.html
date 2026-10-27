@@ -190,6 +190,10 @@ dialog h3{margin:0 0 6px;font-size:18px}
 .mini{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
 .mi{font-size:11px;color:var(--muted);text-align:center}
 .ask{border:2px solid var(--blue)}
+#home{padding-top:14px}
+#askDlg{max-height:88vh;overflow:auto}
+#reqList{margin-top:18px;border-top:1px solid var(--line);padding-top:12px}
+#reqList h3{font-size:15px;margin:0 0 8px}
 .askrow{display:flex;gap:8px}.askrow input{flex:1;font:inherit;font-size:15px;padding:11px 12px;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--ink)}
 .askrow .btn{flex:none}
 .askout .qa{border-top:1px solid var(--line);margin-top:12px;padding-top:10px}
@@ -208,7 +212,7 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 16px 28px}
 </div></header>
 <nav class="tabs" id="tabs"><div class="wrap">
  <a href="#home">Home</a><a href="#strategy">Strategy</a><a href="#library">Library</a><a href="#decks">Decks</a>
- <a href="#linkedin">LinkedIn</a><a href="#meetings">Meetings</a><a href="#analytics">Analytics</a><a href="#requests">Requests</a><a href="#usage" class="hidden" id="usageTab">Usage</a>
+ <a href="#linkedin">LinkedIn</a><a href="#meetings">Meetings</a><a href="#analytics">Analytics</a><a href="#usage" class="hidden" id="usageTab">Usage</a>
 </div></nav>
 <main class="wrap">
  <div id="flash"></div>
@@ -224,7 +228,8 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 16px 28px}
  <select id="askKind"><option>Slide or deck</option><option>Customer story or proof</option><option>LinkedIn post</option><option>Event or webinar</option><option>Other</option></select>
  <label class="l" for="askDetails">Details</label><textarea id="askDetails" style="min-height:90px" placeholder="Who it's for, the context, links to anything useful"></textarea>
  <label class="l" for="askNeed">Needed by (optional)</label><input type="date" id="askNeed">
- <div class="row" style="margin-top:14px;justify-content:flex-end"><button class="btn ghost" value="cancel" type="button" id="askCancel">Cancel</button><button class="btn" id="askSend" type="button">Send to marketing</button></div>
+ <div class="row" style="margin-top:14px;justify-content:flex-end"><button class="btn ghost" value="cancel" type="button" id="askCancel">Close</button><button class="btn" id="askSend" type="button">Send to marketing</button></div>
+ <div id="reqList"></div>
 </form></dialog>
 
 <dialog id="resDlg"><form method="dialog">
@@ -295,8 +300,6 @@ function render(){
   const app=$("#app");app.innerHTML="";
   const home=el("div");home.id="home";
   home.appendChild(askBar());
-  home.appendChild(waiting(me,admin,author));
-  home.appendChild(actions(admin,author));
   const g0=el("div","grid half");g0.appendChild(whatsNew());g0.appendChild(owes());home.appendChild(g0);
   app.appendChild(home);
   app.appendChild(strategy(admin));
@@ -305,7 +308,7 @@ function render(){
   app.appendChild(linkedin());
   app.appendChild(meetings());
   app.appendChild(analytics(admin));
-  app.appendChild(requests(me,admin));
+  const rl=$("#reqList");rl.innerHTML="";rl.appendChild(requests(me,admin));
   if(admin)app.appendChild(usage());
   spy();
   if(JUMP){const t=document.getElementById(JUMP);if(t)setTimeout(()=>t.scrollIntoView({block:"start"}),60);JUMP=null;}
@@ -547,10 +550,11 @@ function resCard(r){
 
 /* ---------- decks ---------- */
 function decks(me,admin){
-  const c=section("decks","Recent decks","Built by the team · reuse anything");
+  const c=section("decks","Decks","Request a tailored deck, build your own, or reuse one the team made");
   const list=D.decks.map(d=>d.fields).filter(d=>d.Status==="Sent"||d.Status==="Ready"||d.Status==="Building").slice(0,12);
   const row=el("div","row");row.style.marginBottom="10px";
   const a1=el("a","btn sm","Request a walking deck");a1.href=BASE;const a2=el("a","btn ghost sm","Build your own deck");a2.href=BASE+"build/";row.append(a1,a2);c.appendChild(row);
+  c.appendChild(el("div","grp","Recent decks"));
   if(!list.length){c.appendChild(el("div","empty","No decks yet."));return c;}
   const ul=el("ul","list");
   list.forEach(d=>{const li=el("li");const l=el("div","l");
@@ -673,13 +677,9 @@ function scorecard(){
 
 /* ---------- requests ---------- */
 function requests(me,admin){
-  const c=section("requests",admin?"Marketing requests":"My requests to marketing","");
-  const btn=el("button","btn sm","+ Ask marketing");btn.type="button";btn.onclick=()=>$("#askDlg").showModal();
-  const row=el("div","row");row.style.marginBottom="10px";row.appendChild(btn);
-  row.appendChild(el("span","owners","Anything you need from marketing goes here: slides, stories, posts, events, changes."));
-  c.appendChild(row);
+  const c=el("div");c.appendChild(el("h3",null,admin?"All requests":"Your requests"));
   let list=D.requests.map(r=>Object.assign({id:r.id},r.fields));if(!admin)list=list.filter(r=>r["Requested by"]===me);
-  if(!list.length){c.appendChild(el("div","empty",admin?"No requests in the last 90 days.":"You haven't asked for anything yet. Requests and replies show up here."));return c;}
+  if(!list.length){c.appendChild(el("div","empty",admin?"No requests in the last 90 days.":"You haven't asked for anything yet. Replies show up here."));return c;}
   const ul=el("ul","list");
   list.forEach(r=>{const li=el("li");const l=el("div","l");l.appendChild(el("b",null,r.Request||""));
     l.appendChild(el("span",null,[admin?first(r["Requested by"]):null,r.Kind,r["Needed by"]?"needed "+fmt(r["Needed by"]):null,"asked "+fmt(r.Submitted)].filter(Boolean).join(" · ")));
@@ -704,7 +704,7 @@ function requests(me,admin){
 /* ---------- usage (admins) ---------- */
 function usage(){
   const c=section("usage","Hub usage","Last 30 days · admins only");
-  const act=D.activity.map(a=>a.fields);
+  const act=D.activity.map(a=>Object.assign({id:a.id},a.fields));
   const t=el("table","people");const hr=el("tr");["","Visits","Last visit","Files opened","Decks","Bar"].forEach((x,i)=>hr.appendChild(el("th",null,i===5?"":x)));t.appendChild(hr);
   const max=Math.max(1,...PEOPLE.map(p=>act.filter(a=>a.Person===p&&a.Type==="Visit").length));
   PEOPLE.forEach(p=>{const mine=act.filter(a=>a.Person===p);const v=mine.filter(a=>a.Type==="Visit");
@@ -723,7 +723,7 @@ function usage(){
   const qs=act.filter(a=>a.Type==="Ask the hub").sort((x,y)=>String(y.When).localeCompare(String(x.When)));
   c.appendChild(el("div","grp","Questions asked in Ask the hub ("+qs.length+")"));
   if(!qs.length)c.appendChild(el("div","empty","No questions yet."));
-  else{const ul=el("ul","list");qs.slice(0,25).forEach(a=>{const li=el("li");li.append(el("div","l",a.Item||""),el("div","r",first(a.Person)+" · "+fmt(a.When,{month:"short",day:"numeric"})));ul.appendChild(li);});c.appendChild(ul);}
+  else{const ul=el("ul","list");qs.slice(0,25).forEach(a=>{const li=el("li");const l=el("div","l");const q=el("a",null,a.Item||"");q.href=BASE+"answer/?id="+a.id;q.style.fontWeight="600";l.appendChild(q);li.append(l,el("div","r",first(a.Person)+" · "+fmt(a.When,{month:"short",day:"numeric"})));ul.appendChild(li);});c.appendChild(ul);}
   const ph=act.filter(a=>a.Type==="Visit"&&a.Device==="phone").length,vis=act.filter(a=>a.Type==="Visit").length;
   if(vis)c.appendChild(el("p","measure",Math.round(100*ph/vis)+"% of visits from a phone."));
   return c;
@@ -763,7 +763,7 @@ $("#askSend").onclick=async()=>{
   const title=$("#askTitle").value.trim();if(!title){$("#askTitle").focus();return;}
   const b=$("#askSend");b.disabled=true;b.textContent="Sending…";
   try{await call({a:"ask",title,kind:$("#askKind").value,details:$("#askDetails").value.trim(),need:$("#askNeed").value});
-    $("#askDlg").close();$("#askForm").reset();flash("Sent. Kevin has it, and you'll see the status under My requests.");await refresh();}
+    $("#askDlg").close();$("#askForm").reset();flash("Sent. Kevin has it. Open Ask marketing any time to see the status and his reply.");await refresh();}
   catch(e){flash("That didn't send. Try again in a minute.","err");}
   finally{b.disabled=false;b.textContent="Send to marketing";}
 };
