@@ -285,7 +285,7 @@ def build_post():
         {"contentType": "image/jpeg", "file": b64, "filename": f"{re.sub('[^A-Za-z]', '', author)}_selfserve.jpg"})
     check = clean_copy(spec.get("check") or "")
     fields = {P["copy"]: body, P["title"]: clean_copy(spec.get("title"))[:120] or f.get(P["title"], ""),
-              P["status"]: "Marketing Approved", P["gen"]: False,
+              P["status"]: "Draft" if "[TEST]" in (f.get(P["bullets"]) or "") else "Marketing Approved", P["gen"]: False,
               P["note"]: ("Ready. " + (check if check and check.lower() != "clean" else ""))[:250]}
     if not f.get(P["date"]):
         fields[P["date"]] = time.strftime("%Y-%m-%dT%H:%M:%S.000Z", time.gmtime())
