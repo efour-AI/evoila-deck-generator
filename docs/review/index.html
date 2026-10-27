@@ -258,9 +258,9 @@ function panel(it){
     if(f["Reminders sent"])tag("Reminded "+f["Reminders sent"]+(f["Reminders sent"]>1?" times":" time"));
   }else tag(f.Status||(f["Generate Copy"]?"Drafting from bullets":""),f.Status==="Changes Requested"?"warn":"");
   const past=dateOf(it)&&Date.parse(dateOf(it))<Date.now()-864e5;
-  if(dateOf(it))tag((past?"Date passed: ":"Goes out ")+fmt(dateOf(it),{month:"short",day:"numeric"}),past?"warn":"ok");
+  if(dateOf(it)&&!f["Self-serve"])tag((past?"Date passed: ":"Goes out ")+fmt(dateOf(it),{month:"short",day:"numeric"}),past?"warn":"ok");
   p.appendChild(kv);
-  if(past&&it.kind==="post")p.appendChild(el("p","hint","The scheduled date has passed. If timing matters, pick a new date with Hold below before you approve, or tell marketing in Ask for changes."));
+  if(past&&it.kind==="post"&&!f["Self-serve"])p.appendChild(el("p","hint","The scheduled date has passed. If timing matters, pick a new date with Hold below before you approve, or tell marketing in Ask for changes."));
 
   if(!admin&&f.Status==="Marketing Approved")authorActions(p,it);
   else if(admin&&f.Status==="Article Approved by Author")corporateActions(p,it);
@@ -284,6 +284,7 @@ async function act(params,okText,btns,btn,label,remove){
 }
 
 function authorActions(p,it){
+  if(it.f["Self-serve"])return selfServeActions(p,it);
   const ap=el("button","btn primary","Approve");ap.type="button";
   const ed=el("button","btn","Edit the text");ed.type="button";
   const ch=el("button","btn","Ask for changes");ch.type="button";
@@ -307,7 +308,31 @@ function authorActions(p,it){
   sv.onclick=()=>act({a:"save",table:it.kind,id:it.id,copy:edited(it),notes:""},"Your edits are saved. It's still waiting for your approval.",all,sv,"Save my edits without approving",false);
   hb.onclick=()=>{if(!di.value){di.focus();flash("Pick a date first.","err");return;}
     act({a:"hold",table:"post",id:it.id,hold:di.value},"Held until "+fmt(di.value)+". It stays here until you approve it.",all,hb,"Hold until this date",false).then(()=>{const x=queues[tab].items[idx];if(x&&x.id===it.id){x.f["Date Posted"]=di.value+"T13:00:00.000Z";draw();}});};
-  $("#quick").onclick=()=>ap.click();
+  $("#quick").textContent="Approve";$("#quick").onclick=()=>ap.click();
+}
+
+function selfServeActions(p,it){
+  const go=el("button","btn primary","Post it now");go.type="button";
+  const ed=el("button","btn","Edit the text");ed.type="button";
+  const ch=el("button","btn","Send to marketing instead");ch.type="button";
+  const row=el("div","row2");row.append(ed,ch);p.append(go,row);
+  p.appendChild(el("p","hint","You started this one. Read it, fix anything in the preview, then post. It goes live on your LinkedIn within a minute or two."));
+  if(it.f["Self-serve note"]&&/Note:/.test(it.f["Self-serve note"]))p.appendChild(el("p","hint",it.f["Self-serve note"].replace(/^Ready\.\s*/,"")));
+  const box=el("div","box hidden");box.appendChild(el("label","l","What should marketing look at?"));
+  const note=el("textarea","note");box.appendChild(note);
+  const send=el("button","btn","Send to marketing");send.type="button";send.style.marginTop="8px";box.appendChild(send);p.appendChild(box);
+  const all=[go,ed,ch,send];
+  ed.onclick=()=>{const on=editor.classList.contains("hidden");toggleEdit(on);ed.textContent=on?"Done editing":"Edit the text";if(on)go.textContent="Post it now, with my edits";};
+  ch.onclick=()=>{box.classList.toggle("hidden");if(!box.classList.contains("hidden"))note.focus();};
+  let armed=false;
+  go.onclick=async()=>{
+    if(!armed){armed=true;go.textContent="Tap again to post to LinkedIn";setTimeout(()=>{armed=false;go.textContent="Post it now";},5000);return;}
+    busy(all,true,go,"Posting…");
+    try{await call({a:"postnow",id:it.id,copy:edited(it)});doneIds.add(it.id);approvedCount++;flash("Posting now. It will be on your LinkedIn in a minute or two.","ok");draw();}
+    catch(e){if(e.message==="auth")return fail(e);flash("That didn't post. Make sure the post has an image, then try again, or tell Kevin.","err");busy(all,false,go,"Post it now");}
+  };
+  send.onclick=()=>act({a:"changes",table:"post",id:it.id,copy:edited(it),notes:note.value.trim()||"Author asked marketing to review this self-serve post."},"Sent to marketing.",all,send,"Send to marketing",true);
+  $("#quick").textContent="Post now";$("#quick").onclick=()=>go.click();
 }
 
 function marketingActions(p,it){

@@ -157,6 +157,14 @@ dialog h3{margin:0 0 6px;font-size:18px}
 .chev{color:var(--muted);font-size:20px}
 .mini{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
 .mi{font-size:11px;color:var(--muted);text-align:center}
+.ask{border:2px solid var(--blue)}
+.askrow{display:flex;gap:8px}.askrow input{flex:1;font:inherit;font-size:15px;padding:11px 12px;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--ink)}
+.askrow .btn{flex:none}
+.askout .qa{border-top:1px solid var(--line);margin-top:12px;padding-top:10px}
+.askout .q{font-weight:600;margin-bottom:6px}
+.askout .a p{margin:0 0 8px}.askout .a ul{margin:0 0 8px;padding-left:20px}.askout .a li{margin:2px 0}
+.askout .src{font-size:12px;color:var(--muted);margin-top:4px}
+.askout .intl{font-size:12px;font-weight:600;color:var(--bad);margin-top:4px}
 footer{text-align:center;font-size:12px;color:var(--muted);padding:0 16px 28px}
 </style>
 </head>
@@ -200,11 +208,8 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 16px 28px}
 
 <script>
 const API="https://hook.us2.make.com/o28rqytj8ifgm1o2tckavp2194d8jbqt";
+const ASK_API="https://hook.us2.make.com/4ffhqfa9sd2q1wpo39eqqycmxph9o3g1";
 const BASE=location.pathname.replace(/hub\/?(index\.html)?$/,"");
-const AIRTABLE_PLAN="https://airtable.com/appYVahdfC3gbtArV/tblvX1fUfz9wSvKWK";
-const AIRTABLE_LIB="https://airtable.com/appYVahdfC3gbtArV/tblYQvkJUWlEhtg6s";
-const AIRTABLE_MET="https://airtable.com/appYVahdfC3gbtArV/tbls80oDnn2mXzO95";
-const AIRTABLE_REQ="https://airtable.com/appYVahdfC3gbtArV/tblUDkUbEKQEOc7Us";
 const ANALYTICS_URL="https://claude.ai/artifact/Gj7nCXY9v9N1YuPkxd5r6w";
 const AUTHORS=["Glen Tindal","Mark Maisano","Andrew Hald"];
 const PEOPLE=["Kevin O'Brien","Glen Tindal","Mark Maisano","Andrew Hald","Tom MacKay","Julie Tindal"];
@@ -255,6 +260,7 @@ function render(){
   if(admin)$("#usageTab").classList.remove("hidden");
   const app=$("#app");app.innerHTML="";
   const home=el("div");home.id="home";
+  home.appendChild(askBar());
   home.appendChild(waiting(me,admin,author));
   home.appendChild(actions(admin,author));
   const g0=el("div","grid half");g0.appendChild(whatsNew());g0.appendChild(owes());home.appendChild(g0);
@@ -267,6 +273,44 @@ function render(){
   app.appendChild(requests(me,admin));
   if(admin)app.appendChild(usage());
   spy();
+}
+
+/* ---------- ask the hub ---------- */
+let askHist=[];
+function askBar(){
+  const c=el("div","card ask");
+  const hd=el("h2",null,"Ask the hub");hd.appendChild(el("span","note","Answers from the sales playbook, licensing guide, walking deck and brand guides"));c.appendChild(hd);
+  const f=el("form","askrow");const inp=el("input");inp.type="text";inp.placeholder="e.g. A customer asks if they have to move to VCF at renewal. What do I say?";inp.setAttribute("aria-label","Ask a question");
+  const b=el("button","btn","Ask");b.type="submit";f.append(inp,b);c.appendChild(f);
+  const chips=el("div","chips");chips.style.margin="10px 0 0";
+  ["What do I say if a customer asks why they haven't heard of us?","VCF or VVF: how do I explain the difference?","Which words should I avoid in a post?","How do we describe the readiness assessment?"].forEach(q=>{const x=el("button","chip",q);x.type="button";x.onclick=()=>{inp.value=q;go();};chips.appendChild(x);});
+  c.appendChild(chips);
+  const out=el("div","askout");c.appendChild(out);
+  const go=async()=>{
+    const q=inp.value.trim();if(!q)return inp.focus();
+    b.disabled=true;b.textContent="Thinking…";
+    const box=el("div","qa");box.appendChild(el("div","q",q));const a=el("div","a");a.appendChild(el("span","owners","Reading the documents… usually 15 to 30 seconds."));box.appendChild(a);out.prepend(box);
+    const ctx=askHist.slice(-2).map(x=>"Earlier question: "+x.q+"\nEarlier answer: "+x.a.slice(0,1200)).join("\n\n");
+    try{
+      const r=await fetch(ASK_API,{method:"POST",body:new URLSearchParams({t:token,q,ctx,dev:DEV})});
+      const txt=(await r.text()).trim();
+      if(!r.ok||!txt||txt==="Accepted")throw new Error("empty");
+      a.innerHTML="";renderAnswer(a,txt);askHist.push({q,a:txt});inp.value="";
+    }catch(e){a.innerHTML="";a.appendChild(el("span","owners","Couldn't get an answer just now. Try again, or use Ask marketing."));}
+    finally{b.disabled=false;b.textContent="Ask";}
+  };
+  f.onsubmit=e=>{e.preventDefault();go();};
+  return c;
+}
+function renderAnswer(box,txt){
+  let ul=null;
+  txt.split("\n").forEach(line=>{
+    const t=line.trim();if(!t){ul=null;return;}
+    if(/^source:/i.test(t)){box.appendChild(el("div","src",t));ul=null;return;}
+    if(/^internal only/i.test(t)){box.appendChild(el("div","intl",t));ul=null;return;}
+    if(/^[-•]\s+/.test(t)){if(!ul){ul=el("ul");box.appendChild(ul);}ul.appendChild(el("li",null,t.replace(/^[-•]\s+/,"")));return;}
+    ul=null;box.appendChild(el("p",null,t));
+  });
 }
 
 /* ---------- home ---------- */
@@ -301,7 +345,7 @@ function actions(admin,author){
     const i=el("span","ic",ic);const t=el("div");t.appendChild(el("b",null,b));t.appendChild(el("span",null,s));a.append(i,t);g.appendChild(a);};
   add("▣","Walking deck","Pick an audience, get a tailored deck by email",BASE,()=>track("Request deck","Walking deck"));
   add("✎","Build your own deck","Outline it slide by slide, we build it on brand",BASE+"build/",()=>track("Custom deck","Opened builder"));
-  if(author)add("✦","Start a post","A few bullets in, a draft in your voice back",BASE+"authors/");
+  if(author)add("✦","Create a post","Topic and bullets in, a finished post with an image in a minute",BASE+"create/");
   add("?","Ask marketing","A slide, a story, a post, an event",null,()=>$("#askDlg").showModal());
   return g;
 }
@@ -362,7 +406,6 @@ function strategy(admin){
     });
     c.appendChild(gd);
   });
-  if(admin){const a=el("a",null,"Edit the plan in Airtable");a.href=AIRTABLE_PLAN;a.target="_blank";a.rel="noopener";const p=el("div","owners");p.style.marginTop="10px";p.appendChild(a);c.appendChild(p);}
   return c;
 }
 
@@ -417,7 +460,7 @@ function library(admin){
   cats.forEach(cat=>{const b=el("button","chip",cat);b.type="button";b.dataset.c=cat;b.onclick=()=>{libFilter=cat;draw();};chips.appendChild(b);});
   c.append(chips,grid);draw();
   if(admin){const row=el("div","row");row.style.marginTop="12px";const b=el("button","btn ghost sm","+ Add to the library");b.type="button";b.onclick=()=>$("#resDlg").showModal();
-    const a=el("a",null,"Manage in Airtable");a.href=AIRTABLE_LIB;a.target="_blank";a.rel="noopener";a.style.fontSize="12.5px";row.append(b,a);c.appendChild(row);}
+    row.append(b);c.appendChild(row);}
   return c;
 }
 function resCard(r){
@@ -536,8 +579,7 @@ function analytics(admin){
   c.appendChild(scorecard());
   if(admin){const p=el("div","owners");p.style.marginTop="10px";
     const a=el("a",null,"Full LinkedIn dashboard");a.href=ANALYTICS_URL;a.target="_blank";a.rel="noopener";
-    const b=el("a",null,"update these numbers");b.href=AIRTABLE_MET;b.target="_blank";b.rel="noopener";
-    p.append(a,document.createTextNode(" · "),b);c.appendChild(p);}
+    p.append(a);c.appendChild(p);}
   return c;
 }
 function scorecard(){
@@ -567,14 +609,26 @@ function requests(me,admin){
   const c=section("requests",admin?"Marketing requests":"My requests to marketing","");
   const btn=el("button","btn sm","+ Ask marketing");btn.type="button";btn.onclick=()=>$("#askDlg").showModal();
   const row=el("div","row");row.style.marginBottom="10px";row.appendChild(btn);
-  if(admin){const a=el("a",null,"Reply or update status in Airtable");a.href=AIRTABLE_REQ;a.target="_blank";a.rel="noopener";a.style.fontSize="12.5px";row.appendChild(a);}
+  row.appendChild(el("span","owners","Anything you need from marketing goes here: slides, stories, posts, events, changes."));
   c.appendChild(row);
-  let list=D.requests.map(r=>r.fields);if(!admin)list=list.filter(r=>r["Requested by"]===me);
+  let list=D.requests.map(r=>Object.assign({id:r.id},r.fields));if(!admin)list=list.filter(r=>r["Requested by"]===me);
   if(!list.length){c.appendChild(el("div","empty",admin?"No requests in the last 90 days.":"You haven't asked for anything yet. Requests and replies show up here."));return c;}
   const ul=el("ul","list");
   list.forEach(r=>{const li=el("li");const l=el("div","l");l.appendChild(el("b",null,r.Request||""));
     l.appendChild(el("span",null,[admin?first(r["Requested by"]):null,r.Kind,r["Needed by"]?"needed "+fmt(r["Needed by"]):null,"asked "+fmt(r.Submitted)].filter(Boolean).join(" · ")));
+    if(r.Details&&admin){const dt=el("div","owners",r.Details);dt.style.whiteSpace="pre-wrap";dt.style.marginTop="4px";l.appendChild(dt);}
     if(r.Reply){const rp=el("div","update",r.Reply);rp.style.margin="6px 0 0";l.appendChild(rp);}
+    if(admin){
+      const d=document.createElement("details");d.appendChild(el("summary",null,"Reply or change status"));d.querySelector("summary").style.cssText="cursor:pointer;font-size:12.5px;color:var(--blue);margin-top:6px";
+      const sel=el("select");["New","In progress","Done","Not doing"].forEach(x=>{const o=el("option",null,x);o.value=x;if(x===(r.Status||"New"))o.selected=true;sel.appendChild(o);});
+      const ta=el("textarea");ta.placeholder="Reply to "+first(r["Requested by"])+" (shows on their hub)";
+      const sv=el("button","btn sm","Save");sv.type="button";
+      const box=el("div","edit");box.append(sel,ta,sv);d.appendChild(box);l.appendChild(d);
+      sv.onclick=async()=>{if(sel.value===(r.Status||"New")&&!ta.value.trim()){flash("Change the status or write a reply first.","err");return;}
+        sv.disabled=true;sv.textContent="Saving…";
+        try{await call({a:"mreq",id:r.id,status:sel.value,reply:ta.value.trim()});flash("Saved.");await refresh();}
+        catch(e){flash("That didn't save. Try again in a minute.","err");sv.disabled=false;sv.textContent="Save";}};
+    }
     const st=r.Status||"New";const p=pill(st);p.className="pill"+({"In progress":" risk","Done":" on","Not doing":""}[st]||" done");
     const rr=el("div","r");rr.appendChild(p);li.append(l,rr);ul.appendChild(li);});
   c.appendChild(ul);return c;

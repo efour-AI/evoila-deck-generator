@@ -268,7 +268,7 @@ function handleErr(e){
   flash("Something went wrong saving that. Try again in a minute; if it keeps happening, email Kevin.","err");
 }
 
-$("#newBtn").onclick=()=>{$("#newForm").classList.remove("hidden");$("#nBullets").focus();};
+$("#newBtn").onclick=()=>{location.href="../create/";};
 $("#nCancel").onclick=()=>{$("#newForm").classList.add("hidden");};
 $("#nSend").onclick=async()=>{
   const bullets=$("#nBullets").value.trim();if(!bullets){flash("Add a few bullets first.","err");return;}
