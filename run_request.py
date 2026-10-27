@@ -401,7 +401,7 @@ TRUSTED = """
 gartner.com idc.com forrester.com mckinsey.com bcg.com bain.com deloitte.com pwc.com kpmg.com ey.com accenture.com
 ibm.com verizon.com uptimeinstitute.com flexera.com sophos.com mandiant.com crowdstrike.com paloaltonetworks.com
 ponemon.org isc2.org isaca.org sans.org cisa.gov ic3.gov hhs.gov nist.gov
-aha.org himss.org chime.org ahima.org mgma.com kff.org
+aha.org himss.org chime.org ahima.org mgma.com kff.org jointcommission.org h-isac.org
 hipaajournal.com healthcareitnews.com fiercehealthcare.com beckershospitalreview.com modernhealthcare.com statnews.com
 healthcaredive.com cybersecuritydive.com ciodive.com bankingdive.com utilitydive.com
 reuters.com apnews.com bloomberg.com wsj.com ft.com nytimes.com washingtonpost.com cnbc.com axios.com forbes.com fortune.com
@@ -448,7 +448,7 @@ def month_end(d):
     return nxt - datetime.timedelta(days=1)
 
 
-def check_stat(st, today):
+def check_stat(st, today, max_days=365):
     """One researched figure -> (True, None) if usable, else (False, reason). Fills the printed date and tidies text."""
     url, cores = (st.get("url") or "").strip(), figure_core(st.get("figure"))
     path = urllib.parse.urlparse(url).path.lower()
@@ -465,8 +465,8 @@ def check_stat(st, today):
     pe = parse_date(st.get("period_end"))
     if not pe or pe > today + datetime.timedelta(days=31):
         return False, "no data period given (the month the data runs to)"
-    if (today - month_end(pe)).days > 365:
-        return False, f"data covers a period ending {pe.strftime('%b %Y')}, older than 12 months"
+    if (today - month_end(pe)).days > max_days:
+        return False, f"data covers a period ending {pe.strftime('%b %Y')}, older than {round(max_days / 30.4)} months"
     try:
         body = page_text(url).replace(",", "")
         ok = figure_on_page(body, cores, st.get("claim", ""))
@@ -480,8 +480,8 @@ def check_stat(st, today):
     pub = min(dates) if dates else None
     if not pub:
         return False, "no publication date could be found"
-    if (today - pub).days > 365:
-        return False, f"published {pub.strftime('%b %Y')}, older than 12 months"
+    if (today - pub).days > max_days:
+        return False, f"published {pub.strftime('%b %Y')}, older than {round(max_days / 30.4)} months"
     st["year"] = pub.strftime("%b %Y")      # printed after the source, e.g. "Source: HIPAA Journal, Mar 2026"
     st["figure"] = compact_figure(st.get("figure", ""))
     st["claim"] = nodash(drop_lead_figure(st.get("claim", ""), st["figure"], cores))

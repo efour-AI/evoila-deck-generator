@@ -9,6 +9,13 @@ outline (deck title plus one entry per slide: a layout, or "auto", and what the 
 3. run() converts to PDF, uploads both files to the row and sets Status = Ready; the existing
    "Deck ready: email requester" automation sends them.
 
+Research slides: an outline entry with layout "research" carries a topic and the requester's rules (how recent,
+where it applies, which kinds of source, anything else). Claude researches it with web search, every figure is
+checked on its source page with the same rules as the walking deck's data slides (trusted sources, the figure
+must appear on the page, published and covering data inside the requester's window), and up to four confirmed
+figures go on a Big numbers slide with their sources. With fewer than two confirmed figures the slide keeps
+[figure] placeholders and the notes say why; the full check report goes to the row's Market data check field.
+
 Nothing here prints request data: the repo is public and the build logs are visible.
 """
 import datetime, json, math, os, re, subprocess, sys
@@ -413,6 +420,83 @@ def render(spec, tpl_path, out, meta, engine_dir):
 
 # ---------------------------------------------------------------- build flow
 
+SOURCE_KINDS = {
+    "Analyst firms": ("gartner.com idc.com forrester.com mckinsey.com bcg.com bain.com deloitte.com pwc.com kpmg.com "
+                      "ey.com accenture.com").split(),
+    "News and trade press": ("hipaajournal.com healthcareitnews.com fiercehealthcare.com beckershospitalreview.com "
+                             "modernhealthcare.com statnews.com healthcaredive.com cybersecuritydive.com ciodive.com "
+                             "bankingdive.com utilitydive.com reuters.com apnews.com bloomberg.com wsj.com ft.com nytimes.com "
+                             "washingtonpost.com cnbc.com axios.com forbes.com fortune.com darkreading.com securityweek.com "
+                             "theregister.com bleepingcomputer.com scmagazine.com infosecurity-magazine.com techtarget.com "
+                             "computerweekly.com computerworld.com networkworld.com cio.com csoonline.com infoworld.com zdnet.com "
+                             "crn.com govtech.com statescoop.com nextgov.com fedscoop.com route-fifty.com govexec.com "
+                             "americanbanker.com").split(),
+}
+
+
+def _kind(url):
+    import urllib.parse as up
+    h = up.urlparse(url).netloc.lower().split(":")[0]
+    h = h[4:] if h.startswith("www.") else h
+    if re.search(r"\.(gov|mil|int)(\.[a-z]{2})?$", h):
+        return "Government and regulators"
+    for k, doms in SOURCE_KINDS.items():
+        if any(h == d or h.endswith("." + d) for d in doms):
+            return k
+    return "Industry studies and associations"
+
+
+def research_slide(entry, meta, report):
+    """Research one outline entry and return a numbers slide (verified figures or placeholders)."""
+    rules = entry.get("research") or {}
+    try:
+        months = max(3, min(36, int(rules.get("months") or 12)))
+    except Exception:
+        months = 12
+    rules["months"] = months
+    topic = str(entry.get("content") or "").strip()
+    today = datetime.date.today()
+    try:
+        r = ai_steps.make_topic_research(topic, rules, meta, today.isoformat())
+    except Exception as e:
+        r = {"stats": []}
+        report.append(f"Research slide '{topic[:60]}': research failed ({str(e)[:150]}).")
+    allowed = set(rules.get("sources") or [])
+    used, seen = [], set()
+    for st in (r.get("stats") or [])[:8]:
+        label = f"{st.get('figure','')} {str(st.get('claim',''))[:70]} ({st.get('source','')})"
+        if allowed and _kind(st.get("url", "")) not in allowed:
+            report.append(f"DROPPED (source kind not allowed by the requester): {label} {st.get('url','')}")
+            continue
+        key = (rr.compact_figure(st.get("figure", "")), str(st.get("source", "")).lower())
+        if key in seen or len(used) >= 4:
+            continue
+        ok, why = rr.check_stat(st, today, max_days=int(months * 30.5))
+        if not ok:
+            report.append(f"DROPPED ({why}): {label} {st.get('url','')}")
+            continue
+        seen.add(key)
+        used.append(st)
+        report.append(f"USED (found on the page, {st.get('year','')}): {label} {st.get('url','')}")
+    title = rr.nodash(r.get("title") or topic[:60] or "What the data shows")
+    if len(used) >= 2:
+        srcs = []
+        for st in used:
+            s_ = f"{st.get('source','')}, {st.get('year','')}".strip(", ")
+            if s_ not in srcs:
+                srcs.append(s_)
+        notes = " ".join(x for x in [rr.nodash(r.get("talking_point") or ""), rr.nodash(r.get("takeaway") or "")] if x)
+        notes += " Sources: " + "; ".join(f"{st.get('source','')} ({st.get('url','')})" for st in used)
+        report.append(f"Research slide '{title}': included with {len(used)} confirmed figures.")
+        return {"layout": "numbers", "title": title, "source": "; ".join(srcs)[:220],
+                "items": [{"figure": st.get("figure", ""), "heading": st.get("claim", "")} for st in used], "notes": notes}
+    report.append(f"Research slide '{title}': fewer than two figures passed the checks, placeholders left on the slide.")
+    return {"layout": "numbers", "title": title, "source": "[source]",
+            "items": [{"figure": "[figure]", "heading": "[what the figure shows]"} for _ in range(3)],
+            "notes": "We could not confirm enough recent figures that met your rules for this slide, so it has placeholders. "
+                     "The build report on the request lists what was found and why each figure was dropped."}
+
+
 def run():
     os.makedirs(rr.WORK, exist_ok=True)
     f = rr.get_record(rr.T_REQ, rr.REC)
@@ -435,11 +519,31 @@ def run():
             "background": f.get(F_BACKGROUND) or "",
             "meeting_lines": [f"Prepared for {prospect}" if prospect else "", when]}
     note = ""
+    meta["deck_title"] = outline.get("title") or ""
+    entries = outline.get("slides") or []
+    research_idx = [i for i, e in enumerate(entries) if e.get("layout") == "research"]
+    report, researched = [], {}
+    if research_idx:
+        import concurrent.futures as cf
+        with cf.ThreadPoolExecutor(max_workers=3) as ex:
+            futs = {i: ex.submit(research_slide, entries[i], meta, report) for i in research_idx}
+            for i, fu in futs.items():
+                researched[i] = fu.result()
+        # the copywriter sees a plain numbers slide it must leave alone; the researched slide replaces it afterwards
+        outline = dict(outline, slides=[dict(e, layout="numbers", content="[Research slide, filled in by the build. Write a one-line title only.]")
+                                        if i in researched else e for i, e in enumerate(entries)])
     try:
         spec = make_spec(outline, meta)
     except Exception as e:
         spec = fallback_spec(outline)
         note = f"Claude copywriting failed, slides use the outline text as written: {str(e)[:300]}"
+    if researched:
+        offset = len(spec.get("slides", [])) - len(entries)
+        for i, sl in researched.items():
+            j = i + max(offset, 0)
+            if 0 <= j < len(spec.get("slides", [])):
+                spec["slides"][j] = sl
+        note = "\n".join(([note] if note else []) + report)
     rr.update({rr.F["plan"]: json.dumps(spec, indent=1)[:95000]})
     tpl = rr.fetch_assets()
     stamp = f.get(rr.F["date"]) or datetime.date.today().isoformat()

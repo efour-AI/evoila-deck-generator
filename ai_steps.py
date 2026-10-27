@@ -253,3 +253,78 @@ def make_research(f, F, today):
             raise RuntimeError("unexpected client tool call")
         messages.append({"role": "user", "content": "Now call submit_research with your result."})
     raise RuntimeError("Claude returned no research")
+
+
+# ------------------------------------------------------------------ research slide in a custom outline
+
+TOPIC_SCHEMA = {
+    "type": "object",
+    "properties": {
+        "title": {"type": "string"}, "takeaway": {"type": "string"}, "talking_point": {"type": "string"},
+        "stats": {"type": "array", "items": {"type": "object", "properties": {
+            "figure": {"type": "string"}, "claim": {"type": "string"}, "source": {"type": "string"},
+            "published": {"type": "string"}, "period_end": {"type": "string"}, "url": {"type": "string"}},
+            "required": ["figure", "claim", "source", "published", "period_end", "url"]}},
+    },
+    "required": ["title", "stats"],
+}
+
+TOPIC_PROMPT = """You research one data slide for a presentation by evoila US, a VMware by Broadcom specialist services firm in North America (private cloud, private AI, security, disaster and cyber recovery, hybrid operations).
+
+Today's date: {today}
+Audience: {audience}
+Company or event the deck is for (may be empty): {company}
+Deck title: {deck_title}
+
+WHAT THE PRESENTER WANTS THIS SLIDE TO SHOW
+{topic}
+
+THEIR RULES FOR THE DATA (follow every one)
+- Recency: published within the last {months} months, and the data itself must cover a period ending within the last {months} months.
+- Where it applies: {scope}
+- Allowed kinds of source: {sources}
+- Anything else: {rules}
+
+HOW TO RESEARCH
+1. Search the web for third-party figures that show exactly what the presenter asked for, as specific to their scope as you can find. Search with the current and previous year in your queries and look for the newest edition of annual studies.
+2. Only the allowed kinds of source. Never vendor blogs, statistics roundups, marketing or product pages, social media, anything from Broadcom's competitors, or evoila or Broadcom material.
+3. Copy each figure exactly as printed on the page and use the publication date printed on that page.
+4. Link the original publisher's own page (the government agency, association, ISAC or analyst firm's press release or report page), not a news story or blog re-reporting it. Statistics aggregators and trade sites that summarize others' data are rejected by the build, and many news sites block the automated check, so a figure linked there is usually dropped.
+5. Return 8 to 10 candidates from at least four different publishers. The build checks every figure on its page and keeps up to four, so give it room.
+
+FIELDS
+- title: the point of the slide in under 60 characters (for example: Downtime is getting more expensive). Never alarmist.
+- takeaway: one sentence under 110 characters tying the numbers to the presenter's point, without naming evoila or promising outcomes.
+- talking_point: one sentence telling the presenter how to land the slide.
+- figure: the number exactly as printed, short (772, 4%, $7.42 million, 1 in 3).
+- claim: a plain fragment under 14 words that completes the figure, in the source's own terms. No spin.
+- source: publisher and report name, short, no year.
+- published: YYYY-MM-DD or YYYY-MM as printed on the page.
+- period_end: last month the data covers, YYYY-MM.
+- url: the exact report, release or article page where the figure appears.
+- Never invent or estimate a number. If nothing solid fits the rules, return an empty stats list.
+- No em dashes. Plain, direct language.
+
+Call submit_topic once with the result."""
+
+
+def make_topic_research(topic, rules, meta, today):
+    prompt = TOPIC_PROMPT.format(
+        today=today, audience=meta.get("audience", ""), company=meta.get("company", ""), deck_title=meta.get("deck_title", ""),
+        topic=topic or "(not given)", months=rules.get("months") or 12, scope=rules.get("scope") or "no restriction given",
+        sources=", ".join(rules.get("sources") or []) or "analyst firms, government and regulators, industry studies and associations, news and trade press",
+        rules=rules.get("rules") or "none")
+    tools = [{"type": "web_search_20250305", "name": "web_search", "max_uses": 10},
+             {"name": "submit_topic", "description": "Submit the research for the slide.", "input_schema": TOPIC_SCHEMA}]
+    messages = [{"role": "user", "content": prompt}]
+    for _ in range(6):
+        resp = _call({"model": MODEL, "max_tokens": 8000, "tools": tools, "messages": messages}, timeout=300)
+        content = resp.get("content", [])
+        for b in content:
+            if b.get("type") == "tool_use" and b.get("name") == "submit_topic":
+                return b.get("input") or {"stats": []}
+        messages.append({"role": "assistant", "content": content})
+        if resp.get("stop_reason") == "pause_turn":
+            continue
+        messages.append({"role": "user", "content": "Now call submit_topic with your result."})
+    raise RuntimeError("Claude returned no research for the slide")

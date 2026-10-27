@@ -24,7 +24,7 @@ main{margin:16px auto 40px;padding:0 16px}
 .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;margin:0 0 14px}
 h2{font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--blue);margin:0 0 10px}
 label.l{display:block;font-size:13px;font-weight:600;margin:10px 0 4px}
-label.l .o{font-weight:400;color:var(--muted)}
+label.l .opt{font-weight:400;color:var(--muted)}
 .hint{font-size:12.5px;color:var(--muted);margin:0 0 6px}
 select,textarea,input[type=text],input[type=date],input[type=url]{font:inherit;font-size:14px;color:var(--ink);background:var(--card);border:1px solid var(--line);border-radius:8px;padding:8px 10px;width:100%}
 textarea{min-height:64px;resize:vertical}
@@ -43,6 +43,14 @@ textarea{min-height:64px;resize:vertical}
 .num{width:30px;height:30px;border-radius:8px;display:grid;place-items:center;background:var(--violet);color:#fff;font-weight:700;font-size:13px}
 .srow{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:6px}
 .srow select{width:auto;flex:1;min-width:180px}
+.rules{border:1px dashed var(--line);border-radius:10px;padding:10px 12px;margin-top:8px;background:var(--soft)}
+.rules .rr{display:grid;gap:8px;grid-template-columns:1fr}
+@media(min-width:620px){.rules .rr{grid-template-columns:160px 1fr}}
+.rules label{font-size:12.5px;font-weight:600;color:var(--muted);display:block;margin-bottom:3px}
+.rules .kinds{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:13px;margin-top:2px}
+.rules .kinds label{font-weight:400;color:var(--ink);display:flex;gap:5px;align-items:center;margin:0}
+.rules .kinds input{width:auto}
+.rules .rhint{font-size:12px;color:var(--muted);margin:6px 0 0}
 .tools{display:flex;gap:4px}
 .ib{font:inherit;font-size:13px;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:7px;width:30px;height:30px;cursor:pointer}
 .ib:disabled{opacity:.35;cursor:default}
@@ -71,10 +79,10 @@ textarea{min-height:64px;resize:vertical}
  <label class="l" for="title">Deck title</label>
  <input type="text" id="title" maxlength="90" placeholder="e.g. Private AI on VCF: where to start">
  <div class="two">
-  <div><label class="l" for="company">Who it's for <span class="o">(company or event)</span></label><input type="text" id="company" maxlength="90" placeholder="e.g. Acme Health"></div>
-  <div><label class="l" for="date">Meeting date <span class="o">(optional)</span></label><input type="date" id="date"></div>
+  <div><label class="l" for="company">Who it's for <span class="opt">(company or event)</span></label><input type="text" id="company" maxlength="90" placeholder="e.g. Acme Health"></div>
+  <div><label class="l" for="date">Meeting date <span class="opt">(optional)</span></label><input type="date" id="date"></div>
  </div>
- <label class="l" for="site">Their website <span class="o">(optional)</span></label><input type="url" id="site" placeholder="https://">
+ <label class="l" for="site">Their website <span class="opt">(optional)</span></label><input type="url" id="site" placeholder="https://">
  <label class="l">Audience</label>
  <div class="opts" id="aud">
   <label class="opt"><input type="radio" name="aud" value="Executive" checked><span><b>Customer executives</b><small>CIO, CTO, CFO, VP</small></span></label>
@@ -82,7 +90,7 @@ textarea{min-height:64px;resize:vertical}
   <label class="opt"><input type="radio" name="aud" value="Partner"><span><b>Partner</b><small>Reseller, VAR, delivery</small></span></label>
   <label class="opt"><input type="radio" name="aud" value="Broadcom"><span><b>Broadcom</b><small>Field and partner teams</small></span></label>
  </div>
- <label class="l">Presenters <span class="o">(up to two, shown on the cover)</span></label>
+ <label class="l">Presenters <span class="opt">(up to two, shown on the cover)</span></label>
  <div class="opts" id="pres">
   <label class="opt"><input type="checkbox" value="reczjQAa0jo0wr8nP" data-n="Glen Tindal"><span><b>Glen Tindal</b><small>CEO and Managing Director</small></span></label>
   <label class="opt"><input type="checkbox" value="recP682vxzWqhWTGn" data-n="Mark Maisano"><span><b>Mark Maisano</b><small>VP Alliances &amp; Strategy</small></span></label>
@@ -101,11 +109,11 @@ textarea{min-height:64px;resize:vertical}
 
 <section class="card">
  <h2>Anything else</h2>
- <label class="l" for="next">What should happen after the meeting? <span class="o">(optional)</span></label>
+ <label class="l" for="next">What should happen after the meeting? <span class="opt">(optional)</span></label>
  <input type="text" id="next" maxlength="200" placeholder="e.g. Agree a two-week assessment">
- <label class="l" for="notes">Context for the writer <span class="o">(optional)</span></label>
+ <label class="l" for="notes">Context for the writer <span class="opt">(optional)</span></label>
  <textarea id="notes" placeholder="Who will be in the room, what they care about, what to avoid"></textarea>
- <label class="l" for="bg">Background material <span class="o">(optional: paste an email thread, RFP text or call notes)</span></label>
+ <label class="l" for="bg">Background material <span class="opt">(optional: paste an email thread, RFP text or call notes)</span></label>
  <textarea id="bg" style="min-height:90px"></textarea>
 </section>
 
@@ -125,6 +133,7 @@ const LAYOUTS=[["auto","Auto: let us pick","We choose the layout that fits what 
  ["columns","Two or three columns","Side-by-side ideas with a heading each."],
  ["cards","Icon cards","Three to six boxes, each with an icon."],
  ["numbers","Big numbers","Two to four figures with a label each."],
+ ["research","Research: recent data","Describe the topic. We find recent, sourced figures, check each one on its source page, and build a Big numbers slide with the sources."],
  ["steps","Process or timeline","Three to six steps in order."],
  ["comparison","Before and after","Two sides compared point by point."],
  ["quote","Quote","A customer or partner quote with attribution."],
@@ -134,7 +143,7 @@ const STARTERS={
  "First meeting":[["agenda","What we will cover today"],["statement","Why we asked for the meeting: what we think is changing for them"],["cards","Who evoila is: VMware by Broadcom specialists, private cloud and private AI on VCF, services across assessment, build, migration and lifecycle"],["steps","How an engagement usually runs, from assessment to steady state"],["closing","Proposed next step and contacts"]],
  "VCF 9 upgrade":[["statement","Moving to VCF 9 is a project, not a version bump"],["bullets","What changes for them: licensing, architecture, operations"],["steps","Our upgrade path: assess, design, pilot, migrate, hand over"],["comparison","Doing it alone versus with evoila"],["closing","Next step: a short readiness assessment"]],
  "Private AI":[["statement","Private AI runs best on the platform they already trust"],["columns","Three things to get right: data, GPUs and fabric, operations"],["steps","How we take a use case from pilot to production on VCF"],["bullets","Questions to answer before buying hardware"],["closing","Next step: a use-case workshop"]],
- "Partner pitch":[["statement","We deliver under your badge so you keep the customer"],["cards","What we bring: VCF engineers, delivery capacity, lifecycle services"],["steps","How we work a deal together, from discovery to delivery"],["bullets","What the partner gets: margin, services attach, renewal protection"],["closing","Next step: pick two accounts to work together"]],
+ "Partner pitch":[["statement","We deliver under your badge so you keep the customer"],["cards","What we bring: certified VCF engineers, delivery capacity, lifecycle services"],["steps","How we work a deal together, from discovery to delivery"],["bullets","What the partner gets: margin, services attach, renewal protection"],["closing","Next step: pick two accounts to work together"]],
  "Blank":[["auto",""]]
 };
 function store(k,v){try{localStorage.setItem(k,v)}catch(e){}}
@@ -151,11 +160,19 @@ function flash(t,k){const d=$("#flash");d.innerHTML="";if(!t)return;const m=docu
 const list=$("#slides");
 function row(layout,content){
   const d=document.createElement("div");d.className="slide";
-  d.innerHTML='<div class="num"></div><div><div class="srow"><select aria-label="Layout"></select><div class="tools"><button type="button" class="ib up" title="Move up">↑</button><button type="button" class="ib dn" title="Move down">↓</button><button type="button" class="ib rm" title="Remove">✕</button></div></div><textarea placeholder="What do you want on this slide?"></textarea><div class="lay"></div></div>';
+  d.innerHTML='<div class="num"></div><div><div class="srow"><select aria-label="Layout"></select><div class="tools"><button type="button" class="ib up" title="Move up">↑</button><button type="button" class="ib dn" title="Move down">↓</button><button type="button" class="ib rm" title="Remove">✕</button></div></div><textarea placeholder="What do you want on this slide?"></textarea><div class="lay"></div>'+
+   '<div class="rules hidden"><div class="rr"><div><label>How recent</label><select class="months"><option value="6">Last 6 months</option><option value="12" selected>Last 12 months</option><option value="24">Last 24 months</option></select></div>'+
+   '<div><label>Where it applies</label><input type="text" class="scope" placeholder="e.g. US hospitals, state and local government, mid-size manufacturers"></div></div>'+
+   '<label style="margin-top:8px">Kinds of source</label><div class="kinds">'+
+   ["Analyst firms","Government and regulators","Industry studies and associations","News and trade press"].map(k=>'<label><input type="checkbox" value="'+k+'" checked>'+k+'</label>').join("")+'</div>'+
+   '<label style="margin-top:8px">Anything else the data must meet</label><input type="text" class="extra" placeholder="e.g. cost of downtime per hour only; no survey of fewer than 500 people; avoid IBM">'+
+   '<p class="rhint">Every figure is checked on its source page. If fewer than two pass your rules, the slide comes back with [placeholders] and the build report says why.</p></div></div>';
   const sel=d.querySelector("select");
   LAYOUTS.forEach(([v,n])=>{const o=document.createElement("option");o.value=v;o.textContent=n;sel.appendChild(o);});
   sel.value=layout||"auto";d.querySelector("textarea").value=content||"";
-  const hint=()=>{d.querySelector(".lay").textContent=(LAYOUTS.find(x=>x[0]===sel.value)||[])[2]||"";};sel.onchange=hint;hint();
+  const ta=d.querySelector("textarea");
+  const hint=()=>{d.querySelector(".lay").textContent=(LAYOUTS.find(x=>x[0]===sel.value)||[])[2]||"";const r=sel.value==="research";
+    d.querySelector(".rules").classList.toggle("hidden",!r);ta.placeholder=r?"What should the data show? e.g. how much an hour of downtime costs a US hospital, and how often ransomware forces one offline":"What do you want on this slide?";};sel.onchange=hint;hint();
   d.querySelector(".up").onclick=()=>{if(d.previousElementSibling)list.insertBefore(d,d.previousElementSibling);renum();};
   d.querySelector(".dn").onclick=()=>{if(d.nextElementSibling)list.insertBefore(d.nextElementSibling,d);renum();};
   d.querySelector(".rm").onclick=()=>{d.remove();if(!list.children.length)row();renum();};
@@ -178,7 +195,12 @@ document.querySelectorAll("#pres input").forEach(c=>c.onchange=()=>{const on=[..
 $("#f").onsubmit=async e=>{
   e.preventDefault();
   if(!token){flash("Open this page from your personal hub link first.","err");return;}
-  const slides=[...list.children].map(d=>({layout:d.querySelector("select").value,content:d.querySelector("textarea").value.trim()})).filter(s=>s.content||s.layout!=="auto");
+  const slides=[...list.children].map(d=>{const lay=d.querySelector("select").value;const o={layout:lay,content:d.querySelector("textarea").value.trim()};
+    if(lay==="research")o.research={months:+d.querySelector(".months").value,scope:d.querySelector(".scope").value.trim(),
+      sources:[...d.querySelectorAll(".kinds input:checked")].map(x=>x.value),rules:d.querySelector(".extra").value.trim()};
+    return o;}).filter(s=>s.content||s.layout!=="auto");
+  const badR=slides.find(s=>s.layout==="research"&&(!s.content||!s.research.sources.length));
+  if(badR){flash(badR.content?"Pick at least one kind of source for the research slide.":"Describe what the research slide should show.","err");return;}
   const title=$("#title").value.trim(),company=$("#company").value.trim();
   const missing=[];if(!title)missing.push("a deck title");if(!company)missing.push("who it's for");if(!slides.length)missing.push("at least one slide");
   const pres=[...document.querySelectorAll("#pres input:checked")];if(!pres.length)missing.push("a presenter");
