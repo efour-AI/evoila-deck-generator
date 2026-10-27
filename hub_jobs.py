@@ -196,6 +196,10 @@ def index_library():
                 continue
             t = re.sub(r"[ \t]+", " ", t)
             t = re.sub(r"\n\s*\n+", "\n\n", t).strip()
+            # source lists and endnotes (verbatim call quotes) add cost to every question, not answers
+            m = re.search(r"\n(SOURCES|NOTES|Sources|Notes)\n", t)
+            if m and m.start() > len(t) * 0.4:
+                t = t[:m.start()].rstrip()
             if len(t) < 200:
                 continue
             pieces = [t[i:i + CHUNK] for i in range(0, len(t), CHUNK)]
@@ -209,6 +213,8 @@ def index_library():
     for i in range(0, len(new), 10):
         api("POST", f"https://api.airtable.com/v0/{BASE}/{T_KB}", {"records": [{"fields": x} for x in new[i:i + 10]]})
     print(f"indexed {len(new)} pieces from {len(res)} resources")
+    if any("messaging platform" in x[K["name"]].lower() for x in new):
+        voice_cards()
 
 
 # ------------------------------------------------------------------ build-post
@@ -382,11 +388,22 @@ def meeting_overviews():
 
 
 def voice_cards():
+    # Prefer the Brand Messaging Platform from the resource library (kept current from Drive); fall back to a pushed msg: row
+    lib = [r for r in rows(T_KB, "LEFT({Source file}, 4)='lib:'") if "messaging platform" in str(r["fields"].get(K["name"], "")).lower()]
+    lib.sort(key=lambda r: str(r["fields"].get(K["name"], "")))
+    doc, origin = "", ""
+    if lib:
+        full = "".join(r["fields"].get(K["text"], "") for r in lib)
+        a, b = full.find("PART THREE"), full.find("DOCUMENT CONTROL")
+        doc = full[a:b] if a >= 0 and b > a else full
+        origin = str(lib[0]["fields"].get(K["name"], "library")).split(" (part")[0]
     msgs = rows(T_KB, "LEFT({Source file}, 4)='msg:'")
-    if not msgs:
-        raise RuntimeError("no msg: row in Hub Knowledge")
     msgs.sort(key=lambda r: r.get("createdTime", ""), reverse=True)
-    doc = msgs[0]["fields"].get(K["text"], "")
+    if not doc and msgs:
+        doc = msgs[0]["fields"].get(K["text"], "")
+        origin = msgs[0]["fields"].get(K["src"], "msg:")[4:].strip()
+    if not doc:
+        raise RuntimeError("no messaging platform text found")
     calls = rows(T_CALL, "IS_AFTER({Meeting Date}, DATEADD(TODAY(), -30, 'days'))")
     phrase_field = {"Glen Tindal": "fldtjdShVGV6RWhs3", "Mark Maisano": "fldZpZVI2zKOH0RgM"}
     cards = {r["fields"].get(K["name"], ""): r["id"] for r in rows(T_KB, "LEFT({Name}, 6)='Voice:'")}
@@ -412,14 +429,14 @@ def voice_cards():
             print("short card skipped for one author")
             continue
         fields = {K["name"]: "Voice: " + author, K["text"]: out[:90000], K["share"]: "Internal only", K["use"]: False,
-                  K["src"]: "voice: built " + time.strftime("%Y-%m-%d") + " from " + msgs[0]["fields"].get(K["src"], "msg:")[4:].strip()}
+                  K["src"]: "voice: built " + time.strftime("%Y-%m-%d") + " from " + origin}
         rid = cards.get("Voice: " + author)
         if rid:
             api("PATCH", f"https://api.airtable.com/v0/{BASE}/{T_KB}/{rid}", {"fields": fields})
         else:
             api("POST", f"https://api.airtable.com/v0/{BASE}/{T_KB}", {"records": [{"fields": fields}]})
         print("card written")
-    for old in msgs[1:]:
+    for old in (msgs if lib else msgs[1:]):
         api("DELETE", f"https://api.airtable.com/v0/{BASE}/{T_KB}/{old['id']}")
 
 
