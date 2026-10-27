@@ -286,7 +286,7 @@ def build_post():
     check = clean_copy(spec.get("check") or "")
     fields = {P["copy"]: body, P["title"]: clean_copy(spec.get("title"))[:120] or f.get(P["title"], ""),
               P["status"]: "Draft" if "[TEST]" in (f.get(P["bullets"]) or "") else "Marketing Approved", P["gen"]: False,
-              P["note"]: ("Ready. " + (check if check and check.lower() != "clean" else ""))[:250]}
+              P["note"]: ("Ready. " + ("" if not check or check.lower().startswith("clean") else "Note: " + check))[:250]}
     if not f.get(P["date"]):
         fields[P["date"]] = time.strftime("%Y-%m-%dT%H:%M:%S.000Z", time.gmtime())
     api("PATCH", url, {"fields": fields, "typecast": True})
