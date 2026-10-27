@@ -93,7 +93,7 @@ RULES
 - Plain, direct, confident language. Short sentences. No hype, no buzzwords, no exclamation marks.
 - No em dashes or en dashes anywhere. Use commas, colons or periods.
 - notes: 2 to 4 sentences of speaker notes per slide, in the presenter's voice, saying how to land the slide. List anything in brackets that the presenter must fill in before the meeting.
-- subtitle: one line under 70 characters for the cover (for example who it is for and the topic).
+- subtitle: one line under 70 characters for the cover that says what the deck is about. Do not name the company or event; the cover already says who it is prepared for.
 
 Call submit_deck once with the whole deck."""
 
@@ -242,13 +242,16 @@ def render(spec, tpl_path, out, meta, engine_dir):
         return sld
 
     def statement(s):
-        sld = new(prs, "dark", s.get("title") or "")
+        st = s.get("statement") or s.get("title") or ""
+        ttl = s.get("title") or ""
+        if ttl.strip(" .").lower() in st.strip(" .").lower() or st.strip(" .").lower().startswith(ttl.strip(" .").lower()[:30]):
+            ttl = ""                             # don't print the same line twice
+        sld = new(prs, "dark", ttl)
         BL.add_blob(sld, "right")
         y = 2.0
         if s.get("kicker"):
             text(sld, X0, y, 7.6, 0.4, s["kicker"].upper(), size=13, bold=True, color=GREEN)
             y += 0.55
-        st = s.get("statement") or s.get("title") or ""
         text(sld, X0, y, 7.6, 2.4, st, size=_fit(st, 70, 36, 24), bold=True, color=WHITE)
         if s.get("support"):
             text(sld, X0, 5.0, 7.4, 1.0, s["support"], size=17, color=SOFT)
@@ -358,7 +361,11 @@ def render(spec, tpl_path, out, meta, engine_dir):
         return sld
 
     def quote(s):
-        sld = new(prs, "dark", s.get("title") or "")
+        st = s.get("statement") or s.get("title") or ""
+        ttl = s.get("title") or ""
+        if ttl.strip(" .").lower() in st.strip(" .").lower() or st.strip(" .").lower().startswith(ttl.strip(" .").lower()[:30]):
+            ttl = ""                             # don't print the same line twice
+        sld = new(prs, "dark", ttl)
         BL.add_blob(sld, "right")
         icon(sld, "Quote", X0, 1.7, 0.8, "g")
         q = s.get("statement") or ""
