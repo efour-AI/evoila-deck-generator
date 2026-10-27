@@ -25,7 +25,7 @@ main{padding:16px}
 label.l{display:block;font-size:13px;font-weight:600;margin:12px 0 4px}
 label.l .o{font-weight:400;color:var(--muted)}
 .hint{font-size:12.5px;color:var(--muted);margin:2px 0 0}
-input[type=text],textarea,input[type=file]{width:100%;font:inherit;font-size:15px;color:var(--ink);background:var(--card);border:1px solid var(--line);border-radius:9px;padding:10px}
+input[type=text],textarea,input[type=file],select{width:100%;font:inherit;font-size:15px;color:var(--ink);background:var(--card);border:1px solid var(--line);border-radius:9px;padding:10px}
 textarea{min-height:170px;resize:vertical}
 .btn{display:block;width:100%;font:inherit;font-weight:600;font-size:16px;border:0;border-radius:10px;padding:14px;color:#fff;background:var(--indigo);cursor:pointer;margin-top:14px;text-align:center;text-decoration:none}
 .btn.ghost{background:transparent;color:var(--ink);border:1px solid var(--line)}
@@ -50,6 +50,9 @@ textarea{min-height:170px;resize:vertical}
 <main class="wrap">
 <div id="flash"></div>
 <form class="card" id="f">
+ <div id="forwho" class="hidden"><label class="l" for="author">Post for</label>
+ <select id="author"><option value="">Pick an author</option><option>Glen Tindal</option><option>Mark Maisano</option><option>Andrew Hald</option></select>
+ <p class="hint">It lands in their review queue as a self-serve post. They read it and post it, or decline it.</p></div>
  <label class="l" for="topic">Topic</label>
  <input type="text" id="topic" maxlength="140" placeholder="e.g. Why we don't start VCF 9 migrations with NSX">
  <label class="l" for="bullets">What do you want to say?</label>
@@ -67,41 +70,47 @@ textarea{min-height:170px;resize:vertical}
   <li id="s3"><span class="d"></span>Drawing the image</li>
   <li id="s4"><span class="d"></span>Ready for your review</li>
  </ul>
- <p class="hint" id="note">Usually about a minute. You can leave this page; it will be waiting under My posts.</p>
+ <p class="hint" id="note">Usually about a minute. You can leave this page; it will be waiting in the review queue.</p>
 </div>
 </main>
 <script>
 const API="https://hook.us2.make.com/o28rqytj8ifgm1o2tckavp2194d8jbqt";
+const ACT="https://hook.us2.make.com/91mst8q1pr5j2smjck26k4a23tlrcrn8";
 const DEV=/Mobi|Android|iPhone|iPad/i.test(navigator.userAgent)?"phone":"desktop";
 function store(k,v){try{localStorage.setItem(k,v)}catch(e){}}
 function load(k){try{return localStorage.getItem(k)}catch(e){return null}}
-let token=null;const h=new URLSearchParams(location.hash.slice(1));
-if(h.get("t")){token=h.get("t");store("evoila_hub","t:"+token);store("evoila_desk_t",token);history.replaceState(null,"",location.pathname);}
-else{const s=load("evoila_hub");if(s&&s[0]==="t")token=s.slice(2);else token=load("evoila_desk_t");}
+let token=null,admin=false;const h=new URLSearchParams(location.hash.slice(1));
+if(h.get("k")){token=h.get("k");admin=true;store("evoila_hub","k:"+token);store("evoila_desk_k",token);}
+else if(h.get("t")){token=h.get("t");store("evoila_hub","t:"+token);store("evoila_desk_t",token);}
+else{const s=load("evoila_hub");if(s){admin=s[0]==="k";token=s.slice(2);}else token=load("evoila_desk_t");}
+if(h.toString())history.replaceState(null,"",location.pathname+location.search);
 const $=s=>document.querySelector(s);
 function flash(t,k){const d=$("#flash");d.innerHTML="";if(!t)return;const m=document.createElement("div");m.className="msg "+(k||"ok");m.textContent=t;d.appendChild(m);}
 function step(n){for(let i=1;i<=4;i++){const li=$("#s"+i);li.className=i<n?"done":i===n?"on":"";}}
-async function call(p){const r=await fetch(API,{method:"POST",body:new URLSearchParams(Object.assign({t:token,dev:DEV},p))});const tx=await r.text();let j=null;try{j=JSON.parse(tx)}catch(e){}
+async function call(p,url){const r=await fetch(url||API,{method:"POST",body:new URLSearchParams(Object.assign({t:token,dev:DEV},p))});const tx=await r.text();let j=null;try{j=JSON.parse(tx)}catch(e){}
   if(r.status===401)throw new Error("auth");if(!r.ok||!j)throw new Error("fail");return j;}
+if(admin){$("#forwho").classList.remove("hidden");$("h1").textContent="Create a post for an author";$(".sub").textContent="Pick the author, give it a topic and a few bullets. It lands in their queue in their voice, with an image. Nothing goes live until they post it.";$("#go").textContent="Write the post";
+  const pre=new URLSearchParams(location.search).get("for");if(pre)$("#author").value=pre;}
 if(!token)flash("Open this page from your personal hub link. Creating posts is for Glen, Mark and Andrew.","err");
 $("#f").onsubmit=async e=>{
   e.preventDefault();
   const bullets=$("#bullets").value.trim(),topic=$("#topic").value.trim();
   if(!bullets){$("#bullets").focus();flash("Add a few bullets first.","err");return;}
+  if(admin&&!$("#author").value){$("#author").focus();flash("Pick who the post is for.","err");return;}
   const file=$("#photo").files[0];
   if(file&&file.size>5*1024*1024){flash("That photo is over 5 MB. Try a smaller one.","err");return;}
   const b=$("#go");b.disabled=true;b.textContent="Sending…";flash("");
   try{
-    const p={a:"selfpost",title:topic,bullets};
+    const p={a:"selfpost",title:topic,bullets};if(admin)p.author=$("#author").value;
     if(file){p.file=await new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(String(r.result).split(",")[1]);r.onerror=rej;r.readAsDataURL(file);});p.fileName=file.name;p.fileType=file.type==="image/png"?"image/png":"image/jpeg";}
     $("#f").classList.add("hidden");$("#wait").classList.remove("hidden");step(1);
-    const j=await call(p);step(2);poll(j.id,Date.now());
-  }catch(err){$("#f").classList.remove("hidden");$("#wait").classList.add("hidden");b.disabled=false;b.textContent="Write my post";
+    const j=await call(p,admin?ACT:API);if(!j.id)throw new Error("fail");step(2);poll(j.id,Date.now());
+  }catch(err){$("#f").classList.remove("hidden");$("#wait").classList.add("hidden");b.disabled=false;b.textContent=admin?"Write the post":"Write my post";
     flash(err.message==="auth"?"This link isn't recognized, or you're not set up to post. Ask Kevin.":"That didn't go through. Try again in a minute.","err");}
 };
 async function poll(id,t0){
   try{
-    const d=await call({a:"list"});const rec=(d.posts||[]).find(p=>p.id===id);const f=rec?rec.fields:{};
+    const d=await call({a:admin?"mlist":"list"});const rec=(d.posts||[]).find(p=>p.id===id);const f=rec?rec.fields:{};
     const note=f["Self-serve note"]||"";
     if(/^Drawing/.test(note))step(3);
     if(f.Status==="Marketing Approved"&&f["Post Copy"]){step(5);location.href="../review/?p="+id;return;}

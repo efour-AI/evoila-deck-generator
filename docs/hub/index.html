@@ -137,6 +137,8 @@ dialog h3{margin:0 0 6px;font-size:18px}
 .authors{display:grid;gap:12px}
 @media(min-width:900px){.authors{grid-template-columns:repeat(3,1fr)}}
 .ac{border:1px solid var(--line);border-radius:14px;padding:14px;background:var(--soft);min-width:0}
+.newpost{display:block;margin-top:12px;font-size:13.5px;font-weight:600;color:var(--indigo);text-decoration:none}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .newpost{color:#8FB8FF}}
 .ac.me{background:var(--card);border:2px solid var(--indigo)}
 .ach{display:flex;gap:10px;align-items:center;margin-bottom:10px}
 .ach .av{width:40px;height:40px;border-radius:50%;flex:none;display:grid;place-items:center;color:#fff;font-weight:700;background:linear-gradient(135deg,var(--green),var(--blue))}
@@ -346,6 +348,7 @@ function actions(admin,author){
   add("▣","Walking deck","Pick an audience, get a tailored deck by email",BASE,()=>track("Request deck","Walking deck"));
   add("✎","Build your own deck","Outline it slide by slide, we build it on brand",BASE+"build/",()=>track("Custom deck","Opened builder"));
   if(author)add("✦","Create a post","Topic and bullets in, a finished post with an image in a minute",BASE+"create/");
+  else if(admin)add("✦","Create a post for an author","Topic and bullets in; it lands in their queue in their voice",BASE+"create/");
   add("?","Ask marketing","A slide, a story, a post, an event",null,()=>$("#askDlg").showModal());
   return g;
 }
@@ -550,6 +553,7 @@ function linkedin(){
         l.appendChild(t);li.append(l,el("div","r",fmt(p["Published Date"]||p["Date Posted"])));ul.appendChild(li);});
       card.appendChild(ul);
     }
+    if(a!=="evoila US Page"&&can){const cb=el("a","newpost",a===me?"+ Create a post":"+ Create a post for "+first(a));cb.href=BASE+"create/"+(a===me?"":"?for="+encodeURIComponent(a));card.appendChild(cb);}
     g.appendChild(card);
   });
   c.appendChild(g);

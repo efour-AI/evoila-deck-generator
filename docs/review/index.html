@@ -60,7 +60,9 @@ main{padding:16px}
 .btn{display:block;width:100%;font:inherit;font-weight:600;font-size:15px;border:1px solid var(--line);border-radius:10px;padding:12px 14px;background:var(--card);color:var(--ink);cursor:pointer;margin:0 0 8px;text-align:center;text-decoration:none}
 .btn.primary{background:var(--indigo);border-color:var(--indigo);color:#fff;font-size:16px;padding:14px}
 .btn.green{background:var(--ok);border-color:var(--ok);color:#fff}
-.btn.danger{color:var(--bad)}
+.btn.danger,.btn.ghostbad{color:var(--bad)}
+.btn.bad{background:var(--bad);border-color:var(--bad);color:var(--card)}
+.btn.ghostbad{margin-top:14px}
 .btn:disabled{opacity:.55;cursor:wait}
 .row2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .row2 .btn{margin:0}
@@ -107,6 +109,7 @@ pre.notes{white-space:pre-wrap;font:inherit;font-size:13px;background:var(--soft
 
 <script>
 const API="https://hook.us2.make.com/o28rqytj8ifgm1o2tckavp2194d8jbqt";
+const ACT="https://hook.us2.make.com/91mst8q1pr5j2smjck26k4a23tlrcrn8";
 const DEV=/Mobi|Android|iPhone|iPad/i.test(navigator.userAgent)?"phone":"desktop";
 const TITLES={"Glen Tindal":"CEO and Managing Director, evoila US","Mark Maisano":"VP Alliances & Strategy, evoila US","Andrew Hald":"Lead Solution Architect, evoila US","evoila US Page":"Company page"};
 function store(k,v){try{v===undefined?localStorage.removeItem(k):localStorage.setItem(k,v)}catch(e){}}
@@ -124,8 +127,8 @@ else{const s=load("evoila_hub");if(s){admin=s[0]==="k";token=s.slice(2);}else if
 if(hp.toString())history.replaceState(null,"",location.pathname+(want?"?p="+want:""));
 if(admin){$("#deskLink").href="../authors/?m";$("#deskLink").textContent="List view";}
 
-async function call(params){
-  const r=await fetch(API,{method:"POST",body:new URLSearchParams(Object.assign({t:token,dev:DEV},params))});
+async function call(params,url){
+  const r=await fetch(url||API,{method:"POST",body:new URLSearchParams(Object.assign({t:token,dev:DEV},params))});
   const txt=await r.text();let j=null;try{j=JSON.parse(txt)}catch(e){}
   if(r.status===401)throw new Error("auth");
   if(!r.ok||!j)throw new Error(txt||("Error "+r.status));
@@ -283,6 +286,21 @@ async function act(params,okText,btns,btn,label,remove){
   }catch(e){if(e.message==="auth")return fail(e);flash("That didn't save. Try again in a minute.","err");busy(btns,false,btn,label);}
 }
 
+function declineBox(p,it,all){
+  if(it.kind!=="post")return;
+  const dl=el("button","btn ghostbad","Decline this post");dl.type="button";p.appendChild(dl);
+  const box=el("div","box hidden");box.appendChild(el("label","l","Why not? (optional, helps marketing)"));
+  const note=el("textarea","note");note.placeholder="e.g. Not a topic I want to post on; timing is off";box.appendChild(note);
+  const yes=el("button","btn bad","Yes, decline. It will not be posted");yes.type="button";yes.style.marginTop="8px";box.appendChild(yes);p.appendChild(box);
+  all.push(dl,yes);
+  dl.onclick=()=>{box.classList.toggle("hidden");if(!box.classList.contains("hidden"))note.focus();};
+  yes.onclick=async()=>{busy(all,true,yes,"Declining…");
+    try{await call({a:"decline",id:it.id,notes:note.value.trim()},ACT);doneIds.add(it.id);
+      flash("Declined. It won't be posted, and marketing can see your reason.","ok");
+      const items=queues[tab].items;const n=items.findIndex((x,i)=>i>idx&&!doneIds.has(x.id));if(n>=0)idx=n;draw();}
+    catch(e){if(e.message==="auth")return fail(e);flash("That didn't save. Try again in a minute.","err");busy(all,false,yes,"Yes, decline. It will not be posted");}};
+}
+
 function authorActions(p,it){
   if(it.f["Self-serve"])return selfServeActions(p,it);
   const ap=el("button","btn primary","Approve");ap.type="button";
@@ -299,7 +317,7 @@ function authorActions(p,it){
   const di=document.createElement("input");di.type="date";di.min=new Date().toISOString().slice(0,10);
   const hb=el("button","btn","Hold until this date");hb.type="button";hb.style.marginTop="8px";hold.append(di,hb);
   if(it.kind==="post")p.appendChild(hold);
-  const all=[ap,ed,ch,send,sv,hb];
+  const all=[ap,ed,ch,send,sv,hb];declineBox(p,it,all);
   ed.onclick=()=>{const on=editor.classList.contains("hidden");toggleEdit(on);ed.textContent=on?"Done editing":"Edit the text";sv.classList.toggle("hidden",!on);if(on)ap.textContent="Approve with my edits";};
   ch.onclick=()=>{box.classList.toggle("hidden");if(!box.classList.contains("hidden"))note.focus();};
   ap.onclick=()=>act({a:"approve",table:it.kind,id:it.id,copy:edited(it),notes:""},it.kind==="post"?"Approved. It goes out "+(dateOf(it)?fmt(dateOf(it)):"on its scheduled date")+".":"Approved. Marketing takes it from here.",all,ap,ap.textContent,true);
@@ -321,7 +339,7 @@ function selfServeActions(p,it){
   const box=el("div","box hidden");box.appendChild(el("label","l","What should marketing look at?"));
   const note=el("textarea","note");box.appendChild(note);
   const send=el("button","btn","Send to marketing");send.type="button";send.style.marginTop="8px";box.appendChild(send);p.appendChild(box);
-  const all=[go,ed,ch,send];
+  const all=[go,ed,ch,send];declineBox(p,it,all);
   ed.onclick=()=>{const on=editor.classList.contains("hidden");toggleEdit(on);ed.textContent=on?"Done editing":"Edit the text";if(on)go.textContent="Post it now, with my edits";};
   ch.onclick=()=>{box.classList.toggle("hidden");if(!box.classList.contains("hidden"))note.focus();};
   let armed=false;
