@@ -48,7 +48,22 @@ h2 .note{margin-left:auto;font-weight:500;letter-spacing:0;text-transform:none;c
 .btn.sm{font-size:12.5px;padding:6px 11px}
 .btn.ghost{background:transparent;color:var(--ink);border:1px solid var(--line)}
 .btn:disabled{opacity:.6;cursor:wait}
-.goal{border-top:1px solid var(--line);padding-top:14px;margin-top:14px}
+.gcards{display:grid;gap:14px;margin:4px 0 18px}
+@media(min-width:760px){.gcards{grid-template-columns:repeat(auto-fit,minmax(300px,1fr))}}
+.gcard{position:relative;border-radius:16px;padding:20px;color:#fff;background:linear-gradient(135deg,var(--indigo),var(--violet));cursor:pointer;text-align:left;font:inherit;border:0;display:flex;flex-direction:column;gap:10px}
+.gcard.g2{background:linear-gradient(135deg,#0075E4,#0D09B5)}
+.gcard.g3{background:linear-gradient(135deg,#0BA383,#0075E4)}
+.gcard:hover{filter:brightness(1.07)}
+.gcard .gt{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+.gcard h3{font-size:21px;line-height:1.2;margin:0;letter-spacing:-.01em}
+.gcard .pill{background:rgba(255,255,255,.18);color:#fff;border-color:transparent}
+.gcard p{margin:0;font-size:14px;line-height:1.5;color:rgba(255,255,255,.9)}
+.gcard .lab{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:rgba(255,255,255,.65);font-weight:600;margin-bottom:3px}
+.gcard ul{margin:0;padding-left:18px;font-size:14px;color:rgba(255,255,255,.92)}
+.gcard ul li{margin:2px 0}
+.gcard .gfoot{display:flex;justify-content:space-between;gap:10px;font-size:12.5px;color:rgba(255,255,255,.7);border-top:1px solid rgba(255,255,255,.18);padding-top:10px;margin-top:auto}
+.src{font-size:12px;color:var(--muted);margin:4px 0 0}
+.goal{border-top:1px solid var(--line);padding-top:14px;margin-top:14px;scroll-margin-top:70px}
 .goal:first-of-type{border-top:0;padding-top:0;margin-top:0}
 .goal h3{font-size:18px;margin:0 0 2px;letter-spacing:-.01em}
 .goal .summary{color:var(--muted);margin:0 0 4px}
@@ -300,7 +315,7 @@ function render(){
 let askHist=[];
 function askBar(){
   const c=el("div","card ask");
-  const hd=el("h2",null,"Ask the hub");hd.appendChild(el("span","note","Answers from the sales playbook, licensing guide, walking deck and brand guides"));c.appendChild(hd);
+  const hd=el("h2",null,"Ask the hub");hd.appendChild(el("span","note","Answers from the messaging platform, sales playbook, licensing guide, walking deck and brand guides"));c.appendChild(hd);
   const f=el("form","askrow");const inp=el("input");inp.type="text";inp.placeholder="e.g. A customer asks if they have to move to VCF at renewal. What do I say?";inp.setAttribute("aria-label","Ask a question");
   const b=el("button","btn","Ask");b.type="submit";f.append(inp,b);c.appendChild(f);
   const chips=el("div","chips");chips.style.margin="10px 0 0";
@@ -404,24 +419,52 @@ function owes(){
 }
 
 /* ---------- strategy ---------- */
+let SRC=null;
+function srcEl(id,tag){const e=el(tag||"p","src");e.dataset.src=id;if(SRC&&SRC[id])e.textContent="From: "+SRC[id];return e;}
+function loadSources(){
+  if(SRC){return;}
+  fetch(ACT,{method:"POST",body:new URLSearchParams({t:token,a:"plansrc",dev:DEV})}).then(r=>r.json()).then(j=>{SRC={};(j.plan||[]).forEach(r=>{if(r.fields&&r.fields.Source)SRC[r.id]=r.fields.Source;});
+    document.querySelectorAll("[data-src]").forEach(e=>{const v=SRC[e.dataset.src];if(v)e.textContent="From: "+v;});}).catch(()=>{});
+}
 function strategy(admin){
-  const c=section("strategy","Strategy","Tap an initiative for detail and tasks");
+  loadSources();
+  const c=section("strategy","Strategy","The two goals we are working toward · tap one for the detail");
   const plan=D.plan.map(r=>Object.assign({id:r.id},r.fields));
+  const live=p=>p.Status!=="Done";
   const byParent={};plan.forEach(p=>{(p.Parent||["_"]).forEach(par=>{(byParent[par]=byParent[par]||[]).push(p);});});
   const sort=a=>a.sort((x,y)=>(x.Order||99)-(y.Order||99));
   const items={};D.items.forEach(i=>items[i.id]=i.fields);
-  const goals=sort(plan.filter(p=>p.Level==="Goal"));
-  if(!goals.length)c.appendChild(el("div","empty","No goals yet. Add them in the Marketing Plan table."));
+  const goals=sort(plan.filter(p=>p.Level==="Goal"&&live(p)));
+  if(!goals.length){c.appendChild(el("div","empty","No goals yet."));return c;}
+  const objsOf=g=>sort((byParent[g.id]||[]).filter(o=>o.Level==="Objective"&&live(o)));
+  const initsOf=o=>sort((byParent[o.id]||[]).filter(i=>i.Level==="Initiative"&&live(i)));
+  /* headline cards */
+  const cards=el("div","gcards");
+  goals.forEach((g,ix)=>{
+    const b=el("button","gcard"+(ix%3?" g"+(ix%3+1):""));b.type="button";
+    const gt=el("div","gt");gt.append(el("h3",null,g.Name),pill(g.Status));b.appendChild(gt);
+    if(g.Summary){const d=el("div");d.append(el("div","lab","Why"),el("p",null,g.Summary));b.appendChild(d);}
+    const objs=objsOf(g);
+    if(objs.length){const d=el("div");d.appendChild(el("div","lab","What it delivers"));const ul=el("ul");objs.forEach(o=>ul.appendChild(el("li",null,o.Name)));d.appendChild(ul);b.appendChild(d);}
+    if(g["How we measure"]){const d=el("div");d.append(el("div","lab","How we'll know"),el("p",null,g["How we measure"]));b.appendChild(d);}
+    const n=objs.reduce((a,o)=>a+initsOf(o).length,0);
+    const f=el("div","gfoot");f.append(el("span",null,n+" active initiative"+(n===1?"":"s")+" ›"),srcEl(g.id,"span"));b.appendChild(f);
+    b.onclick=()=>{const t=document.getElementById("goal-"+g.id);if(t){t.scrollIntoView({behavior:"smooth",block:"start"});}};
+    cards.appendChild(b);
+  });
+  c.appendChild(cards);
+  /* detail */
   goals.forEach(g=>{
-    const gd=el("div","goal");
+    const gd=el("div","goal");gd.id="goal-"+g.id;
     const top=el("div","objhead");const gt=el("div");gt.appendChild(el("h3",null,g.Name));top.append(gt,pill(g.Status));gd.appendChild(top);
-    if(g.Summary)gd.appendChild(el("p","summary",g.Summary));
-    if(g["How we measure"]){const m=el("p","measure");m.appendChild(el("b",null,"How we measure: "));m.appendChild(document.createTextNode(g["How we measure"]));gd.appendChild(m);}
-    sort(byParent[g.id]||[]).filter(o=>o.Level==="Objective").forEach(o=>{
+    gd.appendChild(srcEl(g.id));
+    objsOf(g).forEach(o=>{
       const ob=el("div","obj");
       const oh=el("div","objhead");const ot=el("div");ot.appendChild(el("h4",null,o.Name));if(o.Owner)ot.appendChild(el("div","owners",o.Owner.map(first).join(", ")));oh.append(ot,pill(o.Status));ob.appendChild(oh);
       if(o.Summary)ob.appendChild(el("p","objsum",o.Summary));
-      const inits=sort((byParent[o.id]||[]).filter(i=>i.Level==="Initiative"));
+      if(o["How we measure"]){const m=el("p","measure");m.appendChild(el("b",null,"How we'll know: "));m.appendChild(document.createTextNode(o["How we measure"]));ob.appendChild(m);}
+      ob.appendChild(srcEl(o.id));
+      const inits=initsOf(o);
       if(inits.length){const box=el("div","inits");inits.forEach(i=>box.appendChild(initiative(i,items,admin)));ob.appendChild(box);}
       gd.appendChild(ob);
     });
@@ -441,10 +484,11 @@ function initiative(i,items,admin){
   const b=el("div","ibody");
   if(i.Summary)b.appendChild(el("p",null,i.Summary));
   if(i["Latest update"]){b.appendChild(el("div","owners","Latest update"));b.appendChild(el("div","update",i["Latest update"]));}
-  if(linked.length){
-    b.appendChild(el("div","owners","Tasks"));
+  b.appendChild(srcEl(i.id));
+  if(linked.some(t=>t.Status!=="Closed")){
+    b.appendChild(el("div","owners","Open tasks"));
     const ul=el("ul","tasks");
-    linked.sort((x,y)=>(x.Status==="Closed")-(y.Status==="Closed")).forEach(t=>{
+    linked.filter(t=>t.Status!=="Closed").forEach(t=>{
       const li=el("li");li.appendChild(el("span","t",(t.Status==="Closed"?"✓ ":"")+t.Task));
       const r=[];if(t.Owner)r.push(t.Owner.map(first).join(", "));if(t["Due Date"])r.push(fmt(t["Due Date"]));else if(t["Due Note"])r.push(t["Due Note"]);r.push(t.Status||"Open");
       li.appendChild(el("span","small",r.join(" · ")));ul.appendChild(li);});
@@ -500,7 +544,7 @@ function resCard(r){
   (r.File||[]).slice(0,2).forEach(f=>{const ext=fileExt(f.filename);const v=viewUrl(f,ext);
     if(v){const w=el("a","btn sm");w.href=v;w.target="_blank";w.rel="noopener";w.appendChild(el("span","ext",ext));w.appendChild(document.createTextNode("View"));w.onclick=()=>track("Open resource",r.Name);row.appendChild(w);}
     const a=el("a",v?"btn ghost sm":"btn sm");a.href=f.url;a.target="_blank";a.rel="noopener";a.setAttribute("download",f.filename||"");if(!v)a.appendChild(el("span","ext",ext));a.appendChild(document.createTextNode("Download"));a.onclick=()=>track("Open resource",r.Name);row.appendChild(a);});
-  if(r.Link){const a=el("a","btn ghost sm","Open link");a.href=r.Link;a.target="_blank";a.rel="noopener";a.onclick=()=>track("Open resource",r.Name);row.appendChild(a);}
+  if(r.Link){const a=el("a","btn ghost sm",/drive\.google|docs\.google/.test(r.Link)?"Open in Drive":"Open link");a.href=r.Link;a.target="_blank";a.rel="noopener";a.onclick=()=>track("Open resource",r.Name);row.appendChild(a);}
   d.appendChild(row);return d;
 }
 
