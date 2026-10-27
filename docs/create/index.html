@@ -57,7 +57,7 @@ textarea{min-height:170px;resize:vertical}
  <input type="text" id="topic" maxlength="140" placeholder="e.g. Why we don't start VCF 9 migrations with NSX">
  <label class="l" for="bullets">What do you want to say?</label>
  <textarea id="bullets" placeholder="A few bullets or a rough paragraph. Keep any numbers you want used exactly as you want them."></textarea>
- <p class="hint">The draft follows your voice and the brand rules: no customer names, no partner-program talk, no numbers you didn't give it.</p>
+ <p class="hint" id="rules">The draft follows your voice and the brand rules: no customer names, no partner-program talk, no numbers you didn't give it.</p>
  <label class="l" for="photo">Your own photo <span class="o">(optional; otherwise we draw an image)</span></label>
  <input type="file" id="photo" accept="image/jpeg,image/png">
  <button class="btn" id="go" type="submit">Write my post</button>
@@ -89,7 +89,7 @@ function flash(t,k){const d=$("#flash");d.innerHTML="";if(!t)return;const m=docu
 function step(n){for(let i=1;i<=4;i++){const li=$("#s"+i);li.className=i<n?"done":i===n?"on":"";}}
 async function call(p,url){const r=await fetch(url||API,{method:"POST",body:new URLSearchParams(Object.assign({t:token,dev:DEV},p))});const tx=await r.text();let j=null;try{j=JSON.parse(tx)}catch(e){}
   if(r.status===401)throw new Error("auth");if(!r.ok||!j)throw new Error("fail");return j;}
-if(admin){$("#forwho").classList.remove("hidden");$("h1").textContent="Create a post for an author";$(".sub").textContent="Pick the author, give it a topic and a few bullets. It lands in their queue in their voice, with an image. Nothing goes live until they post it.";$("#go").textContent="Write the post";
+if(admin){$("#forwho").classList.remove("hidden");$("h1").textContent="Create a post for an author";$(".sub").textContent="Pick the author, give it a topic and a few bullets. It lands in their queue in their voice, with an image. Nothing goes live until they post it.";$("#go").textContent="Write the post";$("#rules").textContent="The draft follows the author's voice and the brand rules: no customer names, no partner-program talk, no numbers you didn't give it.";document.querySelector(".links a+a").textContent="Review";
   const pre=new URLSearchParams(location.search).get("for");if(pre)$("#author").value=pre;}
 if(!token)flash("Open this page from your personal hub link. Creating posts is for Glen, Mark and Andrew.","err");
 $("#f").onsubmit=async e=>{
