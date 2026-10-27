@@ -92,7 +92,7 @@ Rules:
 ## Hashtags
 - "Heard recently" lists up to six of the recent phrases below that best show how he talks, each as
   - "phrase" (topic, Mon DD). Skip the heading if there are none.
-- 600 to 1,000 words. Reply with the card text only.
+- 900 to 1,400 words. Reply with the card text only.
 
 BRAND MESSAGING PLATFORM EXCERPT:
 {doc}"""
@@ -399,9 +399,14 @@ def voice_cards():
                 recent = "RECENT VOICE PHRASES FROM CALL TRANSCRIPTS (verbatim, last 30 days):\n" + "\n".join(bits)[:12000]
         prompt = VOICE_PROMPT.format(author=author, title=TITLES.get(author, ""), doc=doc[:95000],
                                      recent=recent or "There are no recent transcript phrases for him; skip Heard recently.")
-        resp = ai_steps._call({"model": ai_steps.MODEL, "max_tokens": 4000,
-                               "messages": [{"role": "user", "content": prompt}]}, timeout=240)
-        out = "".join(b.get("text", "") for b in resp.get("content", []) if b.get("type") == "text").strip()
+        out = ""
+        for attempt in range(3):
+            resp = ai_steps._call({"model": ai_steps.MODEL, "max_tokens": 16000,
+                                   "messages": [{"role": "user", "content": prompt}]}, timeout=300)
+            out = "".join(b.get("text", "") for b in resp.get("content", []) if b.get("type") == "text").strip()
+            print(f"attempt {attempt + 1}: stop={resp.get('stop_reason')} chars={len(out)}")
+            if len(out) >= 400:
+                break
         out = out.replace("\u2014", ", ").replace("Evoila", "evoila")
         if len(out) < 400:
             print("short card skipped for one author")
