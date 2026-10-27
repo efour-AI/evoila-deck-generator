@@ -134,6 +134,29 @@ dialog{border:0;border-radius:16px;padding:0;max-width:560px;width:calc(100% - 3
 dialog::backdrop{background:rgba(23,16,42,.55)}
 dialog form{padding:18px}
 dialog h3{margin:0 0 6px;font-size:18px}
+.authors{display:grid;gap:12px}
+@media(min-width:900px){.authors{grid-template-columns:repeat(3,1fr)}}
+.ac{border:1px solid var(--line);border-radius:14px;padding:14px;background:var(--soft);min-width:0}
+.ac.me{background:var(--card);border:2px solid var(--indigo)}
+.ach{display:flex;gap:10px;align-items:center;margin-bottom:10px}
+.ach .av{width:40px;height:40px;border-radius:50%;flex:none;display:grid;place-items:center;color:#fff;font-weight:700;background:linear-gradient(135deg,var(--green),var(--blue))}
+.ach b{display:block;font-size:15px}.ach span{display:block;font-size:12.5px;color:var(--muted)}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.st{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:6px 4px;text-align:center}
+.st b{display:block;font-size:19px;font-variant-numeric:tabular-nums;line-height:1.2}
+.st span{display:block;font-size:10.5px;color:var(--muted);line-height:1.2}
+.st.hot{background:var(--indigo);border-color:var(--indigo)}.st.hot b,.st.hot span{color:#fff}
+.pr{display:flex;gap:10px;align-items:center;padding:8px;border-radius:10px;border:1px solid var(--line);background:var(--card);margin:0 0 6px;color:var(--ink);text-decoration:none}
+.pr.go:hover{border-color:var(--blue)}
+.th{flex:none;width:72px;height:38px;border-radius:6px;background:var(--line) center/cover no-repeat;display:grid;place-items:center;font-size:9.5px;color:var(--muted)}
+.th.sm{width:100%;height:auto;aspect-ratio:1.91/1}
+.tx{flex:1;min-width:0}
+.tx b{display:block;font-size:13px;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tx span{display:block;font-size:11.5px;color:var(--muted)}
+.tx .age.warn{color:var(--warn);font-weight:600}.tx .age.bad{color:var(--bad);font-weight:600}
+.chev{color:var(--muted);font-size:20px}
+.mini{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.mi{font-size:11px;color:var(--muted);text-align:center}
 footer{text-align:center;font-size:12px;color:var(--muted);padding:0 16px 28px}
 </style>
 </head>
@@ -255,7 +278,7 @@ function waiting(me,admin,author){
     const left=el("div");
     if(n){left.appendChild(el("b",null,n+(n===1?" post is":" posts are")+" waiting for your approval"));left.appendChild(el("div","owners","Approve, edit or ask for changes. Approved posts go out on their scheduled date."));}
     else{box.className="alert quiet";left.appendChild(el("b",null,"Nothing waiting on you"));left.appendChild(el("div","owners","Have something to say? Start a post from a few bullets."));}
-    const a=el("a","btn",n?"Review now":"Start a post");a.href=BASE+"authors/";box.append(left,a);return box;
+    const a=el("a","btn",n?"Review now":"Start a post");a.href=BASE+(n?"review/":"authors/");box.append(left,a);return box;
   }
   if(admin){
     const review=posts.filter(p=>p.Status==="Pending Marketing Review"||p.Status==="Changes Requested"||p["Generate Copy"]).length+arts.filter(a=>a.Status==="Pending Marketing Review"||a.Status==="Changes Requested").length;
@@ -265,7 +288,7 @@ function waiting(me,admin,author){
     left.appendChild(el("b",null,review+" waiting on marketing review"+(newReq?" · "+newReq+" new request"+(newReq>1?"s":""):"")));
     const parts=Object.entries(withAuthors).map(([k,v])=>k+" "+v);
     left.appendChild(el("div","owners",parts.length?"Waiting on authors: "+parts.join(", "):"Nothing is sitting with the authors."));
-    const a=el("a","btn","Open marketing review");a.href=BASE+"authors/?m";box.append(left,a);return box;
+    const a=el("a","btn","Open marketing review");a.href=BASE+"review/";box.append(left,a);return box;
   }
   box.className="alert quiet";
   const left=el("div");left.appendChild(el("b",null,"Welcome, "+first(me)));left.appendChild(el("div","owners","Meeting coming up? Get a tailored deck in your inbox in about five minutes."));
@@ -430,25 +453,66 @@ function decks(me,admin){
 }
 
 /* ---------- linkedin ---------- */
+function att(f){const x=(f.Image||[])[0];return x?((x.thumbnails&&x.thumbnails.large&&x.thumbnails.large.url)||x.url):null;}
 function linkedin(){
-  const c=section("linkedin","LinkedIn posts","Approved, scheduled and recently live");
-  const posts=D.posts.map(p=>p.fields);const now=Date.now();
-  const approved=posts.filter(p=>/^Approved by/.test(p.Status||"")).sort((a,b)=>Date.parse(a["Date Posted"]||0)-Date.parse(b["Date Posted"]||0));
-  const waiting=posts.filter(p=>p.Status==="Marketing Approved").sort((a,b)=>Date.parse(a["Date Posted"]||0)-Date.parse(b["Date Posted"]||0));
-  const live=posts.filter(p=>p.Status==="Published").sort((a,b)=>Date.parse(b["Published Date"]||b["Date Posted"]||0)-Date.parse(a["Published Date"]||a["Date Posted"]||0)).slice(0,8);
-  const g=el("div","grid half");
-  const col=(title,rows,emptyText,right)=>{const box=el("div");box.appendChild(el("div","grp",title));
-    if(!rows.length){box.appendChild(el("div","empty",emptyText));return box;}
-    const ul=el("ul","list");rows.forEach(p=>{const li=el("li");const l=el("div","l");
-      const t=p["Published URL"]?el("a",null,p["Post Title Preference"]||"Untitled post"):el("b",null,p["Post Title Preference"]||"Untitled post");
-      if(p["Published URL"]){t.href=p["Published URL"];t.target="_blank";t.rel="noopener";t.style.fontWeight="600";t.style.display="block";}
-      l.appendChild(t);l.appendChild(el("span",null,p["Author / Profile"]||""));li.append(l,el("div","r",right(p)));ul.appendChild(li);});
-    box.appendChild(ul);return box;};
-  g.appendChild(col("Approved and scheduled ("+approved.length+")",approved,"Nothing approved and waiting to go out.",p=>fmt(p["Date Posted"],{weekday:"short",month:"short",day:"numeric"})));
-  const right=el("div");
-  right.appendChild(col("Waiting on the author ("+waiting.length+")",waiting,"No posts waiting on authors.",p=>fmt(p["Date Posted"])));
-  right.appendChild(col("Recently live",live,"Nothing published in the last 90 days.",p=>"Posted "+fmt(p["Published Date"]||p["Date Posted"])));
-  g.appendChild(right);c.appendChild(g);return c;
+  const c=section("linkedin","LinkedIn posts","By author · tap a post to review it");
+  const posts=D.posts.map(p=>Object.assign({id:p.id},p.fields));
+  const me=D.person,admin=D.admin==="yes",since=Date.now()-30*864e5;
+  const order=AUTHORS.slice().sort((x,y)=>(y===me)-(x===me));
+  const g=el("div","authors");
+  order.forEach(a=>{
+    const mine=posts.filter(p=>p["Author / Profile"]===a);
+    const wait=mine.filter(p=>p.Status==="Marketing Approved").sort((x,y)=>Date.parse(x["Status changed"]||0)-Date.parse(y["Status changed"]||0));
+    const mkt=mine.filter(p=>["Pending Marketing Review","Changes Requested"].includes(p.Status)||p["Generate Copy"]);
+    const sched=mine.filter(p=>/^Approved by/.test(p.Status||"")).sort((x,y)=>Date.parse(x["Date Posted"]||0)-Date.parse(y["Date Posted"]||0));
+    const live=mine.filter(p=>p.Status==="Published").sort((x,y)=>Date.parse(y["Published Date"]||y["Date Posted"]||0)-Date.parse(x["Published Date"]||x["Date Posted"]||0));
+    const live30=live.filter(p=>Date.parse(p["Published Date"]||p["Date Posted"]||0)>=since).length;
+    const can=admin||a===me;
+    const card=el("div","ac"+(a===me?" me":"")+(wait.length?" owes":""));
+    const hd=el("div","ach");const av=el("div","av",a.split(" ").map(x=>x[0]).join(""));
+    const nm=el("div");nm.appendChild(el("b",null,a===me?"You":a));
+    nm.appendChild(el("span",null,wait.length?(wait.length+(wait.length===1?" post needs ":" posts need ")+(a===me?"your":"his")+" approval"):"Nothing waiting on "+(a===me?"you":first(a))));
+    hd.append(av,nm);card.appendChild(hd);
+    const st=el("div","stats");
+    [[wait.length,"to approve",wait.length?"hot":""],[mkt.length,"with marketing",""],[sched.length,"scheduled",""],[live30,"live, 30 days",""]].forEach(([n,l,cl])=>{const d=el("div","st "+cl);d.appendChild(el("b",null,String(n)));d.appendChild(el("span",null,l));st.appendChild(d);});
+    card.appendChild(st);
+    if(wait.length){
+      card.appendChild(el("div","grp","Needs "+(a===me?"your":first(a)+"'s")+" approval"));
+      wait.forEach(p=>{
+        const r=el(can?"a":"div","pr"+(can?" go":""));if(can){r.href=BASE+"review/?p="+p.id;r.onclick=()=>track("Other","Open post review");}
+        const th=el("div","th");const src=att(p);if(src)th.style.backgroundImage="url('"+src+"')";else th.textContent="No image";
+        const tx=el("div","tx");tx.appendChild(el("b",null,p["Post Title Preference"]||"Untitled post"));
+        const d=p["Status changed"]?Math.floor((Date.now()-Date.parse(p["Status changed"]))/864e5):null;
+        const rem=p["Reminders sent"]?("reminded "+p["Reminders sent"]+(p["Reminders sent"]>1?" times":" time")):"no reminders yet";
+        const meta=el("span","age"+(d>7?" bad":d>2?" warn":""),(d==null?"":"Waiting "+(d===0?"since today":d+(d===1?" day":" days")))+" · "+rem);
+        tx.appendChild(meta);
+        if(p["Date Posted"]){const past=Date.parse(p["Date Posted"])<Date.now()-864e5;tx.appendChild(el("span",null,(past?"Date passed: was ":"Scheduled ")+fmt(p["Date Posted"],{weekday:"short",month:"short",day:"numeric"})));}
+        r.append(th,tx);if(can)r.appendChild(el("span","chev","›"));card.appendChild(r);
+      });
+      if(a===me){const b=el("a","btn","Review "+(wait.length>1?"all "+wait.length:"it")+" now");b.href=BASE+"review/";b.style.marginTop="10px";b.style.display="block";b.style.textAlign="center";card.appendChild(b);}
+    }
+    if(sched.length){
+      card.appendChild(el("div","grp","Approved and scheduled"));
+      const strip=el("div","mini");
+      sched.slice(0,6).forEach(p=>{const m=el("div","mi");const th=el("div","th sm");const src=att(p);if(src)th.style.backgroundImage="url('"+src+"')";m.appendChild(th);
+        m.appendChild(el("span",null,fmt(p["Date Posted"],{month:"short",day:"numeric"})));m.title=p["Post Title Preference"]||"";strip.appendChild(m);});
+      card.appendChild(strip);
+    }
+    if(live.length){
+      card.appendChild(el("div","grp","Recently live"));
+      const ul=el("ul","list");
+      live.slice(0,3).forEach(p=>{const li=el("li");const l=el("div","l");
+        const t=p["Published URL"]?el("a",null,p["Post Title Preference"]||"LinkedIn post"):el("b",null,p["Post Title Preference"]||"LinkedIn post");
+        if(p["Published URL"]){t.href=p["Published URL"];t.target="_blank";t.rel="noopener";t.style.display="block";t.style.fontWeight="600";}
+        l.appendChild(t);li.append(l,el("div","r",fmt(p["Published Date"]||p["Date Posted"])));ul.appendChild(li);});
+      card.appendChild(ul);
+    }
+    g.appendChild(card);
+  });
+  c.appendChild(g);
+  if(admin){const p=el("div","owners");p.style.marginTop="10px";const a=el("a",null,"Open marketing review");a.href=BASE+"review/";p.appendChild(a);
+    p.appendChild(document.createTextNode(" · posts waiting on you, posts with authors, articles for corporate"));c.appendChild(p);}
+  return c;
 }
 
 /* ---------- analytics ---------- */

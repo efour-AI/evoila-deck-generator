@@ -1,0 +1,364 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<title>Review posts</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--violet:#1F1534;--indigo:#0D09B5;--blue:#0075E4;--green:#0BD7A1;--bg:#F6F0EB;--card:#fff;--ink:#1F1534;--muted:#6B6478;--line:#E4DDD6;--soft:#FBF8F5;
+--ok:#0F8F6A;--okbg:#DDF7EE;--warn:#9A5B00;--warnbg:#FDF1D8;--bad:#B42318;--badbg:#FDE8E7;--li:#0A66C2}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#17102A;--card:#231A3B;--ink:#F3EEF8;--muted:#B5ACC4;--line:#3A3052;--soft:#2A2046;--okbg:#0F3B30;--ok:#7BE8C6;--warnbg:#45330C;--warn:#F5C66B;--badbg:#4A1A1A;--bad:#FF9C93}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 Inter,system-ui,-apple-system,"Segoe UI",sans-serif;padding-bottom:90px}
+a{color:var(--blue)}
+header{background:var(--violet);color:#fff;padding:14px 16px}
+.wrap{max-width:1040px;margin:0 auto}
+.top{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.logo{height:22px;width:auto;display:block}
+.links{display:flex;gap:14px;font-size:13px}
+.links a{color:rgba(255,255,255,.8);text-decoration:none}
+.links a:hover{color:#fff}
+.headline{display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-top:12px}
+h1{font-size:21px;margin:0;letter-spacing:-.01em}
+.who{font-size:13px;color:rgba(255,255,255,.72)}
+.tabs{display:flex;gap:6px;margin-top:12px;flex-wrap:wrap}
+.tab{font:inherit;font-size:13px;font-weight:600;border:1px solid rgba(255,255,255,.25);background:transparent;color:#fff;border-radius:999px;padding:6px 13px;cursor:pointer}
+.tab.on{background:#fff;color:var(--violet);border-color:#fff}
+.tab .n{opacity:.7;margin-left:4px}
+main{padding:16px}
+.strip{display:flex;gap:8px;overflow-x:auto;padding:2px 2px 10px;scrollbar-width:thin}
+.chipq{flex:none;width:118px;border:2px solid transparent;border-radius:10px;background:var(--card);padding:5px;cursor:pointer;text-align:left;font:inherit;color:var(--ink)}
+.chipq.on{border-color:var(--indigo)}
+.chipq.done{opacity:.45}
+.chipq .ph{width:100%;aspect-ratio:1.91/1;border-radius:6px;background:var(--soft) center/cover no-repeat;display:grid;place-items:center;font-size:11px;color:var(--muted)}
+.chipq .t{font-size:11.5px;line-height:1.3;margin-top:4px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.chipq .d{font-size:10.5px;color:var(--muted)}
+.layout{display:grid;gap:16px;margin-top:6px}
+@media(min-width:900px){.layout{grid-template-columns:minmax(0,560px) 1fr;align-items:start}}
+.li{background:var(--card);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.lihead{display:flex;gap:10px;padding:12px 14px 6px;align-items:center}
+.av{width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,var(--green),var(--blue));color:#fff;display:grid;place-items:center;font-weight:700;font-size:17px;flex:none}
+.lihead b{display:block;font-size:14.5px}
+.lihead span{display:block;font-size:12.5px;color:var(--muted);line-height:1.35}
+.licopy{padding:6px 14px 12px;white-space:pre-wrap;font-size:14.5px;line-height:1.5;word-wrap:break-word}
+.licopy.clamp{max-height:9.2em;overflow:hidden;position:relative}
+.more{border:0;background:none;color:var(--muted);font:inherit;font-size:13.5px;padding:0 14px 10px;cursor:pointer}
+.liimg{display:block;width:100%;background:var(--soft)}
+.liimg.none{aspect-ratio:1.91/1;display:grid;place-items:center;color:var(--muted);font-size:13px}
+.lifoot{display:flex;justify-content:space-around;border-top:1px solid var(--line);padding:8px;color:var(--muted);font-size:13px;font-weight:600}
+.edit{width:100%;min-height:340px;border:0;border-top:2px solid var(--indigo);padding:12px 14px;font:inherit;font-size:14.5px;line-height:1.5;color:var(--ink);background:var(--soft);resize:vertical}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px;position:sticky;top:12px}
+.panel h2{font-size:17px;margin:0 0 4px;letter-spacing:-.01em}
+.kv{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0 12px}
+.tag{font-size:12px;font-weight:600;padding:3px 9px;border-radius:999px;background:var(--soft);border:1px solid var(--line);color:var(--muted)}
+.tag.warn{background:var(--warnbg);color:var(--warn);border-color:transparent}
+.tag.bad{background:var(--badbg);color:var(--bad);border-color:transparent}
+.tag.ok{background:var(--okbg);color:var(--ok);border-color:transparent}
+.btn{display:block;width:100%;font:inherit;font-weight:600;font-size:15px;border:1px solid var(--line);border-radius:10px;padding:12px 14px;background:var(--card);color:var(--ink);cursor:pointer;margin:0 0 8px;text-align:center;text-decoration:none}
+.btn.primary{background:var(--indigo);border-color:var(--indigo);color:#fff;font-size:16px;padding:14px}
+.btn.green{background:var(--ok);border-color:var(--ok);color:#fff}
+.btn.danger{color:var(--bad)}
+.btn:disabled{opacity:.55;cursor:wait}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.row2 .btn{margin:0}
+label.l{display:block;font-size:12.5px;font-weight:600;color:var(--muted);margin:12px 0 4px}
+textarea.note,input[type=date]{width:100%;font:inherit;font-size:14px;color:var(--ink);background:var(--card);border:1px solid var(--line);border-radius:8px;padding:9px 10px}
+textarea.note{min-height:80px;resize:vertical}
+.box{border-top:1px solid var(--line);margin-top:12px;padding-top:4px}
+details summary{cursor:pointer;font-size:13px;color:var(--blue);margin:10px 0 4px}
+pre.notes{white-space:pre-wrap;font:inherit;font-size:13px;background:var(--soft);border-radius:8px;padding:8px 10px;margin:4px 0 0;color:var(--muted)}
+.hint{font-size:12.5px;color:var(--muted);margin:6px 0 0}
+.nav{position:fixed;left:0;right:0;bottom:0;background:var(--card);border-top:1px solid var(--line);padding:10px 16px calc(10px + env(safe-area-inset-bottom));z-index:5}
+.nav .wrap{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.nav button{font:inherit;font-weight:600;font-size:14px;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:9px;padding:9px 14px;cursor:pointer}
+.nav button:disabled{opacity:.35;cursor:default}
+.nav .pos{font-size:13px;color:var(--muted);text-align:center}
+.nav .quick{display:none}
+@media(max-width:899px){.nav .quick{display:inline-block;background:var(--indigo);border-color:var(--indigo);color:#fff}}
+.msg{padding:12px 14px;border-radius:10px;margin:0 0 12px;font-size:14px}
+.msg.err{background:var(--badbg);color:var(--bad)}.msg.ok{background:var(--okbg);color:var(--ok)}
+.done{text-align:center;padding:50px 16px}
+.done .big{font-size:44px}
+.done h2{font-size:22px;margin:8px 0}
+.loading{color:var(--muted);padding:40px 0;text-align:center}
+.hidden{display:none!important}
+</style>
+</head>
+<body>
+<header><div class="wrap">
+ <div class="top"><svg viewBox="0 0 175.24 41.66" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" class="logo" role="img" aria-label="evoila"><defs></defs><g><path d="M31.95 26.76C31.7 28.61 30.94 34.23 23.13 38.47 20.03 40.15 16.06 41.29 12.24 41.58 11.59 41.63 10.97 41.66 10.38 41.66 7.63 41.66 5.5 41.14 4.52 40.18 3.9 39.63 3.53 38.82 3.53 37.97 3.53 37.47 3.65 36.98 3.88 36.54 4.16 35.93 4.6 35.36 5.2 34.68L5.2 34.68C5.2 34.68 5.45 34.83 5.58 34.91 5.72 34.99 6.05 35.14 6.05 35.14 5.43 35.84 4.96 36.4 4.72 36.95L4.72 36.98C4.54 37.28 4.46 37.62 4.46 37.97 4.46 38.55 4.71 39.11 5.15 39.5 7.11 41.41 15.92 41.32 22.68 37.65 30.07 33.64 30.78 28.38 31.01 26.65 31.58 22.43 29.46 18.25 25.73 16.24 25.82 16.14 25.91 16.05 25.99 15.95 26.13 15.8 26.25 15.66 26.37 15.51 30.32 17.74 32.55 22.23 31.94 26.77Z" fill="#FFFFFF"/><path d="M25.73 16.23C25.12 16.9 24.44 17.62 23.79 18.49 21.7 21.34 21.47 24.64 21.14 26.97 20.32 32.82 14.94 36.9 9.13 36.07 8.03 35.92 7 35.59 6.05 35.13 6.17 35 6.29 34.86 6.41 34.73 6.97 34.11 7.61 33.41 8.2 32.59 10.13 29.94 10.51 26.88 10.79 24.65 10.83 24.38 10.86 24.13 10.89 23.88 11.26 21.17 12.64 18.77 14.81 17.11 16.97 15.45 19.64 14.74 22.33 15.11 23.52 15.27 24.64 15.63 25.69 16.19L25.69 16.19C25.69 16.19 25.73 16.22 25.73 16.22Z" fill="#FFFFFF"/><path d="M27.66 12.87C27.66 13.3 27.55 13.72 27.35 14.08 27.13 14.56 26.79 15.02 26.37 15.51 26.29 15.46 26.23 15.42 26.14 15.38L26.14 15.38C24.99 14.76 23.75 14.36 22.45 14.19 19.52 13.79 16.6 14.56 14.24 16.37 11.88 18.18 10.36 20.8 9.97 23.76 9.93 24.01 9.9 24.27 9.87 24.54 9.59 26.78 9.24 29.58 7.46 32.03 6.89 32.81 6.3 33.46 5.73 34.09 5.68 34.14 5.63 34.2 5.59 34.25L5.59 34.25C5.59 34.25 5.35 34.51 5.35 34.51 5.3 34.56 5.26 34.61 5.21 34.66 1.63 32.53-0.51 28.38 0.11 23.98 0.47 21.42 1.66 16.46 8.75 12.67 15.44 9.09 24.62 8.82 26.82 10.99 27.34 11.45 27.66 12.12 27.66 12.87Z" fill="#FFFFFF"/><path d="M5.58 34.26C5.5 34.35 5.42 34.44 5.34 34.52L5.2 34.67 5.2 34.67C5.25 34.62 5.29 34.57 5.34 34.52L5.58 34.25 5.58 34.25Z" fill="#FFFFFF"/></g><g id="Logo-2"><g><path d="M76.72 40.72 69.67 13.66 74.73 12.34 80.7 35.26 87.51 19.9C88.16 18.13 87.75 16.78 87.46 15.78 87.22 14.94 87 14.53 86.57 13.72L91.63 12.4C92.13 13.33 92.52 14.2 92.85 15.59 93.23 17.12 93.47 18.9 92.83 20.82L83.96 40.76 76.72 40.74 76.72 40.74Z" fill="#FFFFFF"/><path d="M97.33 30.8 97.31 23.18C97.29 16.04 100.91 12.42 108.96 12.42 117.01 12.42 120.78 16.09 120.75 23.18L120.77 30.8C120.82 37.42 117.2 41.61 109.12 41.61 101.04 41.61 97.33 37.1 97.33 30.8L97.33 30.8ZM115.82 23.18C115.8 18.58 113.88 16.68 109.25 16.66 104.53 16.66 102.71 18.55 102.71 23.18L102.71 30.8C102.71 34.9 104.53 37.34 109.33 37.34 114.13 37.34 115.83 35.18 115.83 30.8L115.83 23.18 115.83 23.18Z" fill="#FFFFFF"/><path d="M127.63 13.78 132.88 12.42 132.86 40.72 127.7 40.72 127.63 13.78Z" fill="#FFFFFF"/><path d="M140.43 1.37 145.66 0 145.66 40.7 140.43 40.7 140.43 1.37 140.43 1.37Z" fill="#FFFFFF"/><path d="M175.24 40.72 170.9 40.72 170.42 37.22C167.52 40.07 163.54 41.65 159.61 41.65 154.84 41.65 152.59 38.87 151.96 35.54 151.82 34.82 151.82 34.05 151.79 33.29L151.79 23.05C151.79 16.03 153.92 12.41 163.73 12.41 167.54 12.41 171.98 13.3 175.24 14.38L175.24 40.72 175.24 40.72ZM170.01 17.33C168.28 16.92 166.05 16.61 163.9 16.61 159.13 16.61 157.02 17.98 157.02 23.68L157.02 32.91C157.02 33.63 157.04 34.4 157.14 34.92 157.4 36.29 158.24 37.32 160.14 37.32 164.02 37.32 167.02 35.04 170.02 32.02L170.02 17.33 170.02 17.33Z" fill="#FFFFFF"/><circle cx="130.25" cy="6.59" r="2.85" fill="#FFFFFF"/><path d="M64.62 32.57C61.07 34.75 56.3 37.34 53.07 37.34 49.84 37.34 48.11 36.53 47.75 34.7 47.7 34.46 47.63 34.05 47.63 33.41L47.63 31.08C50.19 30.31 52.71 30.03 56.28 28.85 64.6 26.14 66.56 23.74 65.63 18.9 64.79 14.66 60.62 12.43 55.39 12.43 46.5 12.43 42.3 16.07 42.3 23.31L42.32 32.35C42.32 33.36 42.44 34.29 42.58 34.99 43.35 38.92 46.39 41.63 52.72 41.63 57.85 41.63 62.62 38.9 65.86 36.69L64.61 32.57 64.61 32.57ZM47.6 22.68C47.6 18.03 50.88 16.69 55.77 16.69 58.6 16.69 60.37 17.58 60.76 19.45 61.22 21.8 58.72 23.62 53.76 25.03 50.88 25.84 49.25 26.16 47.6 26.61L47.6 22.68 47.6 22.68Z" fill="#FFFFFF"/></g></g></svg><div class="links"><a href="../hub/">Marketing hub</a><a href="../authors/" id="deskLink">All my posts</a></div></div>
+ <div class="headline"><h1 id="h1">Review posts</h1><div class="who" id="who">Loading…</div></div>
+ <div class="tabs hidden" id="tabs"></div>
+</div></header>
+<main class="wrap">
+ <div id="flash"></div>
+ <div class="strip" id="strip"></div>
+ <div id="view"><div class="loading">Loading your posts…</div></div>
+</main>
+<div class="nav hidden" id="nav"><div class="wrap">
+ <button id="prev" type="button">← Previous</button>
+ <div class="pos" id="pos"></div>
+ <button id="quick" class="quick" type="button">Approve</button>
+ <button id="next" type="button">Next →</button>
+</div></div>
+
+<script>
+const API="https://hook.us2.make.com/o28rqytj8ifgm1o2tckavp2194d8jbqt";
+const DEV=/Mobi|Android|iPhone|iPad/i.test(navigator.userAgent)?"phone":"desktop";
+const TITLES={"Glen Tindal":"CEO and Managing Director, evoila US","Mark Maisano":"VP Alliances & Strategy, evoila US","Andrew Hald":"Lead Solution Architect, evoila US","evoila US Page":"Company page"};
+function store(k,v){try{v===undefined?localStorage.removeItem(k):localStorage.setItem(k,v)}catch(e){}}
+function load(k){try{return localStorage.getItem(k)}catch(e){return null}}
+const $=s=>document.querySelector(s);
+function el(tag,cls,text){const e=document.createElement(tag);if(cls)e.className=cls;if(text!=null)e.textContent=text;return e;}
+
+/* who is this: personal link in the hash, or the hub/desk sign-in on this device */
+let token=null,admin=false;
+const hp=new URLSearchParams(location.hash.slice(1)),qp=new URLSearchParams(location.search);
+let want=hp.get("p")||qp.get("p")||null;
+if(hp.get("k")){token=hp.get("k");admin=true;store("evoila_hub","k:"+token);store("evoila_desk_k",token);}
+else if(hp.get("t")){token=hp.get("t");store("evoila_hub","t:"+token);store("evoila_desk_t",token);}
+else{const s=load("evoila_hub");if(s){admin=s[0]==="k";token=s.slice(2);}else if(load("evoila_desk_t"))token=load("evoila_desk_t");else if(load("evoila_desk_k")){token=load("evoila_desk_k");admin=true;}}
+if(hp.toString())history.replaceState(null,"",location.pathname+(want?"?p="+want:""));
+if(admin){$("#deskLink").href="../authors/?m";$("#deskLink").textContent="List view";}
+
+async function call(params){
+  const r=await fetch(API,{method:"POST",body:new URLSearchParams(Object.assign({t:token,dev:DEV},params))});
+  const txt=await r.text();let j=null;try{j=JSON.parse(txt)}catch(e){}
+  if(r.status===401)throw new Error("auth");
+  if(!r.ok||!j)throw new Error(txt||("Error "+r.status));
+  return j;
+}
+function flash(text,kind){const d=$("#flash");d.innerHTML="";if(!text)return;d.appendChild(el("div","msg "+(kind||"ok"),text));}
+function fmt(d,o){if(!d)return"";const x=new Date(String(d).length===10?d+"T12:00:00":d);return x.toLocaleDateString(undefined,o||{weekday:"short",month:"short",day:"numeric"});}
+function daysSince(d){return d?Math.max(0,Math.floor((Date.now()-Date.parse(d))/864e5)):null;}
+function initials(n){return String(n||"e").split(" ").map(x=>x[0]).join("").slice(0,2).toUpperCase();}
+function first(n){return String(n||"").split(" ")[0];}
+
+/* queue items: {id, kind:'post'|'article', f, group} */
+let me="",queues={},tab="",idx=0,doneIds=new Set(),approvedCount=0;
+function item(rec,kind){return{id:rec.id,kind,f:rec.fields};}
+function title(it){return it.kind==="post"?(it.f["Post Title Preference"]||"Untitled post"):(it.f.Title||"Untitled article");}
+function copyOf(it){return it.kind==="post"?(it.f["Post Copy"]||""):(it.f["Article Copy"]||"");}
+function dateOf(it){return it.kind==="post"?it.f["Date Posted"]:it.f["Scheduled Date"];}
+function att(it){let a=it.f.Image;if(!a)for(const k in it.f){const v=it.f[k];if(Array.isArray(v)&&v[0]&&v[0].url&&/^image\//.test(v[0].type||"")){a=v;break;}}return(a||[])[0]||null;}
+function imgOf(it){const x=att(it);return x?((x.thumbnails&&x.thumbnails.large&&x.thumbnails.large.url)||x.url):null;}
+function thumbOf(it){const x=att(it);return x?((x.thumbnails&&x.thumbnails.large&&x.thumbnails.large.url)||x.url):null;}
+const byDate=(a,b)=>String(dateOf(a)||"9999").localeCompare(String(dateOf(b)||"9999"));
+
+async function loadAll(){
+  try{
+    if(admin){
+      const d=await call({a:"mlist"});me="Marketing";
+      const all=(d.posts||[]).map(p=>item(p,"post")).concat((d.articles||[]).map(a=>item(a,"article")));
+      queues={
+        review:{label:"Needs marketing review",items:all.filter(i=>["Pending Marketing Review","Changes Requested"].includes(i.f.Status)||(!i.f.Status&&i.f["Generate Copy"])).sort(byDate)},
+        authors:{label:"With authors",items:all.filter(i=>i.f.Status==="Marketing Approved").sort(byDate)},
+        corporate:{label:"Articles to send to corporate",items:all.filter(i=>i.f.Status==="Article Approved by Author").sort(byDate)}
+      };
+      $("#who").textContent="Signed in as marketing";$("#h1").textContent="Marketing review";document.title="Marketing review";
+    }else{
+      const d=await call({a:"list"});me=d.author;
+      const all=(d.posts||[]).map(p=>item(p,"post")).concat((d.articles||[]).map(a=>item(a,"article")));
+      queues={mine:{label:"Waiting on you",items:all.filter(i=>i.f.Status==="Marketing Approved").sort(byDate)}};
+      $("#who").textContent="Signed in as "+me;
+    }
+    tab="";idx=0;
+    if(want){for(const k in queues){const i=queues[k].items.findIndex(x=>x.id===want);if(i>=0){tab=k;idx=i;break;}}
+      if(!tab)flash("That post isn't waiting for review any more. It may already be approved.","ok");}
+    if(!tab)tab=Object.keys(queues).find(k=>queues[k].items.length)||Object.keys(queues)[0];
+    want=null;draw();
+  }catch(e){fail(e);}
+}
+function fail(e){
+  $("#view").innerHTML="";$("#strip").innerHTML="";$("#nav").classList.add("hidden");
+  if(e.message==="auth"||!token){$("#who").textContent="Not signed in";flash("Open this page from the personal link in your email or the hub.","err");return;}
+  flash("Couldn't load your posts just now. Refresh in a minute; if it keeps happening, tell Kevin.","err");
+}
+
+function drawTabs(){
+  const t=$("#tabs");t.innerHTML="";
+  const keys=Object.keys(queues);if(keys.length<2){t.classList.add("hidden");return;}
+  t.classList.remove("hidden");
+  keys.forEach(k=>{const b=el("button","tab"+(k===tab?" on":""),queues[k].label);b.type="button";
+    const live=queues[k].items.filter(i=>!doneIds.has(i.id)).length;b.appendChild(el("span","n",String(live)));
+    b.onclick=()=>{tab=k;idx=0;flash("");draw();};t.appendChild(b);});
+}
+function drawStrip(items){
+  const s=$("#strip");s.innerHTML="";if(items.length<2)return;
+  items.forEach((it,i)=>{const b=el("button","chipq"+(i===idx?" on":"")+(doneIds.has(it.id)?" done":""));b.type="button";
+    const ph=el("div","ph");const th=thumbOf(it);if(th)ph.style.backgroundImage="url('"+th+"')";else ph.textContent=it.kind==="article"?"Article":"No image";
+    b.append(ph,el("div","t",title(it)),el("div","d",(admin?first(it.f["Author / Profile"])+" · ":"")+(dateOf(it)?fmt(dateOf(it),{month:"short",day:"numeric"}):"no date")));
+    b.onclick=()=>{idx=i;flash("");draw();};s.appendChild(b);});
+  const on=s.children[idx];if(on)on.scrollIntoView({block:"nearest",inline:"center"});
+}
+
+function draw(){
+  drawTabs();
+  const q=queues[tab],items=q.items;
+  const v=$("#view");v.innerHTML="";
+  const left=items.filter(i=>!doneIds.has(i.id));
+  if(!left.length){
+    $("#strip").innerHTML="";$("#nav").classList.add("hidden");
+    const d=el("div","done");d.appendChild(el("div","big","✓"));
+    d.appendChild(el("h2",null,admin?"Nothing here":"You're all caught up"));
+    d.appendChild(el("p","hint",approvedCount?("You approved "+approvedCount+(approvedCount>1?" posts":" post")+". They go out on their scheduled dates."):(admin?"Pick another tab above.":"Nothing is waiting for your approval.")));
+    const a=el("a","btn","Back to the hub");a.href="../hub/";a.style.maxWidth="260px";a.style.margin="18px auto 0";d.appendChild(a);
+    v.appendChild(d);return;
+  }
+  if(idx>=items.length)idx=items.length-1;
+  if(doneIds.has(items[idx].id)){const n=items.findIndex((x,i)=>i>idx&&!doneIds.has(x.id));idx=n>=0?n:items.findIndex(x=>!doneIds.has(x.id));}
+  drawStrip(items);
+  const it=items[idx];
+  const lay=el("div","layout");lay.append(preview(it),panel(it));v.appendChild(lay);
+  $("#nav").classList.remove("hidden");
+  $("#pos").textContent=(idx+1)+" of "+items.length;
+  $("#prev").disabled=idx===0;$("#next").disabled=idx===items.length-1;
+  const canQuick=!admin&&it.f.Status==="Marketing Approved";
+  $("#quick").classList.toggle("hidden",!canQuick);
+  window.scrollTo({top:0});
+}
+
+let editor=null;
+function preview(it){
+  const c=el("div","li");
+  const h=el("div","lihead");const author=it.f["Author / Profile"]||"evoila";
+  h.appendChild(el("div","av",initials(author)));const n=el("div");n.appendChild(el("b",null,author));
+  n.appendChild(el("span",null,TITLES[author]||""));n.appendChild(el("span",null,dateOf(it)?((Date.parse(dateOf(it))<Date.now()-864e5?"Was scheduled ":"Scheduled ")+fmt(dateOf(it))):"No date set"));h.appendChild(n);c.appendChild(h);
+  const txt=copyOf(it)||(it.f["Bullets on the topic"]?"Still drafting from these bullets:\n\n"+it.f["Bullets on the topic"]:"(No copy yet)");
+  const body=el("div","licopy",txt);c.appendChild(body);
+  let more=null;
+  if(txt.length>420||txt.split("\n").length>7){body.classList.add("clamp");more=el("button","more","…see more");more.type="button";more.onclick=()=>{body.classList.toggle("clamp");more.textContent=body.classList.contains("clamp")?"…see more":"see less";};c.appendChild(more);}
+  editor=el("textarea","edit hidden");editor.value=copyOf(it);editor.setAttribute("aria-label","Edit the post text");c.appendChild(editor);
+  editor.oninput=()=>{body.textContent=editor.value;};
+  const src=imgOf(it);
+  if(src){const i=document.createElement("img");i.className="liimg";i.alt="Post image";i.src=src;c.appendChild(i);}
+  else if(it.kind==="post"){c.appendChild(el("div","liimg none","No image attached yet"));}
+  if(it.kind==="post"){const f=el("div","lifoot");["Like","Comment","Repost","Send"].forEach(x=>f.appendChild(el("span",null,x)));c.appendChild(f);}
+  c._body=body;c._more=more;return c;
+}
+function toggleEdit(on){
+  const card=document.querySelector(".li");if(!card)return;
+  editor.classList.toggle("hidden",!on);card._body.classList.toggle("hidden",on);if(card._more)card._more.classList.toggle("hidden",on);
+  if(on)editor.focus();
+}
+function edited(it){return editor&&editor.value!==copyOf(it)?editor.value:"";}
+
+function panel(it){
+  const p=el("div","panel");const f=it.f;
+  p.appendChild(el("div","hint",it.kind==="post"?"LinkedIn post":"Blog article"));
+  p.appendChild(el("h2",null,title(it)));
+  const kv=el("div","kv");
+  const tag=(t,c)=>kv.appendChild(el("span","tag"+(c?" "+c:""),t));
+  if(f.Status==="Marketing Approved"){
+    const d=daysSince(f["Status changed"]);
+    if(d!=null)tag(admin?("With "+first(f["Author / Profile"])+" "+(d===0?"since today":d+(d===1?" day":" days"))):("Waiting on you "+(d===0?"since today":d+(d===1?" day":" days"))),d>7?"bad":d>2?"warn":"");
+    if(f["Reminders sent"])tag("Reminded "+f["Reminders sent"]+(f["Reminders sent"]>1?" times":" time"));
+  }else tag(f.Status||(f["Generate Copy"]?"Drafting from bullets":""),f.Status==="Changes Requested"?"warn":"");
+  const past=dateOf(it)&&Date.parse(dateOf(it))<Date.now()-864e5;
+  if(dateOf(it))tag((past?"Date passed: ":"Goes out ")+fmt(dateOf(it),{month:"short",day:"numeric"}),past?"warn":"ok");
+  p.appendChild(kv);
+  if(past&&it.kind==="post")p.appendChild(el("p","hint","The scheduled date has passed. If timing matters, pick a new date with Hold below before you approve, or tell marketing in Ask for changes."));
+
+  if(!admin&&f.Status==="Marketing Approved")authorActions(p,it);
+  else if(admin&&f.Status==="Article Approved by Author")corporateActions(p,it);
+  else if(admin&&f.Status==="Marketing Approved")withAuthorActions(p,it);
+  else if(admin)marketingActions(p,it);
+
+  if(f["Author Change Notes"]){const d=document.createElement("details");d.appendChild(el("summary",null,"Notes on this "+(it.kind==="post"?"post":"article")));d.appendChild(el("pre","notes",f["Author Change Notes"]));p.appendChild(d);}
+  const fc=[f["First Comment URL"],f["First Comment"]].filter(Boolean).join("\n");
+  if(it.kind==="post"&&fc){const d=document.createElement("details");d.appendChild(el("summary",null,"First comment"));d.appendChild(el("pre","notes",fc));p.appendChild(d);}
+  return p;
+}
+
+function busy(btns,on,btn,label){btns.forEach(b=>b.disabled=on);if(btn)btn.textContent=on?"Saving…":label;}
+async function act(params,okText,btns,btn,label,remove){
+  busy(btns,true,btn,label);
+  try{await call(params);flash(okText,"ok");
+    if(remove){doneIds.add(params.id);if(params.a==="approve")approvedCount++;const items=queues[tab].items;const n=items.findIndex((x,i)=>i>idx&&!doneIds.has(x.id));if(n>=0)idx=n;}
+    else{const it=queues[tab].items[idx];if(params.copy){if(it.kind==="post")it.f["Post Copy"]=params.copy;else it.f["Article Copy"]=params.copy;}}
+    draw();
+  }catch(e){if(e.message==="auth")return fail(e);flash("That didn't save. Try again in a minute.","err");busy(btns,false,btn,label);}
+}
+
+function authorActions(p,it){
+  const ap=el("button","btn primary","Approve");ap.type="button";
+  const ed=el("button","btn","Edit the text");ed.type="button";
+  const ch=el("button","btn","Ask for changes");ch.type="button";
+  const row=el("div","row2");row.append(ed,ch);p.append(ap,row);
+  p.appendChild(el("p","hint","Approve as is, or edit the text right in the preview and then approve. Approved posts go out on their scheduled date."));
+  const box=el("div","box hidden");
+  box.appendChild(el("label","l","What should marketing change?"));
+  const note=el("textarea","note");note.placeholder="e.g. Soften the second paragraph; don't name the customer";box.appendChild(note);
+  const send=el("button","btn","Send back to marketing");send.type="button";send.style.marginTop="8px";box.appendChild(send);p.appendChild(box);
+  const sv=el("button","btn hidden","Save my edits without approving");sv.type="button";p.appendChild(sv);
+  const hold=el("div","box");hold.appendChild(el("label","l","Not ready yet? Hold it until"));
+  const di=document.createElement("input");di.type="date";di.min=new Date().toISOString().slice(0,10);
+  const hb=el("button","btn","Hold until this date");hb.type="button";hb.style.marginTop="8px";hold.append(di,hb);
+  if(it.kind==="post")p.appendChild(hold);
+  const all=[ap,ed,ch,send,sv,hb];
+  ed.onclick=()=>{const on=editor.classList.contains("hidden");toggleEdit(on);ed.textContent=on?"Done editing":"Edit the text";sv.classList.toggle("hidden",!on);if(on)ap.textContent="Approve with my edits";};
+  ch.onclick=()=>{box.classList.toggle("hidden");if(!box.classList.contains("hidden"))note.focus();};
+  ap.onclick=()=>act({a:"approve",table:it.kind,id:it.id,copy:edited(it),notes:""},it.kind==="post"?"Approved. It goes out "+(dateOf(it)?fmt(dateOf(it)):"on its scheduled date")+".":"Approved. Marketing takes it from here.",all,ap,ap.textContent,true);
+  send.onclick=()=>{if(!note.value.trim()&&!edited(it)){note.focus();flash("Say what to change, or edit the text.","err");return;}
+    act({a:"changes",table:it.kind,id:it.id,copy:edited(it),notes:note.value.trim()},"Sent back to marketing with your notes.",all,send,"Send back to marketing",true);};
+  sv.onclick=()=>act({a:"save",table:it.kind,id:it.id,copy:edited(it),notes:""},"Your edits are saved. It's still waiting for your approval.",all,sv,"Save my edits without approving",false);
+  hb.onclick=()=>{if(!di.value){di.focus();flash("Pick a date first.","err");return;}
+    act({a:"hold",table:"post",id:it.id,hold:di.value},"Held until "+fmt(di.value)+". It stays here until you approve it.",all,hb,"Hold until this date",false).then(()=>{const x=queues[tab].items[idx];if(x&&x.id===it.id){x.f["Date Posted"]=di.value+"T13:00:00.000Z";draw();}});};
+  $("#quick").onclick=()=>ap.click();
+}
+
+function marketingActions(p,it){
+  if(!copyOf(it)){p.appendChild(el("p","hint","The draft is still being written from the author's bullets. It will show up here when it's ready."));return;}
+  const name=first(it.f["Author / Profile"])||"the author";
+  const ed=el("button","btn","Edit the text");ed.type="button";
+  let di=null;
+  if(it.kind==="post"){p.appendChild(el("label","l","Post date"));di=document.createElement("input");di.type="date";di.value=(dateOf(it)||"").slice(0,10);p.appendChild(di);}
+  p.appendChild(el("label","l","Note for "+name+" (optional)"));
+  const note=el("textarea","note");note.style.minHeight="60px";p.appendChild(note);
+  const sd=el("button","btn primary","Send to "+name+" for approval");sd.type="button";sd.style.marginTop="12px";
+  const sv=el("button","btn","Save");sv.type="button";const rj=el("button","btn danger",it.kind==="post"?"Reject":"Archive");rj.type="button";
+  const row=el("div","row2");row.append(sv,rj);p.append(sd,ed,row);
+  const all=[sd,ed,sv,rj];const orig=(dateOf(it)||"").slice(0,10);
+  ed.onclick=()=>{const on=editor.classList.contains("hidden");toggleEdit(on);ed.textContent=on?"Done editing":"Edit the text";};
+  const params=a=>({a,table:it.kind,id:it.id,copy:edited(it),notes:note.value.trim(),date:di&&di.value&&di.value!==orig?di.value:""});
+  sd.onclick=()=>act(params("send"),"Sent. "+name+" has been emailed a link straight to it.",all,sd,sd.textContent,true);
+  sv.onclick=()=>act(params("msave"),"Saved.",all,sv,"Save",false);
+  let armed=false;
+  rj.onclick=()=>{if(!armed){armed=true;rj.textContent="Tap again to confirm";setTimeout(()=>{armed=false;rj.textContent=it.kind==="post"?"Reject":"Archive";},4000);return;}
+    act(params("reject"),it.kind==="post"?"Rejected. It will not publish.":"Archived.",all,rj,"Reject",true);};
+}
+function withAuthorActions(p,it){
+  const name=first(it.f["Author / Profile"]);
+  p.appendChild(el("p","hint","Waiting on "+name+". The daily reminder links straight to this page. You can still fix the text or the date."));
+  marketingActionsLite(p,it);
+}
+function marketingActionsLite(p,it){
+  const ed=el("button","btn","Edit the text");ed.type="button";
+  let di=null;
+  if(it.kind==="post"){p.appendChild(el("label","l","Post date"));di=document.createElement("input");di.type="date";di.value=(dateOf(it)||"").slice(0,10);p.appendChild(di);}
+  const sv=el("button","btn","Save changes");sv.type="button";sv.style.marginTop="12px";
+  const back=el("button","btn","Pull back to marketing review");back.type="button";
+  p.append(sv,ed,back);const orig=(dateOf(it)||"").slice(0,10);const all=[sv,ed,back];
+  ed.onclick=()=>{const on=editor.classList.contains("hidden");toggleEdit(on);ed.textContent=on?"Done editing":"Edit the text";};
+  sv.onclick=()=>act({a:"msave",table:it.kind,id:it.id,copy:edited(it),notes:"",date:di&&di.value&&di.value!==orig?di.value:""},"Saved.",all,sv,"Save changes",false);
+  back.onclick=()=>act({a:"mstatus",table:it.kind,id:it.id,status:"Pending Marketing Review"},"Moved back to marketing review.",all,back,"Pull back to marketing review",true);
+}
+function corporateActions(p,it){
+  p.appendChild(el("p","hint",first(it.f["Author / Profile"])+" approved this article. Sending it to corporate emails the evoila corporate marketing team the copy and SEO fields."));
+  const go=el("button","btn primary","Send to corporate to publish");go.type="button";
+  const pub=el("button","btn","Mark as published");pub.type="button";
+  p.append(go,pub);const all=[go,pub];
+  go.onclick=()=>act({a:"mstatus",table:"article",id:it.id,status:"Sent to Corporate to Publish"},"Sent to corporate.",all,go,go.textContent,true);
+  pub.onclick=()=>act({a:"mstatus",table:"article",id:it.id,status:"Published"},"Marked as published.",all,pub,pub.textContent,true);
+}
+
+$("#prev").onclick=()=>{if(idx>0){idx--;flash("");draw();}};
+$("#next").onclick=()=>{if(idx<queues[tab].items.length-1){idx++;flash("");draw();}};
+document.addEventListener("keydown",e=>{if(/TEXTAREA|INPUT/.test(document.activeElement.tagName))return;if(e.key==="ArrowRight")$("#next").click();if(e.key==="ArrowLeft")$("#prev").click();});
+if(!token)fail(new Error("auth"));else{loadAll();try{fetch(API,{method:"POST",keepalive:true,body:new URLSearchParams({t:token,dev:DEV,a:"track",type:"Other",item:"Review page"})});}catch(e){}}
+</script>
+</body>
+</html>
