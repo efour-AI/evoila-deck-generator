@@ -6,11 +6,11 @@ name: Hub jobs
 # or by hand from the Actions tab.
 on:
   repository_dispatch:
-    types: [build-post, index-library]
+    types: [build-post, index-library, meeting-overviews]
   workflow_dispatch:
     inputs:
       mode:
-        description: "build-post or index-library"
+        description: "build-post, index-library or meeting-overviews"
         required: true
         default: index-library
       record_id:
@@ -23,7 +23,7 @@ concurrency:
 jobs:
   run:
     runs-on: ubuntu-24.04
-    timeout-minutes: 10
+    timeout-minutes: 30
     env:
       MODE: ${{ github.event.action || github.event.inputs.mode }}
       RECORD_ID: ${{ github.event.client_payload.record_id || github.event.inputs.record_id }}

@@ -10,6 +10,10 @@ MODE=build-post     A self-serve LinkedIn post (topic + bullets from the hub). C
                     cropped to 4:5), and the row goes to the author for approval (Marketing Approved,
                     Self-serve). Approving it on the review page posts it immediately.
 
+MODE=meeting-overviews  Backfill: writes a short Meeting Overview on Call Transcripts rows from the last
+                    60 days that have a transcript and no overview yet. New calls get theirs from the
+                    Fireflies scenario in Make.
+
 Public repository: never print document text, post copy or request data to the log.
 """
 import base64, json, os, re, sys, textwrap, time, urllib.error, urllib.parse, urllib.request
@@ -31,6 +35,27 @@ P = {"title": "fld0JVy1STI2nhmP1", "copy": "fldNpsfupzhYrXorE", "author": "fldaK
      "gen": "flde7F6SG3x75KRTR", "self": "fldKlGOWLtGe9x0ZG", "note": "fldkZDDMTtB0prwzJ"}
 TITLES = {"Glen Tindal": "CEO and Managing Director, evoila US", "Mark Maisano": "VP Alliances & Strategy, evoila US",
           "Andrew Hald": "Lead Solution Architect, VCDX #4"}
+T_CALL = "tbllSce3nYaZiZfRS"
+C = {"title": "fldvTkxCvJBfBxuGp", "date": "fldKxPm29yO8wvNxA", "parts": "fldwpSTIKKRJw6CwT", "text": "fldZuwTbamTYvdQAa",
+     "overview": "fldb82uxuawj7h5Ei"}
+OVERVIEW_PROMPT = """Below is the transcript of an evoila US meeting. Everyone at evoila can read your overview on the internal
+marketing hub, including people who were not on the call, so write it for a colleague who missed the meeting.
+
+- Start with two to four plain sentences: what the meeting was for and what was discussed.
+- Then a line "Decided:" followed by up to four lines starting with "- " for decisions actually made (omit if none).
+- Then a line "Next:" followed by up to four lines starting with "- " for agreed next steps with the owner's first name (omit if none).
+- Only what the transcript supports. No quotes longer than ten words, no pricing figures, no personal or HR matters,
+  no opinions about individuals.
+- No markdown, no em dashes, write evoila in lowercase. Under 160 words.
+- If the transcript is mostly silence or not a business conversation, reply with exactly: NONE
+Reply with the overview text only.
+
+MEETING TITLE: {title}
+DATE: {date}
+PARTICIPANTS: {parts}
+
+TRANSCRIPT:
+{text}"""
 CHUNK = 90000          # Airtable long text holds 100,000 characters
 
 
@@ -293,12 +318,37 @@ def build_post():
     print("post drafted")
 
 
+def meeting_overviews():
+    recs = rows(T_CALL, "AND({Meeting Overview}='', {Full Transcript}!='', IS_AFTER({Meeting Date}, DATEADD(TODAY(), -60, 'days')))")
+    print(f"{len(recs)} meetings to summarize")
+    done = 0
+    for r in recs:
+        f = r["fields"]
+        prompt = OVERVIEW_PROMPT.format(title=f.get(C["title"], ""), date=f.get(C["date"], ""),
+                                        parts=str(f.get(C["parts"], ""))[:1500], text=f.get(C["text"], "")[:95000])
+        try:
+            resp = ai_steps._call({"model": ai_steps.MODEL, "max_tokens": 1500,
+                                   "messages": [{"role": "user", "content": prompt}]}, timeout=180)
+            out = "".join(b.get("text", "") for b in resp.get("content", []) if b.get("type") == "text").strip()
+        except Exception as e:
+            print("one meeting failed:", type(e).__name__)
+            continue
+        if not out or out == "NONE":
+            continue
+        out = out.replace("\u2014", ", ").replace("Evoila", "evoila")
+        api("PATCH", f"https://api.airtable.com/v0/{BASE}/{T_CALL}/{r['id']}", {"fields": {C["overview"]: out[:5000]}})
+        done += 1
+    print(f"wrote {done} overviews")
+
+
 if __name__ == "__main__":
     try:
         if MODE == "index-library":
             index_library()
         elif MODE == "build-post":
             build_post()
+        elif MODE == "meeting-overviews":
+            meeting_overviews()
         else:
             raise SystemExit(f"unknown MODE {MODE!r}")
     except Exception as e:
