@@ -315,12 +315,9 @@ function render(){
 let askHist=[];
 function askBar(){
   const c=el("div","card ask");
-  const hd=el("h2",null,"Ask the hub");hd.appendChild(el("span","note","Answers from the messaging platform, sales playbook, licensing guide, walking deck and brand guides"));c.appendChild(hd);
+  const hd=el("h2",null,"Ask the hub");hd.appendChild(el("span","note","Answers from our documents and what the team has said in recent meetings"));c.appendChild(hd);
   const f=el("form","askrow");const inp=el("input");inp.type="text";inp.placeholder="e.g. A customer asks if they have to move to VCF at renewal. What do I say?";inp.setAttribute("aria-label","Ask a question");
   const b=el("button","btn","Ask");b.type="submit";f.append(inp,b);c.appendChild(f);
-  const chips=el("div","chips");chips.style.margin="10px 0 0";
-  ["What do I say if a customer asks why they haven't heard of us?","VCF or VVF: how do I explain the difference?","Which words should I avoid in a post?","How do we describe the readiness assessment?"].forEach(q=>{const x=el("button","chip",q);x.type="button";x.onclick=()=>{inp.value=q;go();};chips.appendChild(x);});
-  c.appendChild(chips);
   const out=el("div","askout");c.appendChild(out);
   const go=async()=>{
     const q=inp.value.trim();if(!q)return inp.focus();
