@@ -24,6 +24,9 @@ MODE=meeting-overviews also rebuilds the "TEAM CONVERSATIONS" rows in Hub Knowle
                     overviews plus Glen's and Mark's phrases, topics and stories and customer quotes from
                     the last 90 days, so the question bar can answer with what the team actually says.
 
+MODE=meeting-overviews and index-library also refresh the "PUBLIC WEB" rows (source "web:"): the text of evoila's
+                    public US page and its Broadcom partner listing, so answers match what is already public.
+
 Public repository: never print document text, post copy or request data to the log.
 """
 import base64, json, os, re, sys, textwrap, time, urllib.error, urllib.parse, urllib.request
@@ -217,6 +220,7 @@ def index_library():
     for i in range(0, len(new), 10):
         api("POST", f"https://api.airtable.com/v0/{BASE}/{T_KB}", {"records": [{"fields": x} for x in new[i:i + 10]]})
     print(f"indexed {len(new)} pieces from {len(res)} resources")
+    web_pages()
     if any("messaging platform" in x[K["name"]].lower() for x in new):
         voice_cards()
 
@@ -404,6 +408,38 @@ def team_conversations():
     print(f"team conversations: {len(parts)} meetings, {len(text)} characters, {len(pieces)} rows")
 
 
+WEB_PAGES = [("PUBLIC WEB: evoila.com/us (evoila US website)", "https://evoila.com/us/"),
+             ("PUBLIC WEB: Broadcom Expert Advantage partner listing for evoila",
+              "https://expert.broadcom.com/partners/consulting-services/evoila")]
+
+
+def web_pages():
+    import html as _html
+    rows_ = []
+    for name, url in WEB_PAGES:
+        try:
+            req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0 (evoila marketing hub)"})
+            with urllib.request.urlopen(req, timeout=60) as r:
+                t = r.read().decode("utf-8", "ignore")
+        except Exception as e:
+            print("web page skipped:", type(e).__name__)
+            continue
+        t = re.sub(r"(?is)<(script|style|noscript|svg|nav|header|footer).*?</\1>", " ", t)
+        t = re.sub(r"<[^>]+>", " ", t)
+        t = _html.unescape(re.sub(r"\s+", " ", t)).strip()
+        if len(t) < 300:
+            continue
+        rows_.append({"fields": {K["name"]: name, K["share"]: "Public", K["text"]: (url + "\n\n" + t)[:CHUNK], K["use"]: True,
+                                 K["src"]: "web: " + url}})
+    if not rows_:
+        return
+    old = [r["id"] for r in rows(T_KB, "LEFT({Source file}, 4)='web:'")]
+    for i in range(0, len(old), 10):
+        api("DELETE", f"https://api.airtable.com/v0/{BASE}/{T_KB}?" + "&".join("records[]=" + x for x in old[i:i + 10]))
+    api("POST", f"https://api.airtable.com/v0/{BASE}/{T_KB}", {"records": rows_})
+    print(f"public web pages: {len(rows_)}")
+
+
 def meeting_overviews():
     recs = rows(T_CALL, "AND({Meeting Overview}='', {Full Transcript}!='', IS_AFTER({Meeting Date}, DATEADD(TODAY(), -60, 'days')))")
     print(f"{len(recs)} meetings to summarize")
@@ -426,6 +462,7 @@ def meeting_overviews():
         done += 1
     print(f"wrote {done} overviews")
     team_conversations()
+    web_pages()
 
 
 def voice_cards():
