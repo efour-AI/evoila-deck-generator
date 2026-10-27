@@ -196,7 +196,10 @@ dialog h3{margin:0 0 6px;font-size:18px}
 #reqList h3{font-size:15px;margin:0 0 8px}
 .askrow{display:flex;gap:8px}.askrow input{flex:1;font:inherit;font-size:15px;padding:11px 12px;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--ink)}
 .askrow .btn{flex:none}
-.askout .qa{border-top:1px solid var(--line);margin-top:12px;padding-top:10px}
+.askout .qa{position:relative;border-top:1px solid var(--line);margin-top:12px;padding-top:10px}
+.askout .q{padding-right:40px}
+.qx{position:absolute;top:6px;right:0;width:32px;height:32px;border:1px solid var(--line);border-radius:999px;background:var(--card);color:var(--muted);font-size:20px;line-height:1;cursor:pointer}
+.qx:hover{color:var(--ink);border-color:var(--ink)}
 .askout .q{font-weight:600;margin-bottom:6px}
 .askout .a p{margin:0 0 8px}.askout .a ul{margin:0 0 8px;padding-left:20px}.askout .a li{margin:2px 0}
 .askout .src{font-size:12px;color:var(--muted);margin-top:4px}
@@ -326,7 +329,7 @@ function askBar(){
   const go=async()=>{
     const q=inp.value.trim();if(!q)return inp.focus();
     b.disabled=true;b.textContent="Thinking…";
-    const box=el("div","qa");box.appendChild(el("div","q",q));const a=el("div","a");a.appendChild(el("span","owners","Reading the documents… usually 15 to 30 seconds."));box.appendChild(a);out.prepend(box);
+    const box=el("div","qa");const x=el("button","qx","×");x.type="button";x.title="Close this answer";x.setAttribute("aria-label","Close this answer");x.onclick=()=>box.remove();box.appendChild(x);box.appendChild(el("div","q",q));const a=el("div","a");a.appendChild(el("span","owners","Reading the documents… usually 15 to 30 seconds."));box.appendChild(a);out.prepend(box);
     const ctx=askHist.slice(-2).map(x=>"Earlier question: "+x.q+"\nEarlier answer: "+x.a.slice(0,1200)).join("\n\n");
     try{
       const r=await fetch(ASK_API,{method:"POST",body:new URLSearchParams({t:token,q,ctx,dev:DEV})});
