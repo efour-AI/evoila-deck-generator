@@ -140,6 +140,17 @@ dialog h3{margin:0 0 6px;font-size:18px}
 .newpost{display:block;margin-top:12px;font-size:13.5px;font-weight:600;color:var(--indigo);text-decoration:none}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .newpost{color:#8FB8FF}}
 .ac.me{background:var(--card);border:2px solid var(--indigo)}
+.ach .av.ph{background:var(--soft) center/cover no-repeat}
+.ach .voice{margin-left:auto;font-size:12.5px;font-weight:600;color:var(--blue);text-decoration:none;white-space:nowrap}
+.meet{border-top:1px solid var(--line);padding:12px 0}
+.meet:first-of-type{border-top:0}
+.meet summary{cursor:pointer;list-style:none;display:flex;justify-content:space-between;gap:12px;align-items:baseline}
+.meet summary::-webkit-details-marker{display:none}
+.meet summary b{font-size:14.5px}
+.meet summary span{font-size:12.5px;color:var(--muted);white-space:nowrap}
+.meet .ov{white-space:pre-wrap;font-size:14px;line-height:1.55;margin:8px 0 0;color:var(--ink)}
+.meet .lead{font-size:13.5px;color:var(--muted);margin:4px 0 0;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.meet[open] .lead{display:none}
 .ach{display:flex;gap:10px;align-items:center;margin-bottom:10px}
 .ach .av{width:40px;height:40px;border-radius:50%;flex:none;display:grid;place-items:center;color:#fff;font-weight:700;background:linear-gradient(135deg,var(--green),var(--blue))}
 .ach b{display:block;font-size:15px}.ach span{display:block;font-size:12.5px;color:var(--muted)}
@@ -178,11 +189,11 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 16px 28px}
 </div></header>
 <nav class="tabs" id="tabs"><div class="wrap">
  <a href="#home">Home</a><a href="#strategy">Strategy</a><a href="#library">Library</a><a href="#decks">Decks</a>
- <a href="#linkedin">LinkedIn</a><a href="#analytics">Analytics</a><a href="#requests">Requests</a><a href="#usage" class="hidden" id="usageTab">Usage</a>
+ <a href="#linkedin">LinkedIn</a><a href="#meetings">Meetings</a><a href="#analytics">Analytics</a><a href="#requests">Requests</a><a href="#usage" class="hidden" id="usageTab">Usage</a>
 </div></nav>
 <main class="wrap">
  <div id="flash"></div>
- <div id="app"><div class="card loading">Loading the latest from Airtable…</div></div>
+ <div id="app"><div class="card loading">Loading the latest…</div></div>
 </main>
 <footer>evoila US &middot; internal &middot; <span id="asof"></span></footer>
 
@@ -211,6 +222,8 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 16px 28px}
 <script>
 const API="https://hook.us2.make.com/o28rqytj8ifgm1o2tckavp2194d8jbqt";
 const ASK_API="https://hook.us2.make.com/4ffhqfa9sd2q1wpo39eqqycmxph9o3g1";
+const ACT="https://hook.us2.make.com/91mst8q1pr5j2smjck26k4a23tlrcrn8";
+const PHOTOS={"Glen Tindal":"img/glen-tindal.jpg"};
 const BASE=location.pathname.replace(/hub\/?(index\.html)?$/,"");
 const ANALYTICS_URL="https://claude.ai/artifact/Gj7nCXY9v9N1YuPkxd5r6w";
 const AUTHORS=["Glen Tindal","Mark Maisano","Andrew Hald"];
@@ -220,7 +233,7 @@ const DEV=/Mobi|Android|iPhone|iPad/i.test(navigator.userAgent)?"phone":"desktop
 
 function store(k,v){try{v===undefined?localStorage.removeItem(k):localStorage.setItem(k,v)}catch(e){}}
 function load(k){try{return localStorage.getItem(k)}catch(e){return null}}
-let token=null,mode="t";
+let token=null,mode="t";let JUMP=/^[a-z]+$/.test(location.hash.slice(1))?location.hash.slice(1):null;
 const h=new URLSearchParams(location.hash.slice(1));
 if(h.get("k")){token=h.get("k");mode="k";store("evoila_desk_k",token);}
 else if(h.get("t")){token=h.get("t");mode="t";store("evoila_desk_t",token);}
@@ -258,7 +271,7 @@ async function refresh(){
 function render(){
   const me=D.person,admin=D.admin==="yes",author=D.author;
   $("#who").textContent="Signed in as "+me+(admin?" · admin":"");
-  $("#asof").textContent="Live from Airtable, "+fmt(new Date().toISOString(),{weekday:"short",month:"short",day:"numeric",hour:"numeric",minute:"2-digit"});
+  $("#asof").textContent="Updated "+fmt(new Date().toISOString(),{weekday:"short",month:"short",day:"numeric",hour:"numeric",minute:"2-digit"});
   if(admin)$("#usageTab").classList.remove("hidden");
   const app=$("#app");app.innerHTML="";
   const home=el("div");home.id="home";
@@ -271,10 +284,12 @@ function render(){
   app.appendChild(library(admin));
   app.appendChild(decks(me,admin));
   app.appendChild(linkedin());
+  app.appendChild(meetings());
   app.appendChild(analytics(admin));
   app.appendChild(requests(me,admin));
   if(admin)app.appendChild(usage());
   spy();
+  if(JUMP){const t=document.getElementById(JUMP);if(t)setTimeout(()=>t.scrollIntoView({block:"start"}),60);JUMP=null;}
 }
 
 /* ---------- ask the hub ---------- */
@@ -515,10 +530,10 @@ function linkedin(){
     const live30=live.filter(p=>Date.parse(p["Published Date"]||p["Date Posted"]||0)>=since).length;
     const can=admin||a===me;
     const card=el("div","ac"+(a===me?" me":"")+(wait.length?" owes":""));
-    const hd=el("div","ach");const av=el("div","av",a.split(" ").map(x=>x[0]).join(""));
+    const hd=el("div","ach");const av=el("div","av",PHOTOS[a]?"":a.split(" ").map(x=>x[0]).join(""));if(PHOTOS[a]){av.classList.add("ph");av.style.backgroundImage="url('"+BASE+PHOTOS[a]+"')";av.setAttribute("aria-label",a);}
     const nm=el("div");nm.appendChild(el("b",null,a===me?"You":a));
     nm.appendChild(el("span",null,wait.length?(wait.length+(wait.length===1?" post needs ":" posts need ")+(a===me?"your":"his")+" approval"):"Nothing waiting on "+(a===me?"you":first(a))));
-    hd.append(av,nm);card.appendChild(hd);
+    hd.append(av,nm);if(a!=="evoila US Page"){const vl=el("a","voice",a===me?"My voice":first(a)+"'s voice");vl.href=BASE+"voice/?who="+encodeURIComponent(a);hd.appendChild(vl);}card.appendChild(hd);
     const st=el("div","stats");
     [[wait.length,"to approve",wait.length?"hot":""],[mkt.length,"with marketing",""],[sched.length,"scheduled",""],[live30,"live, 30 days",""]].forEach(([n,l,cl])=>{const d=el("div","st "+cl);d.appendChild(el("b",null,String(n)));d.appendChild(el("span",null,l));st.appendChild(d);});
     card.appendChild(st);
@@ -657,8 +672,30 @@ function usage(){
   c.appendChild(el("div","grp","Most opened files"));
   if(!top.length)c.appendChild(el("div","empty","No files opened yet."));
   else{const ul=el("ul","list");top.forEach(([k,v])=>{const li=el("li");li.append(el("div","l",k),el("div","r",v+" open"+(v>1?"s":"")));ul.appendChild(li);});c.appendChild(ul);}
+  const qs=act.filter(a=>a.Type==="Ask the hub").sort((x,y)=>String(y.When).localeCompare(String(x.When)));
+  c.appendChild(el("div","grp","Questions asked in Ask the hub ("+qs.length+")"));
+  if(!qs.length)c.appendChild(el("div","empty","No questions yet."));
+  else{const ul=el("ul","list");qs.slice(0,25).forEach(a=>{const li=el("li");li.append(el("div","l",a.Item||""),el("div","r",first(a.Person)+" · "+fmt(a.When,{month:"short",day:"numeric"})));ul.appendChild(li);});c.appendChild(ul);}
   const ph=act.filter(a=>a.Type==="Visit"&&a.Device==="phone").length,vis=act.filter(a=>a.Type==="Visit").length;
   if(vis)c.appendChild(el("p","measure",Math.round(100*ph/vis)+"% of visits from a phone."));
+  return c;
+}
+
+/* ---------- meetings ---------- */
+let MEET=null;
+function meetings(){
+  const c=section("meetings","Meetings","What we talked about · last 90 days");
+  const box=el("div");c.appendChild(box);
+  const fill=()=>{box.innerHTML="";
+    if(MEET===null){box.appendChild(el("div","empty","Loading meeting overviews…"));return;}
+    if(MEET==="err"){box.appendChild(el("div","empty","Couldn't load the meetings just now. Refresh in a minute."));return;}
+    if(!MEET.length){box.appendChild(el("div","empty","No meeting overviews yet. They appear here a few minutes after a recorded evoila call ends."));return;}
+    MEET.slice(0,15).forEach(m=>{const f=m.fields||{};const d=document.createElement("details");d.className="meet";
+      const sm=document.createElement("summary");sm.append(el("b",null,f["Meeting Title"]||"Meeting"),el("span",null,[fmt(f["Meeting Date"],{weekday:"short",month:"short",day:"numeric"}),f["Duration (Minutes)"]?Math.round(f["Duration (Minutes)"])+" min":""].filter(Boolean).join(" · ")));
+      const ov=String(f["Meeting Overview"]||"");d.append(sm,el("p","lead",ov.split("\n")[0]),el("div","ov",ov));box.appendChild(d);});
+    if(MEET.length>15)box.appendChild(el("p","measure","Showing the 15 most recent."));};
+  fill();
+  if(MEET===null)fetch(ACT,{method:"POST",body:new URLSearchParams({t:token,a:"meetings",dev:DEV})}).then(r=>r.json()).then(j=>{MEET=j.meetings||[];fill();}).catch(()=>{MEET="err";fill();});
   return c;
 }
 
@@ -684,7 +721,7 @@ $("#resSend").onclick=async()=>{
   const title=$("#rTitle").value.trim();if(!title){$("#rTitle").focus();return;}
   const file=$("#rFile").files[0],link=$("#rLink").value.trim();
   if(!file&&!link){flash("Add a file or a link.","err");return;}
-  if(file&&file.size>4*1024*1024){flash("That file is over 4 MB. Add it in Airtable instead, or link to it.","err");return;}
+  if(file&&file.size>4*1024*1024){flash("That file is over 4 MB. Link to it instead, or send it to Kevin.","err");return;}
   const b=$("#resSend");b.disabled=true;b.textContent="Adding…";
   try{const p={a:"addres",title,category:$("#rCat").value,sharing:$("#rShare").value,description:$("#rDesc").value.trim(),link};
     if(file){p.file=await new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(String(r.result).split(",")[1]);r.onerror=rej;r.readAsDataURL(file);});p.fileName=file.name;p.fileType=file.type||"application/octet-stream";}

@@ -15,7 +15,7 @@
 body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 Inter,system-ui,-apple-system,"Segoe UI",sans-serif;padding-bottom:90px}
 a{color:var(--blue)}
 header{background:var(--violet);color:#fff;padding:14px 16px}
-.wrap{max-width:1040px;margin:0 auto}
+.wrap{max-width:1320px;margin:0 auto}
 .top{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
 .logo{height:22px;width:auto;display:block}
 .links{display:flex;gap:14px;font-size:13px}
@@ -29,14 +29,19 @@ h1{font-size:21px;margin:0;letter-spacing:-.01em}
 .tab.on{background:#fff;color:var(--violet);border-color:#fff}
 .tab .n{opacity:.7;margin-left:4px}
 main{padding:16px}
-.strip{display:flex;gap:8px;overflow-x:auto;padding:2px 2px 10px;scrollbar-width:thin}
-.chipq{flex:none;width:118px;border:2px solid transparent;border-radius:10px;background:var(--card);padding:5px;cursor:pointer;text-align:left;font:inherit;color:var(--ink)}
+.shell{display:grid;gap:16px}
+@media(min-width:1100px){.shell{grid-template-columns:250px minmax(0,1fr);align-items:start}.strip{position:sticky;top:12px;max-height:calc(100vh - 110px)}}
+.strip{display:flex;flex-direction:column;gap:6px;overflow-y:auto;max-height:280px;padding:2px;scrollbar-width:thin}
+.strip:empty{display:none}
+.strip .qh{font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin:0 2px 2px}
+.chipq{display:flex;gap:9px;align-items:center;width:100%;border:2px solid transparent;border-radius:10px;background:var(--card);padding:6px;cursor:pointer;text-align:left;font:inherit;color:var(--ink)}
 .chipq.on{border-color:var(--indigo)}
 .chipq.done{opacity:.45}
-.chipq .ph{width:100%;aspect-ratio:1.91/1;border-radius:6px;background:var(--soft) center/cover no-repeat;display:grid;place-items:center;font-size:11px;color:var(--muted)}
-.chipq .t{font-size:11.5px;line-height:1.3;margin-top:4px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
-.chipq .d{font-size:10.5px;color:var(--muted)}
-.layout{display:grid;gap:16px;margin-top:6px}
+.chipq .ph{flex:none;width:64px;aspect-ratio:1.25/1;border-radius:6px;background:var(--soft) center/cover no-repeat;display:grid;place-items:center;font-size:10px;color:var(--muted)}
+.chipq .tx{min-width:0}
+.chipq .t{font-size:12.5px;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.chipq .d{font-size:11px;color:var(--muted)}
+.layout{display:grid;gap:16px}
 @media(min-width:900px){.layout{grid-template-columns:minmax(0,560px) 1fr;align-items:start}}
 .li{background:var(--card);border:1px solid var(--line);border-radius:12px;overflow:hidden}
 .lihead{display:flex;gap:10px;padding:12px 14px 6px;align-items:center}
@@ -91,14 +96,14 @@ pre.notes{white-space:pre-wrap;font:inherit;font-size:13px;background:var(--soft
 </head>
 <body>
 <header><div class="wrap">
- <div class="top"><svg viewBox="0 0 175.24 41.66" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" class="logo" role="img" aria-label="evoila"><defs></defs><g><path d="M31.95 26.76C31.7 28.61 30.94 34.23 23.13 38.47 20.03 40.15 16.06 41.29 12.24 41.58 11.59 41.63 10.97 41.66 10.38 41.66 7.63 41.66 5.5 41.14 4.52 40.18 3.9 39.63 3.53 38.82 3.53 37.97 3.53 37.47 3.65 36.98 3.88 36.54 4.16 35.93 4.6 35.36 5.2 34.68L5.2 34.68C5.2 34.68 5.45 34.83 5.58 34.91 5.72 34.99 6.05 35.14 6.05 35.14 5.43 35.84 4.96 36.4 4.72 36.95L4.72 36.98C4.54 37.28 4.46 37.62 4.46 37.97 4.46 38.55 4.71 39.11 5.15 39.5 7.11 41.41 15.92 41.32 22.68 37.65 30.07 33.64 30.78 28.38 31.01 26.65 31.58 22.43 29.46 18.25 25.73 16.24 25.82 16.14 25.91 16.05 25.99 15.95 26.13 15.8 26.25 15.66 26.37 15.51 30.32 17.74 32.55 22.23 31.94 26.77Z" fill="#FFFFFF"/><path d="M25.73 16.23C25.12 16.9 24.44 17.62 23.79 18.49 21.7 21.34 21.47 24.64 21.14 26.97 20.32 32.82 14.94 36.9 9.13 36.07 8.03 35.92 7 35.59 6.05 35.13 6.17 35 6.29 34.86 6.41 34.73 6.97 34.11 7.61 33.41 8.2 32.59 10.13 29.94 10.51 26.88 10.79 24.65 10.83 24.38 10.86 24.13 10.89 23.88 11.26 21.17 12.64 18.77 14.81 17.11 16.97 15.45 19.64 14.74 22.33 15.11 23.52 15.27 24.64 15.63 25.69 16.19L25.69 16.19C25.69 16.19 25.73 16.22 25.73 16.22Z" fill="#FFFFFF"/><path d="M27.66 12.87C27.66 13.3 27.55 13.72 27.35 14.08 27.13 14.56 26.79 15.02 26.37 15.51 26.29 15.46 26.23 15.42 26.14 15.38L26.14 15.38C24.99 14.76 23.75 14.36 22.45 14.19 19.52 13.79 16.6 14.56 14.24 16.37 11.88 18.18 10.36 20.8 9.97 23.76 9.93 24.01 9.9 24.27 9.87 24.54 9.59 26.78 9.24 29.58 7.46 32.03 6.89 32.81 6.3 33.46 5.73 34.09 5.68 34.14 5.63 34.2 5.59 34.25L5.59 34.25C5.59 34.25 5.35 34.51 5.35 34.51 5.3 34.56 5.26 34.61 5.21 34.66 1.63 32.53-0.51 28.38 0.11 23.98 0.47 21.42 1.66 16.46 8.75 12.67 15.44 9.09 24.62 8.82 26.82 10.99 27.34 11.45 27.66 12.12 27.66 12.87Z" fill="#FFFFFF"/><path d="M5.58 34.26C5.5 34.35 5.42 34.44 5.34 34.52L5.2 34.67 5.2 34.67C5.25 34.62 5.29 34.57 5.34 34.52L5.58 34.25 5.58 34.25Z" fill="#FFFFFF"/></g><g id="Logo-2"><g><path d="M76.72 40.72 69.67 13.66 74.73 12.34 80.7 35.26 87.51 19.9C88.16 18.13 87.75 16.78 87.46 15.78 87.22 14.94 87 14.53 86.57 13.72L91.63 12.4C92.13 13.33 92.52 14.2 92.85 15.59 93.23 17.12 93.47 18.9 92.83 20.82L83.96 40.76 76.72 40.74 76.72 40.74Z" fill="#FFFFFF"/><path d="M97.33 30.8 97.31 23.18C97.29 16.04 100.91 12.42 108.96 12.42 117.01 12.42 120.78 16.09 120.75 23.18L120.77 30.8C120.82 37.42 117.2 41.61 109.12 41.61 101.04 41.61 97.33 37.1 97.33 30.8L97.33 30.8ZM115.82 23.18C115.8 18.58 113.88 16.68 109.25 16.66 104.53 16.66 102.71 18.55 102.71 23.18L102.71 30.8C102.71 34.9 104.53 37.34 109.33 37.34 114.13 37.34 115.83 35.18 115.83 30.8L115.83 23.18 115.83 23.18Z" fill="#FFFFFF"/><path d="M127.63 13.78 132.88 12.42 132.86 40.72 127.7 40.72 127.63 13.78Z" fill="#FFFFFF"/><path d="M140.43 1.37 145.66 0 145.66 40.7 140.43 40.7 140.43 1.37 140.43 1.37Z" fill="#FFFFFF"/><path d="M175.24 40.72 170.9 40.72 170.42 37.22C167.52 40.07 163.54 41.65 159.61 41.65 154.84 41.65 152.59 38.87 151.96 35.54 151.82 34.82 151.82 34.05 151.79 33.29L151.79 23.05C151.79 16.03 153.92 12.41 163.73 12.41 167.54 12.41 171.98 13.3 175.24 14.38L175.24 40.72 175.24 40.72ZM170.01 17.33C168.28 16.92 166.05 16.61 163.9 16.61 159.13 16.61 157.02 17.98 157.02 23.68L157.02 32.91C157.02 33.63 157.04 34.4 157.14 34.92 157.4 36.29 158.24 37.32 160.14 37.32 164.02 37.32 167.02 35.04 170.02 32.02L170.02 17.33 170.02 17.33Z" fill="#FFFFFF"/><circle cx="130.25" cy="6.59" r="2.85" fill="#FFFFFF"/><path d="M64.62 32.57C61.07 34.75 56.3 37.34 53.07 37.34 49.84 37.34 48.11 36.53 47.75 34.7 47.7 34.46 47.63 34.05 47.63 33.41L47.63 31.08C50.19 30.31 52.71 30.03 56.28 28.85 64.6 26.14 66.56 23.74 65.63 18.9 64.79 14.66 60.62 12.43 55.39 12.43 46.5 12.43 42.3 16.07 42.3 23.31L42.32 32.35C42.32 33.36 42.44 34.29 42.58 34.99 43.35 38.92 46.39 41.63 52.72 41.63 57.85 41.63 62.62 38.9 65.86 36.69L64.61 32.57 64.61 32.57ZM47.6 22.68C47.6 18.03 50.88 16.69 55.77 16.69 58.6 16.69 60.37 17.58 60.76 19.45 61.22 21.8 58.72 23.62 53.76 25.03 50.88 25.84 49.25 26.16 47.6 26.61L47.6 22.68 47.6 22.68Z" fill="#FFFFFF"/></g></g></svg><div class="links"><a href="../hub/">Marketing hub</a><a href="../authors/" id="deskLink">All my posts</a></div></div>
+ <div class="top"><svg viewBox="0 0 175.24 41.66" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" class="logo" role="img" aria-label="evoila"><defs></defs><g><path d="M31.95 26.76C31.7 28.61 30.94 34.23 23.13 38.47 20.03 40.15 16.06 41.29 12.24 41.58 11.59 41.63 10.97 41.66 10.38 41.66 7.63 41.66 5.5 41.14 4.52 40.18 3.9 39.63 3.53 38.82 3.53 37.97 3.53 37.47 3.65 36.98 3.88 36.54 4.16 35.93 4.6 35.36 5.2 34.68L5.2 34.68C5.2 34.68 5.45 34.83 5.58 34.91 5.72 34.99 6.05 35.14 6.05 35.14 5.43 35.84 4.96 36.4 4.72 36.95L4.72 36.98C4.54 37.28 4.46 37.62 4.46 37.97 4.46 38.55 4.71 39.11 5.15 39.5 7.11 41.41 15.92 41.32 22.68 37.65 30.07 33.64 30.78 28.38 31.01 26.65 31.58 22.43 29.46 18.25 25.73 16.24 25.82 16.14 25.91 16.05 25.99 15.95 26.13 15.8 26.25 15.66 26.37 15.51 30.32 17.74 32.55 22.23 31.94 26.77Z" fill="#FFFFFF"/><path d="M25.73 16.23C25.12 16.9 24.44 17.62 23.79 18.49 21.7 21.34 21.47 24.64 21.14 26.97 20.32 32.82 14.94 36.9 9.13 36.07 8.03 35.92 7 35.59 6.05 35.13 6.17 35 6.29 34.86 6.41 34.73 6.97 34.11 7.61 33.41 8.2 32.59 10.13 29.94 10.51 26.88 10.79 24.65 10.83 24.38 10.86 24.13 10.89 23.88 11.26 21.17 12.64 18.77 14.81 17.11 16.97 15.45 19.64 14.74 22.33 15.11 23.52 15.27 24.64 15.63 25.69 16.19L25.69 16.19C25.69 16.19 25.73 16.22 25.73 16.22Z" fill="#FFFFFF"/><path d="M27.66 12.87C27.66 13.3 27.55 13.72 27.35 14.08 27.13 14.56 26.79 15.02 26.37 15.51 26.29 15.46 26.23 15.42 26.14 15.38L26.14 15.38C24.99 14.76 23.75 14.36 22.45 14.19 19.52 13.79 16.6 14.56 14.24 16.37 11.88 18.18 10.36 20.8 9.97 23.76 9.93 24.01 9.9 24.27 9.87 24.54 9.59 26.78 9.24 29.58 7.46 32.03 6.89 32.81 6.3 33.46 5.73 34.09 5.68 34.14 5.63 34.2 5.59 34.25L5.59 34.25C5.59 34.25 5.35 34.51 5.35 34.51 5.3 34.56 5.26 34.61 5.21 34.66 1.63 32.53-0.51 28.38 0.11 23.98 0.47 21.42 1.66 16.46 8.75 12.67 15.44 9.09 24.62 8.82 26.82 10.99 27.34 11.45 27.66 12.12 27.66 12.87Z" fill="#FFFFFF"/><path d="M5.58 34.26C5.5 34.35 5.42 34.44 5.34 34.52L5.2 34.67 5.2 34.67C5.25 34.62 5.29 34.57 5.34 34.52L5.58 34.25 5.58 34.25Z" fill="#FFFFFF"/></g><g id="Logo-2"><g><path d="M76.72 40.72 69.67 13.66 74.73 12.34 80.7 35.26 87.51 19.9C88.16 18.13 87.75 16.78 87.46 15.78 87.22 14.94 87 14.53 86.57 13.72L91.63 12.4C92.13 13.33 92.52 14.2 92.85 15.59 93.23 17.12 93.47 18.9 92.83 20.82L83.96 40.76 76.72 40.74 76.72 40.74Z" fill="#FFFFFF"/><path d="M97.33 30.8 97.31 23.18C97.29 16.04 100.91 12.42 108.96 12.42 117.01 12.42 120.78 16.09 120.75 23.18L120.77 30.8C120.82 37.42 117.2 41.61 109.12 41.61 101.04 41.61 97.33 37.1 97.33 30.8L97.33 30.8ZM115.82 23.18C115.8 18.58 113.88 16.68 109.25 16.66 104.53 16.66 102.71 18.55 102.71 23.18L102.71 30.8C102.71 34.9 104.53 37.34 109.33 37.34 114.13 37.34 115.83 35.18 115.83 30.8L115.83 23.18 115.83 23.18Z" fill="#FFFFFF"/><path d="M127.63 13.78 132.88 12.42 132.86 40.72 127.7 40.72 127.63 13.78Z" fill="#FFFFFF"/><path d="M140.43 1.37 145.66 0 145.66 40.7 140.43 40.7 140.43 1.37 140.43 1.37Z" fill="#FFFFFF"/><path d="M175.24 40.72 170.9 40.72 170.42 37.22C167.52 40.07 163.54 41.65 159.61 41.65 154.84 41.65 152.59 38.87 151.96 35.54 151.82 34.82 151.82 34.05 151.79 33.29L151.79 23.05C151.79 16.03 153.92 12.41 163.73 12.41 167.54 12.41 171.98 13.3 175.24 14.38L175.24 40.72 175.24 40.72ZM170.01 17.33C168.28 16.92 166.05 16.61 163.9 16.61 159.13 16.61 157.02 17.98 157.02 23.68L157.02 32.91C157.02 33.63 157.04 34.4 157.14 34.92 157.4 36.29 158.24 37.32 160.14 37.32 164.02 37.32 167.02 35.04 170.02 32.02L170.02 17.33 170.02 17.33Z" fill="#FFFFFF"/><circle cx="130.25" cy="6.59" r="2.85" fill="#FFFFFF"/><path d="M64.62 32.57C61.07 34.75 56.3 37.34 53.07 37.34 49.84 37.34 48.11 36.53 47.75 34.7 47.7 34.46 47.63 34.05 47.63 33.41L47.63 31.08C50.19 30.31 52.71 30.03 56.28 28.85 64.6 26.14 66.56 23.74 65.63 18.9 64.79 14.66 60.62 12.43 55.39 12.43 46.5 12.43 42.3 16.07 42.3 23.31L42.32 32.35C42.32 33.36 42.44 34.29 42.58 34.99 43.35 38.92 46.39 41.63 52.72 41.63 57.85 41.63 62.62 38.9 65.86 36.69L64.61 32.57 64.61 32.57ZM47.6 22.68C47.6 18.03 50.88 16.69 55.77 16.69 58.6 16.69 60.37 17.58 60.76 19.45 61.22 21.8 58.72 23.62 53.76 25.03 50.88 25.84 49.25 26.16 47.6 26.61L47.6 22.68 47.6 22.68Z" fill="#FFFFFF"/></g></g></svg><div class="links"><a href="../hub/#linkedin">← LinkedIn posts</a><a href="../authors/" id="deskLink">All my posts</a></div></div>
  <div class="headline"><h1 id="h1">Review posts</h1><div class="who" id="who">Loading…</div></div>
  <div class="tabs hidden" id="tabs"></div>
 </div></header>
 <main class="wrap">
  <div id="flash"></div>
- <div class="strip" id="strip"></div>
- <div id="view"><div class="loading">Loading your posts…</div></div>
+ <div class="shell"><div class="strip" id="strip"></div>
+ <div id="view"><div class="loading">Loading your posts…</div></div></div>
 </main>
 <div class="nav hidden" id="nav"><div class="wrap">
  <button id="prev" type="button">← Previous</button>
@@ -111,6 +116,7 @@ pre.notes{white-space:pre-wrap;font:inherit;font-size:13px;background:var(--soft
 const API="https://hook.us2.make.com/o28rqytj8ifgm1o2tckavp2194d8jbqt";
 const ACT="https://hook.us2.make.com/91mst8q1pr5j2smjck26k4a23tlrcrn8";
 const DEV=/Mobi|Android|iPhone|iPad/i.test(navigator.userAgent)?"phone":"desktop";
+const PHOTOS={"Glen Tindal":"img/glen-tindal.jpg"};
 const TITLES={"Glen Tindal":"CEO and Managing Director, evoila US","Mark Maisano":"VP Alliances & Strategy, evoila US","Andrew Hald":"Lead Solution Architect, evoila US","evoila US Page":"Company page"};
 function store(k,v){try{v===undefined?localStorage.removeItem(k):localStorage.setItem(k,v)}catch(e){}}
 function load(k){try{return localStorage.getItem(k)}catch(e){return null}}
@@ -191,11 +197,12 @@ function drawTabs(){
 }
 function drawStrip(items){
   const s=$("#strip");s.innerHTML="";if(items.length<2)return;
+  s.appendChild(el("div","qh",items.filter(i=>!doneIds.has(i.id)).length+" in this queue"));
   items.forEach((it,i)=>{const b=el("button","chipq"+(i===idx?" on":"")+(doneIds.has(it.id)?" done":""));b.type="button";
     const ph=el("div","ph");const th=thumbOf(it);if(th)ph.style.backgroundImage="url('"+th+"')";else ph.textContent=it.kind==="article"?"Article":"No image";
-    b.append(ph,el("div","t",title(it)),el("div","d",(admin?first(it.f["Author / Profile"])+" · ":"")+(dateOf(it)?fmt(dateOf(it),{month:"short",day:"numeric"}):"no date")));
-    b.onclick=()=>{idx=i;flash("");draw();};s.appendChild(b);});
-  const on=s.children[idx];if(on)on.scrollIntoView({block:"nearest",inline:"center"});
+    const tx=el("div","tx");tx.append(el("div","t",title(it)),el("div","d",(admin?first(it.f["Author / Profile"])+" · ":"")+(dateOf(it)?fmt(dateOf(it),{month:"short",day:"numeric"}):"no date")));
+    b.append(ph,tx);b.onclick=()=>{idx=i;flash("");draw();};s.appendChild(b);});
+  const on=s.querySelector(".chipq.on");if(on)on.scrollIntoView({block:"nearest"});
 }
 
 function draw(){
@@ -228,7 +235,7 @@ let editor=null;
 function preview(it){
   const c=el("div","li");
   const h=el("div","lihead");const author=it.f["Author / Profile"]||"evoila";
-  h.appendChild(el("div","av",initials(author)));const n=el("div");n.appendChild(el("b",null,author));
+  {const av=el("div","av",PHOTOS[author]?"":initials(author));if(PHOTOS[author]){av.style.background="var(--soft) center/cover no-repeat url('../"+PHOTOS[author]+"')";}h.appendChild(av);}const n=el("div");n.appendChild(el("b",null,author));
   n.appendChild(el("span",null,TITLES[author]||""));n.appendChild(el("span",null,dateOf(it)?((Date.parse(dateOf(it))<Date.now()-864e5?"Was scheduled ":"Scheduled ")+fmt(dateOf(it))):"No date set"));h.appendChild(n);c.appendChild(h);
   const txt=copyOf(it)||(it.f["Bullets on the topic"]?"Still drafting from these bullets:\n\n"+it.f["Bullets on the topic"]:"(No copy yet)");
   const body=el("div","licopy",txt);c.appendChild(body);
@@ -289,14 +296,14 @@ async function act(params,okText,btns,btn,label,remove){
 function declineBox(p,it,all){
   if(it.kind!=="post")return;
   const dl=el("button","btn ghostbad","Decline this post");dl.type="button";p.appendChild(dl);
-  const box=el("div","box hidden");box.appendChild(el("label","l","Why not? (optional, helps marketing)"));
-  const note=el("textarea","note");note.placeholder="e.g. Not a topic I want to post on; timing is off";box.appendChild(note);
+  const box=el("div","box hidden");box.appendChild(el("label","l",admin?"Reason (optional, saved in the post notes)":"Why not? (optional, helps marketing)"));
+  const note=el("textarea","note");note.placeholder=admin?"e.g. Timing has passed; topic no longer fits":"e.g. Not a topic I want to post on; timing is off";box.appendChild(note);
   const yes=el("button","btn bad","Yes, decline. It will not be posted");yes.type="button";yes.style.marginTop="8px";box.appendChild(yes);p.appendChild(box);
   all.push(dl,yes);
   dl.onclick=()=>{box.classList.toggle("hidden");if(!box.classList.contains("hidden"))note.focus();};
   yes.onclick=async()=>{busy(all,true,yes,"Declining…");
     try{await call({a:"decline",id:it.id,notes:note.value.trim()},ACT);doneIds.add(it.id);
-      flash("Declined. It won't be posted, and marketing can see your reason.","ok");
+      flash(admin?"Declined. It won't be posted, and it's off "+first(it.f["Author / Profile"])+"'s list.":"Declined. It won't be posted, and marketing can see your reason.","ok");
       const items=queues[tab].items;const n=items.findIndex((x,i)=>i>idx&&!doneIds.has(x.id));if(n>=0)idx=n;draw();}
     catch(e){if(e.message==="auth")return fail(e);flash("That didn't save. Try again in a minute.","err");busy(all,false,yes,"Yes, decline. It will not be posted");}};
 }
@@ -384,7 +391,7 @@ function marketingActionsLite(p,it){
   if(it.kind==="post"){p.appendChild(el("label","l","Post date"));di=document.createElement("input");di.type="date";di.value=(dateOf(it)||"").slice(0,10);p.appendChild(di);}
   const sv=el("button","btn","Save changes");sv.type="button";sv.style.marginTop="12px";
   const back=el("button","btn","Pull back to marketing review");back.type="button";
-  p.append(sv,ed,back);const orig=(dateOf(it)||"").slice(0,10);const all=[sv,ed,back];
+  p.append(sv,ed,back);const orig=(dateOf(it)||"").slice(0,10);const all=[sv,ed,back];declineBox(p,it,all);
   ed.onclick=()=>{const on=editor.classList.contains("hidden");toggleEdit(on);ed.textContent=on?"Done editing":"Edit the text";};
   sv.onclick=()=>act({a:"msave",table:it.kind,id:it.id,copy:edited(it),notes:"",date:di&&di.value&&di.value!==orig?di.value:""},"Saved.",all,sv,"Save changes",false);
   back.onclick=()=>act({a:"mstatus",table:it.kind,id:it.id,status:"Pending Marketing Review"},"Moved back to marketing review.",all,back,"Pull back to marketing review",true);
