@@ -67,7 +67,7 @@ textarea{width:100%;min-height:110px;font:inherit;font-size:15px;color:var(--ink
 const API="https://hook.us2.make.com/o28rqytj8ifgm1o2tckavp2194d8jbqt";
 const ACT="https://hook.us2.make.com/91mst8q1pr5j2smjck26k4a23tlrcrn8";
 const AUTHORS=["Glen Tindal","Mark Maisano","Andrew Hald"];
-const PHOTOS={"Glen Tindal":"../img/glen-tindal.jpg"};
+const PHOTOS={"Glen Tindal":"../img/glen-tindal.jpg","Mark Maisano":"../img/mark-maisano.jpg","Andrew Hald":"../img/andrew-hald.jpg"};
 const DEV=/Mobi|Android|iPhone|iPad/i.test(navigator.userAgent)?"phone":"desktop";
 function store(k,v){try{localStorage.setItem(k,v)}catch(e){}}
 function load(k){try{return localStorage.getItem(k)}catch(e){return null}}
@@ -85,6 +85,7 @@ const HEADS=["Your role","Who reads you","The mix you asked for","What you talk 
 function render(text){
   const c=$("#voice");c.innerHTML="";let ul=null;
   text.split("\n").forEach(line=>{const t=line.trim();if(!t){ul=null;return;}
+    if(t.startsWith("## ")){c.appendChild(el("h2",null,t.slice(3)));ul=null;return;}
     if(HEADS.includes(t)){c.appendChild(el("h2",null,t));ul=null;return;}
     if(/^#\w/.test(t)){const g=el("div","tags");t.split(/\s+/).forEach(x=>g.appendChild(el("span",null,x)));c.appendChild(g);return;}
     if(t.startsWith("- ")){if(!ul){ul=el("ul");c.appendChild(ul);}ul.appendChild(el("li",null,t.slice(2)));return;}

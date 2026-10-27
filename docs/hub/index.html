@@ -140,6 +140,10 @@ dialog h3{margin:0 0 6px;font-size:18px}
 .newpost{display:block;margin-top:12px;font-size:13.5px;font-weight:600;color:var(--indigo);text-decoration:none}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .newpost{color:#8FB8FF}}
 .ac.me{background:var(--card);border:2px solid var(--indigo)}
+.tr{display:flex;align-items:center;gap:14px}
+.askbtn{font:inherit;font-size:13.5px;font-weight:600;color:var(--violet);background:#fff;border:0;border-radius:999px;padding:7px 14px;cursor:pointer}
+.askbtn:hover{background:var(--green)}
+@media(max-width:520px){.tr .who{display:none}}
 .ach .av.ph{background:var(--soft) center/cover no-repeat}
 .ach .voice{margin-left:auto;font-size:12.5px;font-weight:600;color:var(--blue);text-decoration:none;white-space:nowrap}
 .meet{border-top:1px solid var(--line);padding:12px 0}
@@ -183,7 +187,7 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 16px 28px}
 </head>
 <body>
 <header><div class="wrap">
- <div class="top"><svg viewBox="0 0 175.24 41.66" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" class="logo" role="img" aria-label="evoila"><defs></defs><g><path d="M31.95 26.76C31.7 28.61 30.94 34.23 23.13 38.47 20.03 40.15 16.06 41.29 12.24 41.58 11.59 41.63 10.97 41.66 10.38 41.66 7.63 41.66 5.5 41.14 4.52 40.18 3.9 39.63 3.53 38.82 3.53 37.97 3.53 37.47 3.65 36.98 3.88 36.54 4.16 35.93 4.6 35.36 5.2 34.68L5.2 34.68C5.2 34.68 5.45 34.83 5.58 34.91 5.72 34.99 6.05 35.14 6.05 35.14 5.43 35.84 4.96 36.4 4.72 36.95L4.72 36.98C4.54 37.28 4.46 37.62 4.46 37.97 4.46 38.55 4.71 39.11 5.15 39.5 7.11 41.41 15.92 41.32 22.68 37.65 30.07 33.64 30.78 28.38 31.01 26.65 31.58 22.43 29.46 18.25 25.73 16.24 25.82 16.14 25.91 16.05 25.99 15.95 26.13 15.8 26.25 15.66 26.37 15.51 30.32 17.74 32.55 22.23 31.94 26.77Z" fill="#FFFFFF"/><path d="M25.73 16.23C25.12 16.9 24.44 17.62 23.79 18.49 21.7 21.34 21.47 24.64 21.14 26.97 20.32 32.82 14.94 36.9 9.13 36.07 8.03 35.92 7 35.59 6.05 35.13 6.17 35 6.29 34.86 6.41 34.73 6.97 34.11 7.61 33.41 8.2 32.59 10.13 29.94 10.51 26.88 10.79 24.65 10.83 24.38 10.86 24.13 10.89 23.88 11.26 21.17 12.64 18.77 14.81 17.11 16.97 15.45 19.64 14.74 22.33 15.11 23.52 15.27 24.64 15.63 25.69 16.19L25.69 16.19C25.69 16.19 25.73 16.22 25.73 16.22Z" fill="#FFFFFF"/><path d="M27.66 12.87C27.66 13.3 27.55 13.72 27.35 14.08 27.13 14.56 26.79 15.02 26.37 15.51 26.29 15.46 26.23 15.42 26.14 15.38L26.14 15.38C24.99 14.76 23.75 14.36 22.45 14.19 19.52 13.79 16.6 14.56 14.24 16.37 11.88 18.18 10.36 20.8 9.97 23.76 9.93 24.01 9.9 24.27 9.87 24.54 9.59 26.78 9.24 29.58 7.46 32.03 6.89 32.81 6.3 33.46 5.73 34.09 5.68 34.14 5.63 34.2 5.59 34.25L5.59 34.25C5.59 34.25 5.35 34.51 5.35 34.51 5.3 34.56 5.26 34.61 5.21 34.66 1.63 32.53-0.51 28.38 0.11 23.98 0.47 21.42 1.66 16.46 8.75 12.67 15.44 9.09 24.62 8.82 26.82 10.99 27.34 11.45 27.66 12.12 27.66 12.87Z" fill="#FFFFFF"/><path d="M5.58 34.26C5.5 34.35 5.42 34.44 5.34 34.52L5.2 34.67 5.2 34.67C5.25 34.62 5.29 34.57 5.34 34.52L5.58 34.25 5.58 34.25Z" fill="#FFFFFF"/></g><g id="Logo-2"><g><path d="M76.72 40.72 69.67 13.66 74.73 12.34 80.7 35.26 87.51 19.9C88.16 18.13 87.75 16.78 87.46 15.78 87.22 14.94 87 14.53 86.57 13.72L91.63 12.4C92.13 13.33 92.52 14.2 92.85 15.59 93.23 17.12 93.47 18.9 92.83 20.82L83.96 40.76 76.72 40.74 76.72 40.74Z" fill="#FFFFFF"/><path d="M97.33 30.8 97.31 23.18C97.29 16.04 100.91 12.42 108.96 12.42 117.01 12.42 120.78 16.09 120.75 23.18L120.77 30.8C120.82 37.42 117.2 41.61 109.12 41.61 101.04 41.61 97.33 37.1 97.33 30.8L97.33 30.8ZM115.82 23.18C115.8 18.58 113.88 16.68 109.25 16.66 104.53 16.66 102.71 18.55 102.71 23.18L102.71 30.8C102.71 34.9 104.53 37.34 109.33 37.34 114.13 37.34 115.83 35.18 115.83 30.8L115.83 23.18 115.83 23.18Z" fill="#FFFFFF"/><path d="M127.63 13.78 132.88 12.42 132.86 40.72 127.7 40.72 127.63 13.78Z" fill="#FFFFFF"/><path d="M140.43 1.37 145.66 0 145.66 40.7 140.43 40.7 140.43 1.37 140.43 1.37Z" fill="#FFFFFF"/><path d="M175.24 40.72 170.9 40.72 170.42 37.22C167.52 40.07 163.54 41.65 159.61 41.65 154.84 41.65 152.59 38.87 151.96 35.54 151.82 34.82 151.82 34.05 151.79 33.29L151.79 23.05C151.79 16.03 153.92 12.41 163.73 12.41 167.54 12.41 171.98 13.3 175.24 14.38L175.24 40.72 175.24 40.72ZM170.01 17.33C168.28 16.92 166.05 16.61 163.9 16.61 159.13 16.61 157.02 17.98 157.02 23.68L157.02 32.91C157.02 33.63 157.04 34.4 157.14 34.92 157.4 36.29 158.24 37.32 160.14 37.32 164.02 37.32 167.02 35.04 170.02 32.02L170.02 17.33 170.02 17.33Z" fill="#FFFFFF"/><circle cx="130.25" cy="6.59" r="2.85" fill="#FFFFFF"/><path d="M64.62 32.57C61.07 34.75 56.3 37.34 53.07 37.34 49.84 37.34 48.11 36.53 47.75 34.7 47.7 34.46 47.63 34.05 47.63 33.41L47.63 31.08C50.19 30.31 52.71 30.03 56.28 28.85 64.6 26.14 66.56 23.74 65.63 18.9 64.79 14.66 60.62 12.43 55.39 12.43 46.5 12.43 42.3 16.07 42.3 23.31L42.32 32.35C42.32 33.36 42.44 34.29 42.58 34.99 43.35 38.92 46.39 41.63 52.72 41.63 57.85 41.63 62.62 38.9 65.86 36.69L64.61 32.57 64.61 32.57ZM47.6 22.68C47.6 18.03 50.88 16.69 55.77 16.69 58.6 16.69 60.37 17.58 60.76 19.45 61.22 21.8 58.72 23.62 53.76 25.03 50.88 25.84 49.25 26.16 47.6 26.61L47.6 22.68 47.6 22.68Z" fill="#FFFFFF"/></g></g></svg><div class="who" id="who">Loading…</div></div>
+ <div class="top"><svg viewBox="0 0 175.24 41.66" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" class="logo" role="img" aria-label="evoila"><defs></defs><g><path d="M31.95 26.76C31.7 28.61 30.94 34.23 23.13 38.47 20.03 40.15 16.06 41.29 12.24 41.58 11.59 41.63 10.97 41.66 10.38 41.66 7.63 41.66 5.5 41.14 4.52 40.18 3.9 39.63 3.53 38.82 3.53 37.97 3.53 37.47 3.65 36.98 3.88 36.54 4.16 35.93 4.6 35.36 5.2 34.68L5.2 34.68C5.2 34.68 5.45 34.83 5.58 34.91 5.72 34.99 6.05 35.14 6.05 35.14 5.43 35.84 4.96 36.4 4.72 36.95L4.72 36.98C4.54 37.28 4.46 37.62 4.46 37.97 4.46 38.55 4.71 39.11 5.15 39.5 7.11 41.41 15.92 41.32 22.68 37.65 30.07 33.64 30.78 28.38 31.01 26.65 31.58 22.43 29.46 18.25 25.73 16.24 25.82 16.14 25.91 16.05 25.99 15.95 26.13 15.8 26.25 15.66 26.37 15.51 30.32 17.74 32.55 22.23 31.94 26.77Z" fill="#FFFFFF"/><path d="M25.73 16.23C25.12 16.9 24.44 17.62 23.79 18.49 21.7 21.34 21.47 24.64 21.14 26.97 20.32 32.82 14.94 36.9 9.13 36.07 8.03 35.92 7 35.59 6.05 35.13 6.17 35 6.29 34.86 6.41 34.73 6.97 34.11 7.61 33.41 8.2 32.59 10.13 29.94 10.51 26.88 10.79 24.65 10.83 24.38 10.86 24.13 10.89 23.88 11.26 21.17 12.64 18.77 14.81 17.11 16.97 15.45 19.64 14.74 22.33 15.11 23.52 15.27 24.64 15.63 25.69 16.19L25.69 16.19C25.69 16.19 25.73 16.22 25.73 16.22Z" fill="#FFFFFF"/><path d="M27.66 12.87C27.66 13.3 27.55 13.72 27.35 14.08 27.13 14.56 26.79 15.02 26.37 15.51 26.29 15.46 26.23 15.42 26.14 15.38L26.14 15.38C24.99 14.76 23.75 14.36 22.45 14.19 19.52 13.79 16.6 14.56 14.24 16.37 11.88 18.18 10.36 20.8 9.97 23.76 9.93 24.01 9.9 24.27 9.87 24.54 9.59 26.78 9.24 29.58 7.46 32.03 6.89 32.81 6.3 33.46 5.73 34.09 5.68 34.14 5.63 34.2 5.59 34.25L5.59 34.25C5.59 34.25 5.35 34.51 5.35 34.51 5.3 34.56 5.26 34.61 5.21 34.66 1.63 32.53-0.51 28.38 0.11 23.98 0.47 21.42 1.66 16.46 8.75 12.67 15.44 9.09 24.62 8.82 26.82 10.99 27.34 11.45 27.66 12.12 27.66 12.87Z" fill="#FFFFFF"/><path d="M5.58 34.26C5.5 34.35 5.42 34.44 5.34 34.52L5.2 34.67 5.2 34.67C5.25 34.62 5.29 34.57 5.34 34.52L5.58 34.25 5.58 34.25Z" fill="#FFFFFF"/></g><g id="Logo-2"><g><path d="M76.72 40.72 69.67 13.66 74.73 12.34 80.7 35.26 87.51 19.9C88.16 18.13 87.75 16.78 87.46 15.78 87.22 14.94 87 14.53 86.57 13.72L91.63 12.4C92.13 13.33 92.52 14.2 92.85 15.59 93.23 17.12 93.47 18.9 92.83 20.82L83.96 40.76 76.72 40.74 76.72 40.74Z" fill="#FFFFFF"/><path d="M97.33 30.8 97.31 23.18C97.29 16.04 100.91 12.42 108.96 12.42 117.01 12.42 120.78 16.09 120.75 23.18L120.77 30.8C120.82 37.42 117.2 41.61 109.12 41.61 101.04 41.61 97.33 37.1 97.33 30.8L97.33 30.8ZM115.82 23.18C115.8 18.58 113.88 16.68 109.25 16.66 104.53 16.66 102.71 18.55 102.71 23.18L102.71 30.8C102.71 34.9 104.53 37.34 109.33 37.34 114.13 37.34 115.83 35.18 115.83 30.8L115.83 23.18 115.83 23.18Z" fill="#FFFFFF"/><path d="M127.63 13.78 132.88 12.42 132.86 40.72 127.7 40.72 127.63 13.78Z" fill="#FFFFFF"/><path d="M140.43 1.37 145.66 0 145.66 40.7 140.43 40.7 140.43 1.37 140.43 1.37Z" fill="#FFFFFF"/><path d="M175.24 40.72 170.9 40.72 170.42 37.22C167.52 40.07 163.54 41.65 159.61 41.65 154.84 41.65 152.59 38.87 151.96 35.54 151.82 34.82 151.82 34.05 151.79 33.29L151.79 23.05C151.79 16.03 153.92 12.41 163.73 12.41 167.54 12.41 171.98 13.3 175.24 14.38L175.24 40.72 175.24 40.72ZM170.01 17.33C168.28 16.92 166.05 16.61 163.9 16.61 159.13 16.61 157.02 17.98 157.02 23.68L157.02 32.91C157.02 33.63 157.04 34.4 157.14 34.92 157.4 36.29 158.24 37.32 160.14 37.32 164.02 37.32 167.02 35.04 170.02 32.02L170.02 17.33 170.02 17.33Z" fill="#FFFFFF"/><circle cx="130.25" cy="6.59" r="2.85" fill="#FFFFFF"/><path d="M64.62 32.57C61.07 34.75 56.3 37.34 53.07 37.34 49.84 37.34 48.11 36.53 47.75 34.7 47.7 34.46 47.63 34.05 47.63 33.41L47.63 31.08C50.19 30.31 52.71 30.03 56.28 28.85 64.6 26.14 66.56 23.74 65.63 18.9 64.79 14.66 60.62 12.43 55.39 12.43 46.5 12.43 42.3 16.07 42.3 23.31L42.32 32.35C42.32 33.36 42.44 34.29 42.58 34.99 43.35 38.92 46.39 41.63 52.72 41.63 57.85 41.63 62.62 38.9 65.86 36.69L64.61 32.57 64.61 32.57ZM47.6 22.68C47.6 18.03 50.88 16.69 55.77 16.69 58.6 16.69 60.37 17.58 60.76 19.45 61.22 21.8 58.72 23.62 53.76 25.03 50.88 25.84 49.25 26.16 47.6 26.61L47.6 22.68 47.6 22.68Z" fill="#FFFFFF"/></g></g></svg><div class="tr"><div class="who" id="who">Loading…</div><button class="askbtn hidden" id="askTop" type="button">Ask marketing</button></div></div>
  <h1>Marketing hub</h1>
  <p class="sub">Where we are headed, what is moving, and everything you need to sell.</p>
 </div></header>
@@ -223,7 +227,7 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 16px 28px}
 const API="https://hook.us2.make.com/o28rqytj8ifgm1o2tckavp2194d8jbqt";
 const ASK_API="https://hook.us2.make.com/4ffhqfa9sd2q1wpo39eqqycmxph9o3g1";
 const ACT="https://hook.us2.make.com/91mst8q1pr5j2smjck26k4a23tlrcrn8";
-const PHOTOS={"Glen Tindal":"img/glen-tindal.jpg"};
+const PHOTOS={"Glen Tindal":"img/glen-tindal.jpg","Mark Maisano":"img/mark-maisano.jpg","Andrew Hald":"img/andrew-hald.jpg"};
 const BASE=location.pathname.replace(/hub\/?(index\.html)?$/,"");
 const ANALYTICS_URL="https://claude.ai/artifact/Gj7nCXY9v9N1YuPkxd5r6w";
 const AUTHORS=["Glen Tindal","Mark Maisano","Andrew Hald"];
@@ -270,7 +274,7 @@ async function refresh(){
 
 function render(){
   const me=D.person,admin=D.admin==="yes",author=D.author;
-  $("#who").textContent="Signed in as "+me+(admin?" · admin":"");
+  $("#who").textContent="Signed in as "+me+(admin?" · admin":"");$("#askTop").classList.remove("hidden");
   $("#asof").textContent="Updated "+fmt(new Date().toISOString(),{weekday:"short",month:"short",day:"numeric",hour:"numeric",minute:"2-digit"});
   if(admin)$("#usageTab").classList.remove("hidden");
   const app=$("#app");app.innerHTML="";
@@ -364,7 +368,6 @@ function actions(admin,author){
   add("✎","Build your own deck","Outline it slide by slide, we build it on brand",BASE+"build/",()=>track("Custom deck","Opened builder"));
   if(author)add("✦","Create a post","Topic and bullets in, a finished post with an image in a minute",BASE+"create/");
   else if(admin)add("✦","Create a post for an author","Topic and bullets in; it lands in their queue in their voice",BASE+"create/");
-  add("?","Ask marketing","A slide, a story, a post, an event",null,()=>$("#askDlg").showModal());
   return g;
 }
 
@@ -481,6 +484,11 @@ function library(admin){
     row.append(b);c.appendChild(row);}
   return c;
 }
+function viewUrl(f,ext){
+  if(["PDF","PNG","JPG","JPEG","GIF","WEBP","SVG","TXT"].includes(ext))return f.url;
+  if(["DOCX","DOC","PPTX","PPT","XLSX","XLS"].includes(ext))return "https://view.officeapps.live.com/op/view.aspx?src="+encodeURIComponent(f.url);
+  return null;
+}
 function resCard(r){
   const d=el("div","rc");
   const t=el("div","top2");t.appendChild(el("b",null,r.Name||"Untitled"));
@@ -489,7 +497,9 @@ function resCard(r){
   if(r.Description)d.appendChild(el("p",null,r.Description));
   d.appendChild(el("div","meta",[r.Owner,r["Version date"]?"updated "+fmt(r["Version date"],{month:"short",day:"numeric",year:"numeric"}):""].filter(Boolean).join(" · ")));
   const row=el("div","row");
-  (r.File||[]).slice(0,2).forEach(f=>{const a=el("a","btn sm");a.href=f.url;a.target="_blank";a.rel="noopener";a.appendChild(el("span","ext",fileExt(f.filename)));a.appendChild(document.createTextNode("Download"));a.onclick=()=>track("Open resource",r.Name);row.appendChild(a);});
+  (r.File||[]).slice(0,2).forEach(f=>{const ext=fileExt(f.filename);const v=viewUrl(f,ext);
+    if(v){const w=el("a","btn sm");w.href=v;w.target="_blank";w.rel="noopener";w.appendChild(el("span","ext",ext));w.appendChild(document.createTextNode("View"));w.onclick=()=>track("Open resource",r.Name);row.appendChild(w);}
+    const a=el("a",v?"btn ghost sm":"btn sm");a.href=f.url;a.target="_blank";a.rel="noopener";a.setAttribute("download",f.filename||"");if(!v)a.appendChild(el("span","ext",ext));a.appendChild(document.createTextNode("Download"));a.onclick=()=>track("Open resource",r.Name);row.appendChild(a);});
   if(r.Link){const a=el("a","btn ghost sm","Open link");a.href=r.Link;a.target="_blank";a.rel="noopener";a.onclick=()=>track("Open resource",r.Name);row.appendChild(a);}
   d.appendChild(row);return d;
 }
@@ -596,9 +606,6 @@ function analytics(admin){
       l.appendChild(a);if(x.Change)l.appendChild(el("span",null,x.Change));li.append(l,el("div","r",x.Display||""));ul.appendChild(li);});c.appendChild(ul);}
   c.appendChild(el("div","grp","Personal profiles · last 30 days"));
   c.appendChild(scorecard());
-  if(admin){const p=el("div","owners");p.style.marginTop="10px";
-    const a=el("a",null,"Full LinkedIn dashboard");a.href=ANALYTICS_URL;a.target="_blank";a.rel="noopener";
-    p.append(a);c.appendChild(p);}
   return c;
 }
 function scorecard(){
@@ -707,6 +714,9 @@ function spy(){
 }
 
 /* ---------- dialogs ---------- */
+$("#askTop").onclick=()=>$("#askDlg").showModal();
+/* anything that leaves the hub opens in a new tab */
+document.addEventListener("click",e=>{const a=e.target.closest&&e.target.closest("a[href]");if(!a)return;const h=a.getAttribute("href")||"";if(!h||h[0]==="#"||/^(javascript|mailto|tel):/i.test(h))return;a.target="_blank";a.rel="noopener";},true);
 $("#askCancel").onclick=()=>$("#askDlg").close();
 $("#askSend").onclick=async()=>{
   const title=$("#askTitle").value.trim();if(!title){$("#askTitle").focus();return;}
