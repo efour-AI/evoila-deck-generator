@@ -403,6 +403,8 @@ HOW TO REVISE
 - Apply every concrete change he asks for.
 - Where he pushes back or states his position, rewrite the affected parts so the {kind} says what he actually thinks, in his voice. Do not argue with him and do not water his position down.
 - Where he says something is off but not how to fix it, fix it the way his voice card and position suggest.
+- His explicit instructions win over the style habits in his voice card. If he says to cut a line, a closing call to action included, cut it and do not replace it with another. Only the content rules (what evoila may not say) can override him.
+- Keep his claims at the scope he gave them. "Most of ours" stays about evoila's customers; never widen it to all customers or the whole market.
 - Change only what his notes call for. Keep everything else as it is, word for word.
 - Never invent customers, results, numbers, dates, quotes or events. If he gives a fact or number, use it exactly as he wrote it.
 - The content rules in the voice guide still apply. If he asks for something they forbid (for example naming a customer or the partner program), leave it out and list it in not_applied with the reason.
@@ -477,8 +479,8 @@ def revise_copy():
         lines += ["Not applied:"] + ["- " + s for s in skipped]
     summary = "\n".join(lines)
     today = time.strftime("%Y-%m-%d")
-    log = notes + f"\n\n[{today}] Revision: " + ("; ".join(changes) if changes else "no text changes needed") + \
-        (". Not applied: " + "; ".join(skipped) if skipped else "")
+    log = notes + f"\n\n[{today}] Revision: " + ("; ".join(c.rstrip(". ") for c in changes) if changes else "no text changes needed") + \
+        (". Not applied: " + "; ".join(s.rstrip(". ") for s in skipped) if skipped else "")
     api("PATCH", url, {"fields": {F["before"]: copy, F["copy"]: new, F["rnote"]: summary, F["notes"]: log}})
     print("revised:", len(changes), "changes,", len(skipped), "not applied")
 
