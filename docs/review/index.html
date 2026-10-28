@@ -88,6 +88,13 @@ details summary{cursor:pointer;font-size:13px;color:var(--blue);margin:10px 0 4p
 .revbox h3{margin-top:0;color:var(--warn)}
 .revbox .sum{white-space:pre-wrap;font-size:13.5px;margin:4px 0 8px}
 .revbox .btn{background:var(--card);margin-bottom:6px;font-size:14px;padding:10px 12px}
+.aibox{border:1px solid var(--line);background:var(--soft);border-radius:10px;padding:10px 12px;margin:0 0 12px}
+.aibox h3{font-size:14px;margin:0 0 6px}
+.aibox textarea.note{min-height:64px}
+.aibox .btn{margin:8px 0 0;font-size:14px;padding:10px 12px}
+.aibox .chg{font-size:13px;margin:8px 0 0;padding-left:18px}
+.aibox .chg li{margin:2px 0}
+.aibox .unsaved{font-size:12.5px;font-weight:600;color:var(--warn);margin:8px 0 0}
 .oldtag{display:block;background:var(--warnbg);color:var(--warn);font-size:12px;font-weight:600;padding:6px 14px}
 pre.notes{white-space:pre-wrap;font:inherit;font-size:13px;background:var(--soft);border-radius:8px;padding:8px 10px;margin:4px 0 0;color:var(--muted)}
 .hint{font-size:12.5px;color:var(--muted);margin:6px 0 0}
@@ -403,6 +410,7 @@ function marketingActions(p,it){
   if(!copyOf(it)){p.appendChild(el("p","hint","The draft is still being written from the author's bullets. It will show up here when it's ready."));return;}
   const name=first(it.f["Author / Profile"])||"the author";
   revisionBlock(p,it,name);
+  aiBox(p,it);
   const ed=el("button","btn","Edit the text");ed.type="button";
   let di=null;
   if(it.kind==="post"){p.appendChild(el("label","l","Post date"));di=document.createElement("input");di.type="date";di.value=(dateOf(it)||"").slice(0,10);p.appendChild(di);}
@@ -443,12 +451,56 @@ function revisionBlock(p,it,name){
   box.appendChild(el("p","hint","Check the text, fix anything, then send it back to "+name+" for final approval."));
   p.appendChild(box);
 }
+const voiceCache={};
+async function voiceOf(author){
+  if(!author)return"";if(author in voiceCache)return voiceCache[author];
+  try{const j=await call({a:"voice",who:author},ACT);voiceCache[author]=(j.records&&j.records[0]&&j.records[0].fields&&j.records[0].fields.Text)||"";}
+  catch(e){voiceCache[author]="";}
+  return voiceCache[author];
+}
+function setText(it,txt){
+  if(editor)editor.value=txt;
+  const card=document.querySelector(".li");if(card){card._body.textContent=txt;const tg=card.querySelector(".oldtag");if(tg)tg.remove();}
+}
+function aiBox(p,it){
+  const box=el("div","aibox");
+  box.appendChild(el("h3",null,"Change it with AI"));
+  const ta=el("textarea","note");ta.placeholder="Tell it what to change, e.g. Shorter. Lead with the renewal point. Drop the last line.";box.appendChild(ta);
+  const go=el("button","btn","Rewrite");go.type="button";box.appendChild(go);
+  const out=el("div");box.appendChild(out);
+  const history=[];
+  const undo=el("button","btn","Undo the last rewrite");undo.type="button";undo.classList.add("hidden");box.appendChild(undo);
+  undo.onclick=()=>{const prev=history.pop();if(prev!=null)setText(it,prev);out.innerHTML="";if(!history.length)undo.classList.add("hidden");else out.appendChild(el("p","unsaved","Not saved yet. Save or send to keep it."));};
+  go.onclick=async()=>{
+    const instr=ta.value.trim();if(!instr){ta.focus();return;}
+    const before=editor?editor.value:copyOf(it);
+    go.disabled=true;go.textContent="Rewriting…";out.innerHTML="";
+    try{
+      const author=it.f["Author / Profile"]||"";
+      const voice=await voiceOf(author);
+      const r=await fetch(ACT,{method:"POST",body:new URLSearchParams({t:token,dev:DEV,a:"airewrite",copy:before,instr,author,voice})});
+      if(r.status===401)throw new Error("auth");
+      const txt=(await r.text()).trim();
+      const k=txt.indexOf("===CHANGES===");
+      if(!r.ok||k<0)throw new Error(txt||"empty");
+      const fresh=txt.slice(0,k).trim();const changes=txt.slice(k+13).trim().split("\n").map(s=>s.replace(/^[-•]\s*/,"").trim()).filter(Boolean);
+      if(!fresh)throw new Error("empty");
+      history.push(before);setText(it,fresh);
+      if(changes.length){const ul=el("ul","chg");changes.forEach(c=>ul.appendChild(el("li",null,c)));out.appendChild(ul);}
+      out.appendChild(el("p","unsaved","Not saved yet. Save or send to keep it."));
+      undo.classList.remove("hidden");ta.value="";
+    }catch(e){if(e.message==="auth")return fail(e);flash("The rewrite didn't come back. Try again in a moment.","err");}
+    finally{go.disabled=false;go.textContent="Rewrite";}
+  };
+  p.appendChild(box);
+}
 function withAuthorActions(p,it){
   const name=first(it.f["Author / Profile"]);
   p.appendChild(el("p","hint","Waiting on "+name+". The daily reminder links straight to this page. You can still fix the text or the date."));
   marketingActionsLite(p,it);
 }
 function marketingActionsLite(p,it){
+  aiBox(p,it);
   const ed=el("button","btn","Edit the text");ed.type="button";
   let di=null;
   if(it.kind==="post"){p.appendChild(el("label","l","Post date"));di=document.createElement("input");di.type="date";di.value=(dateOf(it)||"").slice(0,10);p.appendChild(di);}
