@@ -14,6 +14,8 @@ MODE=meeting-overviews  Backfill: writes a short Meeting Overview on Call Transc
                     60 days that have a transcript and no overview yet. New calls get theirs from the
                     Fireflies scenario in Make.
 
+MODE=revise-copy    An author sent a post or article back with notes. Claude revises the text to reflect them
+                   (keeps the old text in Copy Before Revision) and says what it changed in Revision Note.
 MODE=voice-cards    Weekly (and on demand). Rebuilds the "Voice: <author>" rows in Hub Knowledge that the
                     hub's My voice page shows, from the newest "msg:" row (the voices, language and
                     governance parts of the Brand Messaging Platform, pushed by marketing whenever the
@@ -372,6 +374,115 @@ def build_post():
     print("post drafted")
 
 
+# ------------------------------------------------------------------ revise-copy
+
+T_ART = "tblcTJ5gIwdJvJmGH"
+REV = {  # field ids per table for the author-notes revision
+    "post": {"table": T_POST, "copy": "fldNpsfupzhYrXorE", "notes": "fldq8CJhq5B8tkycF", "author": "fldaKLAg5mK69CnLk",
+             "status": "fldvo8DzHp1DUO23I", "before": "fld47MEzZqI5uyvbg", "rnote": "fldb5lfEUqzoA6AU0", "title": "fld0JVy1STI2nhmP1"},
+    "article": {"table": T_ART, "copy": "fldeoYpiF5nAyYhhV", "notes": "fldzT7k7GHL9FHQtb", "author": "fldtBsPvJFEnnaKjX",
+                "status": "fldXZJewKg8qBXNql", "before": "fldjIdq83fowU9VIP", "rnote": "fldIC5ZuiRpbIpQ1Q", "title": "fldtLy3z7SDmS8LHf"},
+}
+
+REVISE_SCHEMA = {
+    "type": "object",
+    "properties": {
+        "copy": {"type": "string", "description": "The full revised text. Same format as the current text (hashtags kept at the end of a post; Markdown headings kept in an article)."},
+        "changes": {"type": "array", "items": {"type": "string"},
+                    "description": "One short line per change you made, in plain words, so marketing can check it. Under 20 words each."},
+        "not_applied": {"type": "array", "items": {"type": "string"},
+                        "description": "Anything the author asked for that you did not apply, each with the reason (a content rule, a fact you cannot verify, unclear). Empty if everything was applied."},
+    },
+    "required": ["copy", "changes", "not_applied"],
+}
+
+REVISE_PROMPT = """{author} ({title}) read the {kind} below on evoila's marketing hub and sent it back to marketing with notes: changes he wants, things that are off, or where he stands on the topic. Revise the text so it reflects his notes, then call submit_revision. Marketing (Kevin) reviews your revision before it goes back to {first} for final approval.
+
+HOW TO REVISE
+- His latest note is what matters most. Earlier notes in the thread are context; marketing may already have handled them.
+- Apply every concrete change he asks for.
+- Where he pushes back or states his position, rewrite the affected parts so the {kind} says what he actually thinks, in his voice. Do not argue with him and do not water his position down.
+- Where he says something is off but not how to fix it, fix it the way his voice card and position suggest.
+- Change only what his notes call for. Keep everything else as it is, word for word.
+- Never invent customers, results, numbers, dates, quotes or events. If he gives a fact or number, use it exactly as he wrote it.
+- The content rules in the voice guide still apply. If he asks for something they forbid (for example naming a customer or the partner program), leave it out and list it in not_applied with the reason.
+- No em dashes. "evoila" is lowercase. {fmt}
+
+HIS VOICE CARD
+{card}
+
+GENERAL VOICE GUIDE AND CONTENT RULES
+{guide}
+
+NOTES THREAD (oldest first; his latest note is last)
+{notes}
+
+CURRENT TEXT
+{copy}
+"""
+
+
+def revise_copy():
+    kind = (os.environ.get("TABLE") or "post").strip().lower()
+    if kind not in REV:
+        raise RuntimeError("TABLE must be post or article")
+    F = REV[kind]
+    url = f"https://api.airtable.com/v0/{BASE}/{F['table']}/{REC}"
+    f = api("GET", url + "?returnFieldsByFieldId=true")["fields"]
+    author = f.get(F["author"]) or ""
+    author = author.get("name") if isinstance(author, dict) else author
+    copy, notes = f.get(F["copy"]) or "", (f.get(F["notes"]) or "").strip()
+    if not copy.strip() or not notes:
+        api("PATCH", url, {"fields": {F["rnote"]: "Nothing to revise: no text or no notes."}})
+        print("nothing to revise")
+        return
+    first = author.split(" ")[0] if author else "the author"
+    api("PATCH", url, {"fields": {F["rnote"]: f"Revising the text from {first}'s notes…"}})
+    kb = rows(T_KB)
+    card = next((r["fields"].get(K["text"], "") for r in kb if r["fields"].get(K["name"], "") == f"Voice: {author}"), "")
+    guide = next((r["fields"].get(K["text"], "") for r in kb
+                  if str(r["fields"].get(K["name"], "")).upper().startswith("VOICE GUIDE")), "")
+    prompt = REVISE_PROMPT.format(
+        author=author or "The author", title=TITLES.get(author, ""), first=first,
+        kind="LinkedIn post" if kind == "post" else "blog article",
+        fmt="Plain text with line breaks; keep the hashtag line at the end unless he asks to change it." if kind == "post"
+        else "Keep the Markdown structure (headings, lists).",
+        card=card or "(no voice card on file)", guide=guide or "(none)", notes=notes[-12000:], copy=copy)
+    tools = [{"name": "submit_revision", "description": "Submit the revised text.", "input_schema": REVISE_SCHEMA}]
+    messages = [{"role": "user", "content": prompt}]
+    spec = None
+    for _ in range(3):
+        resp = ai_steps._call({"model": ai_steps.MODEL, "max_tokens": 16000, "tools": tools, "messages": messages}, timeout=300)
+        content = resp.get("content", [])
+        spec = next((b.get("input") for b in content if b.get("type") == "tool_use" and b.get("name") == "submit_revision"), None)
+        if isinstance(spec, dict) and str(spec.get("copy") or "").strip():
+            break
+        print("retry, stop_reason", resp.get("stop_reason"))
+        spec = None
+        messages.append({"role": "assistant", "content": content})
+        if resp.get("stop_reason") == "tool_use":
+            messages.append({"role": "user", "content": [{"type": "tool_result", "tool_use_id": b["id"],
+                                                          "content": "Missing fields. Call submit_revision again with everything."}
+                                                         for b in content if b.get("type") == "tool_use"]})
+        else:
+            messages.append({"role": "user", "content": "Call submit_revision now."})
+    if not spec:
+        raise RuntimeError("Claude returned no revision")
+    new = clean_copy(spec["copy"])
+    changes = [clean_copy(x) for x in (spec.get("changes") or []) if str(x).strip()]
+    skipped = [clean_copy(x) for x in (spec.get("not_applied") or []) if str(x).strip()]
+    lines = [f"Revised from {first}'s notes on {time.strftime('%b %-d')}."]
+    lines += ["Changed:"] + ["- " + c for c in changes] if changes else ["No text changes were needed."]
+    if skipped:
+        lines += ["Not applied:"] + ["- " + s for s in skipped]
+    summary = "\n".join(lines)
+    today = time.strftime("%Y-%m-%d")
+    log = notes + f"\n\n[{today}] Revision: " + ("; ".join(changes) if changes else "no text changes needed") + \
+        (". Not applied: " + "; ".join(skipped) if skipped else "")
+    api("PATCH", url, {"fields": {F["before"]: copy, F["copy"]: new, F["rnote"]: summary, F["notes"]: log}})
+    print("revised:", len(changes), "changes,", len(skipped), "not applied")
+
+
 CALL_FIELDS = [("Glen, in his words", "fldtjdShVGV6RWhs3"), ("Glen's focus", "fldJkAFlNFQSjZ0Tw"),
                ("Glen's stories", "fldSbZoo0MWv9pvCQ"), ("Mark, in his words", "fldZpZVI2zKOH0RgM"),
                ("Mark's focus", "fld4Dl5BWQoS3xJC1"), ("Mark's stories", "fldJICiTOzwN9M6RP"),
@@ -528,6 +639,8 @@ if __name__ == "__main__":
             meeting_overviews()
         elif MODE == "voice-cards":
             voice_cards()
+        elif MODE == "revise-copy":
+            revise_copy()
         else:
             raise SystemExit(f"unknown MODE {MODE!r}")
     except Exception as e:
@@ -537,6 +650,13 @@ if __name__ == "__main__":
             try:
                 api("PATCH", f"https://api.airtable.com/v0/{BASE}/{T_POST}/{REC}",
                     {"fields": {P["note"]: ("Something went wrong drafting this post. Try again, or tell Kevin. " + str(e))[:250]}})
+            except Exception:
+                pass
+        if MODE == "revise-copy" and REC:
+            try:
+                F = REV.get((os.environ.get("TABLE") or "post").strip().lower(), REV["post"])
+                api("PATCH", f"https://api.airtable.com/v0/{BASE}/{F['table']}/{REC}",
+                    {"fields": {F["rnote"]: "The automatic revision failed, so the text is unchanged. Apply the author's notes by hand. (" + str(e)[:200] + ")"}})
             except Exception:
                 pass
         sys.exit(1)

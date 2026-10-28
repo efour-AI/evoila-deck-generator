@@ -3,21 +3,25 @@ name: Hub jobs
 # Fired by Airtable automations (repository_dispatch):
 #   build-post     - "Self-serve post: draft it" (record = LinkedIn Posts Personal row)
 #   index-library  - "Library: refresh the question bar" (no record needed)
+#   revise-copy    - "Author notes: revise the text" (record = post or article row, table = post|article)
 # or by hand from the Actions tab.
 on:
   repository_dispatch:
-    types: [build-post, index-library, meeting-overviews, voice-cards]
+    types: [build-post, index-library, meeting-overviews, voice-cards, revise-copy]
   schedule:
     - cron: "17 12 * * 1"   # Mondays: rebuild the My voice cards
     - cron: "41 11 * * *"   # daily: meeting overviews and the team conversations the question bar reads
   workflow_dispatch:
     inputs:
       mode:
-        description: "build-post, index-library, meeting-overviews or voice-cards"
+        description: "build-post, index-library, meeting-overviews, voice-cards or revise-copy"
         required: true
         default: index-library
       record_id:
-        description: "Record ID (build-post only)"
+        description: "Record ID (build-post and revise-copy)"
+        required: false
+      table:
+        description: "post or article (revise-copy only)"
         required: false
 
 concurrency:
@@ -30,6 +34,7 @@ jobs:
     env:
       MODE: ${{ github.event.action || github.event.inputs.mode || (github.event.schedule == '41 11 * * *' && 'meeting-overviews' || 'voice-cards') }}
       RECORD_ID: ${{ github.event.client_payload.record_id || github.event.inputs.record_id }}
+      TABLE: ${{ github.event.client_payload.table || github.event.inputs.table }}
     steps:
       - uses: actions/checkout@v4
 
