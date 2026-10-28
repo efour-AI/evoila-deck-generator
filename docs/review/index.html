@@ -276,8 +276,10 @@ function noteEntries(it){
     const who=m[2].trim();const cls=/^revision$/i.test(who)?"rev":/\(marketing\)/i.test(who)?"mk":"au";
     return{date:m[1],who,text:m[3].trim(),cls};}).filter(e=>e.text);
 }
-function threadEl(it,forAuthor){
-  const list=noteEntries(it).filter(e=>!(forAuthor&&e.cls==="rev"));if(!list.length)return null;
+function threadEl(it,forAuthor,dropLastRev){
+  let list=noteEntries(it).filter(e=>!(forAuthor&&e.cls==="rev"));
+  if(dropLastRev){const i=list.map(e=>e.cls).lastIndexOf("rev");if(i>=0)list.splice(i,1);}
+  if(!list.length)return null;
   const box=el("div","thread");
   list.forEach(e=>{const m=el("div","msg "+e.cls);
     const who=e.cls==="rev"?"Automatic revision":e.cls==="mk"?(forAuthor?"Marketing":e.who.replace(/\s*\(marketing\)/i,"")+" (marketing)"):(e.who===me&&forAuthor?"You":e.who||"Note");
@@ -423,7 +425,7 @@ function revisionBlock(p,it,name){
   if(!back&&!rn)return;
   const box=el("div","revbox");
   box.appendChild(el("h3",null,name+" sent this back with notes"));
-  const th=threadEl(it,false);if(th){box.appendChild(th);p._thread=true;}
+  const th=threadEl(it,false,!!rn&&!/^Revising/i.test(rn));if(th){box.appendChild(th);p._thread=true;}
   if(/^Revising/i.test(rn)||(back&&!rn)){
     box.appendChild(el("p","sum","Rewriting the text from "+name+"'s notes. This takes a minute or two."));
     const r=el("button","btn","Refresh");r.type="button";r.onclick=()=>{want=it.id;loadAll();};box.appendChild(r);
