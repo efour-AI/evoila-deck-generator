@@ -368,7 +368,7 @@ function authorActions(p,it){
   box.appendChild(el("label","l","Add a note: changes you want, something that's off, or where you stand"));
   const note=el("textarea","note");note.placeholder="e.g. I wouldn't say customers are stuck. Most of ours chose to stay. Make that the point, and drop the last line.";box.appendChild(note);
   box.appendChild(el("p","hint","Marketing rewrites it from your notes and sends it back to you for a final look."));
-  const send=el("button","btn","Send to marketing for review");send.type="button";send.style.marginTop="4px";box.appendChild(send);p.appendChild(box);
+  const send=el("button","btn","Send Back to Marketing for Review");send.type="button";send.style.marginTop="4px";box.appendChild(send);p.appendChild(box);
   const sv=el("button","btn hidden","Save my edits without approving");sv.type="button";p.appendChild(sv);
   const hold=el("div","box");hold.appendChild(el("label","l","Not ready yet? Hold it until"));
   const di=document.createElement("input");di.type="date";di.min=new Date().toISOString().slice(0,10);
@@ -378,7 +378,7 @@ function authorActions(p,it){
   ed.onclick=()=>{const on=editor.classList.contains("hidden");toggleEdit(on);ed.textContent=on?"Done editing":"Edit the text";sv.classList.toggle("hidden",!on);if(on)ap.textContent="Approve with my edits";};
   ap.onclick=()=>act({a:"approve",table:it.kind,id:it.id,copy:edited(it),notes:""},it.kind==="post"?"Approved. It goes out "+(dateOf(it)?fmt(dateOf(it)):"on its scheduled date")+".":"Approved. Marketing takes it from here.",all,ap,ap.textContent,true);
   send.onclick=()=>{if(!note.value.trim()&&!edited(it)){note.focus();flash("Add a note first, or edit the text.","err");return;}
-    act({a:"changes",table:it.kind,id:it.id,copy:edited(it),notes:note.value.trim()||"I edited the text myself. Please review my edits."},"Sent to marketing with your notes. You'll get it back for a final look.",all,send,"Send to marketing for review",true);};
+    act({a:"changes",table:it.kind,id:it.id,copy:edited(it),notes:note.value.trim()||"I edited the text myself. Please review my edits."},"Sent to marketing with your notes. You'll get it back for a final look.",all,send,"Send Back to Marketing for Review",true);};
   sv.onclick=()=>act({a:"save",table:it.kind,id:it.id,copy:edited(it),notes:""},"Your edits are saved. It's still waiting for your approval.",all,sv,"Save my edits without approving",false);
   hb.onclick=()=>{if(!di.value){di.focus();flash("Pick a date first.","err");return;}
     act({a:"hold",table:"post",id:it.id,hold:di.value},"Held until "+fmt(di.value)+". It stays here until you approve it.",all,hb,"Hold until this date",false).then(()=>{const x=queues[tab].items[idx];if(x&&x.id===it.id){x.f["Date Posted"]=di.value+"T13:00:00.000Z";draw();}});};
