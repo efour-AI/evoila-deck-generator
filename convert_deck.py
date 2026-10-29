@@ -352,16 +352,16 @@ def map_batch(batch, pages, meta, opts, first):
     tools = [{"name": "submit_slides", "description": "Submit the converted slides for this batch.", "input_schema": BATCH_SCHEMA}]
     messages = [{"role": "user", "content": content}]
     for _ in range(3):
-        resp = ai_steps._call({"model": ai_steps.MODEL, "max_tokens": 16000, "tools": tools,
-                               "tool_choice": {"type": "tool", "name": "submit_slides"}, "messages": messages}, timeout=300)
+        resp = ai_steps._call({"model": ai_steps.MODEL, "max_tokens": 16000, "tools": tools, "messages": messages},
+                              timeout=300)
         out = next((b.get("input") for b in resp.get("content", []) if b.get("type") == "tool_use"), None)
         if isinstance(out, dict) and out.get("slides"):
             return CD._clean_obj(out)
         messages.append({"role": "assistant", "content": resp.get("content", [])})
+        uses = [b for b in resp.get("content", []) if b.get("type") == "tool_use"]
         messages.append({"role": "user", "content": [{"type": "tool_result", "tool_use_id": b["id"],
                                                       "content": "No slides came through. Call submit_slides again with every slide."}
-                                                     for b in resp.get("content", []) if b.get("type") == "tool_use"]
-                         or "Call submit_slides with every slide."})
+                                                     for b in uses] if uses else "Call submit_slides now with every slide."})
     raise RuntimeError("Claude returned no slides")
 
 
