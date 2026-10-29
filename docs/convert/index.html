@@ -24,7 +24,7 @@ main{margin:16px auto 40px;padding:0 16px}
 .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;margin:0 0 14px}
 h2{font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--blue);margin:0 0 10px}
 label.l{display:block;font-size:13px;font-weight:600;margin:10px 0 4px}
-label.l .opt{font-weight:400;color:var(--muted)}
+label.l .lo{font-weight:400;color:var(--muted)}
 .hint{font-size:12.5px;color:var(--muted);margin:0 0 6px}
 select,textarea,input[type=text],input[type=date],input[type=url]{font:inherit;font-size:14px;color:var(--ink);background:var(--card);border:1px solid var(--line);border-radius:8px;padding:8px 10px;width:100%}
 textarea{min-height:64px;resize:vertical}
@@ -63,19 +63,20 @@ textarea{min-height:64px;resize:vertical}
 .sticky{position:sticky;bottom:0;background:linear-gradient(transparent,var(--bg) 30%);padding:18px 0 12px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
 .count{font-size:13px;color:var(--muted)}
 .hidden{display:none}
-.drop{border:2px dashed var(--line);border-radius:12px;padding:22px 16px;text-align:center;background:var(--soft);cursor:pointer;transition:border-color .15s}
+.drop{display:block;border:2px dashed var(--line);border-radius:12px;padding:26px 16px;text-align:center;background:var(--soft);cursor:pointer;transition:border-color .15s}
 .drop:hover,.drop.over{border-color:var(--blue)}
-.drop b{display:block;font-size:15px;margin-bottom:2px}
-.drop small{color:var(--muted)}
+.drop b{display:block;font-size:15.5px;margin-bottom:4px;color:var(--ink)}
+.drop small{display:block;color:var(--muted);font-size:13px}
 .drop input{display:none}
 .file{display:flex;gap:10px;align-items:center;justify-content:space-between;border:1px solid var(--line);border-radius:10px;padding:10px 12px;background:var(--card);margin-top:10px}
 .file b{font-size:14px;word-break:break-all}
 .file small{display:block;color:var(--muted);font-size:12.5px}
-.or{display:flex;align-items:center;gap:10px;color:var(--muted);font-size:12.5px;margin:12px 0 6px}
+.or{display:flex;align-items:center;gap:10px;color:var(--muted);font-size:12.5px;margin:14px 0 8px}
 .or:before,.or:after{content:"";flex:1;border-top:1px solid var(--line)}
-.what{display:grid;gap:8px;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));margin:0}
-.what div{background:var(--soft);border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:13px}
-.what b{display:block;font-size:13.5px;margin-bottom:2px}
+.what{display:grid;gap:8px;grid-template-columns:1fr;margin:0 0 4px}
+@media(min-width:620px){.what{grid-template-columns:1fr 1fr}}
+.what div{background:var(--soft);border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:13px;color:var(--muted)}
+.what b{display:block;font-size:13.5px;margin-bottom:2px;color:var(--ink)}
 </style>
 </head>
 <body>
@@ -105,20 +106,20 @@ textarea{min-height:64px;resize:vertical}
   <div><b>Charts and tables</b>Redrawn in evoila colours from the numbers in your file.</div>
   <div><b>Screenshots and drawings</b>Kept as they are, framed on an evoila slide. Stock photos and old logos are dropped.</div>
  </div>
- <label class="l">Wording</label>
+ <label class="l" style="margin-top:14px">Wording</label>
  <div class="opts" id="wording">
   <label class="opt"><input type="radio" name="wording" value="keep" checked><span><b>Keep my wording</b><small>Only shortened where a line will not fit</small></span></label>
   <label class="opt"><input type="radio" name="wording" value="tighten"><span><b>Tighten the copy</b><small>Shorter, plainer lines; same meaning and facts</small></span></label>
  </div>
- <label class="l" for="title">Deck title <span class="opt">(optional: we use the title on your first slide)</span></label>
- <input type="text" id="title" maxlength="90">
 </section>
 
 <section class="card">
  <h2>The meeting</h2>
+ <label class="l" for="title">Deck title <span class="lo">(optional: we use the title on your first slide)</span></label>
+ <input type="text" id="title" maxlength="90" placeholder="e.g. Modernizing the Acme data center">
  <div class="two">
-  <div><label class="l" for="company">Who it's for <span class="opt">(company or event)</span></label><input type="text" id="company" maxlength="90" placeholder="e.g. Acme Health"></div>
-  <div><label class="l" for="date">Meeting date <span class="opt">(optional)</span></label><input type="date" id="date"></div>
+  <div><label class="l" for="company">Who it's for <span class="lo">(company or event)</span></label><input type="text" id="company" maxlength="90" placeholder="e.g. Acme Health"></div>
+  <div><label class="l" for="date">Meeting date <span class="lo">(optional)</span></label><input type="date" id="date"></div>
  </div>
  <label class="l">Audience</label>
  <div class="opts" id="aud">
@@ -127,7 +128,7 @@ textarea{min-height:64px;resize:vertical}
   <label class="opt"><input type="radio" name="aud" value="Partner"><span><b>Partner</b><small>Reseller, VAR, delivery</small></span></label>
   <label class="opt"><input type="radio" name="aud" value="Broadcom"><span><b>Broadcom</b><small>Field and partner teams</small></span></label>
  </div>
- <label class="l">Presenters <span class="opt">(up to two, shown on the cover)</span></label>
+ <label class="l">Presenters <span class="lo">(up to two, shown on the cover)</span></label>
  <div class="opts" id="pres">
   <label class="opt"><input type="checkbox" value="reczjQAa0jo0wr8nP" data-n="Glen Tindal"><span><b>Glen Tindal</b><small>CEO and Managing Director</small></span></label>
   <label class="opt"><input type="checkbox" value="recP682vxzWqhWTGn" data-n="Mark Maisano"><span><b>Mark Maisano</b><small>VP Alliances &amp; Strategy</small></span></label>
@@ -138,7 +139,7 @@ textarea{min-height:64px;resize:vertical}
 
 <section class="card">
  <h2>Anything else</h2>
- <label class="l" for="notes">Notes for us <span class="opt">(optional)</span></label>
+ <label class="l" for="notes">Notes for us <span class="lo">(optional)</span></label>
  <textarea id="notes" placeholder="e.g. slide 6 is out of date, drop it; keep the customer logos on slide 9"></textarea>
 </section>
 
