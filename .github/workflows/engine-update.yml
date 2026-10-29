@@ -1,0 +1,40 @@
+name: Engine update (one-off)
+
+# Writes engine_update.enc into Deck Assets > Engine code. The file is encrypted; the one-time key is read
+# from the Deck Assets row named "engine-key", which this job deletes after use. Removed after it runs.
+on:
+  workflow_dispatch:
+
+jobs:
+  run:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Decrypt and write
+        env:
+          AIRTABLE_TOKEN: ${{ secrets.AIRTABLE_TOKEN }}
+        run: |
+          python3 - <<'PY'
+          import json, os, subprocess, urllib.request
+          BASE, T = "appYVahdfC3gbtArV", "tblVXLTTiAInLHs0E"
+          H = {"Authorization": "Bearer " + os.environ["AIRTABLE_TOKEN"], "Content-Type": "application/json"}
+          def api(method, url, body=None):
+              req = urllib.request.Request(url, data=json.dumps(body).encode() if body is not None else None, headers=H, method=method)
+              with urllib.request.urlopen(req, timeout=60) as r:
+                  return json.loads(r.read() or b"{}")
+          rows = api("GET", f"https://api.airtable.com/v0/{BASE}/{T}?returnFieldsByFieldId=true")["records"]
+          krow = next(r for r in rows if r["fields"].get("fldwyRdfc2x7SRlat") == "engine-key")
+          key = krow["fields"]["fldRQ3Y1V4VseRzd5"].strip()
+          payload = subprocess.run(["openssl", "enc", "-d", "-aes-256-cbc", "-pbkdf2", "-iter", "200000",
+                                    "-in", "engine_update.enc", "-pass", "stdin"], input=key.encode(),
+                                   capture_output=True, check=True).stdout.decode().strip()
+          api("PATCH", f"https://api.airtable.com/v0/{BASE}/{T}/rec30tQyflP7heMRm",
+              {"fields": {"fldNtFG2NXXI44B69": payload}})
+          back = api("GET", f"https://api.airtable.com/v0/{BASE}/{T}/rec30tQyflP7heMRm?returnFieldsByFieldId=true")
+          ok = back["fields"].get("fldNtFG2NXXI44B69", "").strip() == payload
+          api("DELETE", f"https://api.airtable.com/v0/{BASE}/{T}/{krow['id']}")
+          print("written and verified" if ok else "MISMATCH")
+          if not ok:
+              raise SystemExit(1)
+          PY
