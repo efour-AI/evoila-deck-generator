@@ -23,7 +23,7 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-24.04
-    timeout-minutes: 16
+    timeout-minutes: 25
     env:
       RECORD_ID: ${{ github.event.client_payload.record_id || github.event.inputs.record_id }}
       MODE: ${{ github.event.action || github.event.inputs.mode || 'build-deck' }}
@@ -34,7 +34,7 @@ jobs:
         timeout-minutes: 7
         run: |
           for i in 1 2 3; do sudo timeout 120 apt-get update -qq -o Acquire::Retries=3 && break; echo "apt update retry $i"; sleep 5; done
-          sudo apt-get install -y -qq --no-install-recommends -o Acquire::Retries=3 libreoffice-impress fonts-inter fonts-crosextra-carlito > /dev/null
+          sudo apt-get install -y -qq --no-install-recommends -o Acquire::Retries=3 libreoffice-impress poppler-utils fonts-inter fonts-crosextra-carlito > /dev/null
           mkdir -p ~/.config/fontconfig
           cp fonts.conf ~/.config/fontconfig/fonts.conf
           fc-cache -f > /dev/null

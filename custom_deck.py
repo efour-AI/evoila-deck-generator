@@ -214,26 +214,51 @@ def render(spec, tpl_path, out, meta, engine_dir):
         n = it.get("icon")
         return n if n in ICON_NAMES else BL.pick_icon((it.get("heading") or "") + " " + (it.get("text") or ""), default)
 
+    from pptx.util import Inches as _Inch
+
     def cover(s):
         sld = new(prs, "cover")
         for ph in sld.placeholders:
             if ph.placeholder_format.idx == 0:
                 ph.text = spec.get("title") or "evoila"
-                if len(ph.text) > 48:
-                    for r in ph.text_frame.paragraphs[0].runs:
-                        r.font.size = Pt(max(26, int(40 * 48 / len(ph.text))))
             elif ph.placeholder_format.idx == 1:
                 ph.text = "EVOILA  |  NORTH AMERICA"
         sub = spec.get("subtitle") or ""
-        if sub:
-            text(sld, 1.0, 4.62 if len(sub) > 44 else 4.98, 4.7, 0.75 if len(sub) > 44 else 0.45, sub,
-                 size=14 if len(sub) > 44 else 15, color=SOFT)
-        ml = [x for x in (meta.get("meeting_lines") or []) if x]
-        if ml:
-            text(sld, 1.0, 5.4, 4.7, 1.1, ml, size=13, color=GREEN, spacing=1)
+        CW = 4.25                                 # clear of the cover artwork; stacked from the bottom up
         people = meta.get("people") or []
-        if people:
-            text(sld, 1.0, 6.62, 4.7, 0.55, [[(f"{p['name']}, {p['title']}", {})] for p in people], size=10.5, color=SOFT)
+        lines_p = [[(f"{p['name']}, {p['title']}", {})] for p in people]
+        ph_ = 0.27 * max(1, len(lines_p))
+        py_ = 7.02 - ph_
+        if lines_p:
+            text(sld, 1.0, py_, CW, ph_, lines_p, size=12, color=SOFT)
+        ml = [[(x, {"size": 14 if i == 0 else 12, "bold": i == 0, "color": GREEN if i == 0 else SOFT})]
+              for i, x in enumerate([x for x in (meta.get("meeting_lines") or []) if x])]
+        y = py_ - 0.3
+        if ml:
+            mh = sum(BL.para_h(m, CW, 12) for m in ml) + 0.05 * (len(ml) - 1) + 0.08
+            y -= mh
+            text(sld, 1.0, y, CW, mh, ml, size=13, color=GREEN, spacing=3)
+            y -= 0.22
+        if sub:
+            sz = 15 if len(sub) <= 44 else 14
+            sh_ = BL.para_h(sub, CW + 0.4, sz) + 0.05
+            y -= sh_
+            text(sld, 1.0, y, CW + 0.4, sh_, sub, size=sz, color=SOFT)
+        ttl = spec.get("title") or "evoila"
+        ts = 40
+        while True:
+            th = BL.n_lines(ttl, 5.35, ts) * ts * 0.95 / 72 + 0.08
+            if y - 0.2 - th - 0.5 >= 1.75 or ts <= 26:
+                break
+            ts -= 2
+        ty = y - 0.2 - th
+        for ph in sld.placeholders:
+            if ph.placeholder_format.idx == 0:
+                ph.left, ph.top, ph.width, ph.height = _Inch(1.0), _Inch(ty), _Inch(5.35), _Inch(th)
+                for r in ph.text_frame.paragraphs[0].runs:
+                    r.font.size = Pt(ts)
+            elif ph.placeholder_format.idx == 1:
+                ph.left, ph.top, ph.width, ph.height = _Inch(1.0), _Inch(ty - 0.42), _Inch(4.4), _Inch(0.24)
         return sld
 
     def agenda(s):
@@ -404,8 +429,194 @@ def render(spec, tpl_path, out, meta, engine_dir):
         pill(sld, 6.95, 5.85, 2.6, 0.5, "evoila.com/us", fill=GREEN, color=VIOLET, size=14)
         return sld
 
+    # ---- layouts the deck converter uses (convert_deck.py); the outline builder can use them too
+    from pptx.util import Inches as _In
+
+    def table(s):
+        sld = new(prs, "light", s.get("title") or "")
+        heads = [str(h) for h in (s.get("headers") or [])][:6]
+        rows = [r for r in (s.get("rows") or []) if isinstance(r, dict)][:8]
+        nc = max([len(heads)] + [1 + len(r.get("cells") or []) for r in rows])
+        nc = max(2, min(6, nc))
+        heads = (heads + [""] * nc)[:nc]
+        labelled = any((r.get("label") or "").strip() for r in rows)
+        g = 0.08
+        lw = min(3.0, W / nc * 1.15) if labelled else (W - g * (nc - 1)) / nc
+        cw = (W - lw - g * (nc - 1)) / max(1, nc - 1)
+        widths = [lw] + [cw] * (nc - 1)
+        xs = [X0]
+        for w_ in widths[:-1]:
+            xs.append(xs[-1] + w_ + g)
+        top = 1.55
+        hh = 0.62 if any(heads) else 0
+        rh = min(0.82, (6.55 - top - hh - g) / max(1, len(rows)) - g)
+        longest = max([len(str(c)) for r in rows for c in ([r.get("label") or ""] + list(r.get("cells") or []))] + [8])
+        fs = _fit("x" * longest, 28, 15, 10.5)
+        if hh:
+            for j, h in enumerate(heads):
+                if not h and j == 0 and labelled:
+                    continue
+                b = box(sld, xs[j], top, widths[j], hh, fill=INDIGO, radius=0.1)
+                text_in(b, h, size=_fit(h, 22, 14, 11), bold=True, color=WHITE, align=PP_ALIGN.CENTER,
+                        anchor=MSO_ANCHOR.MIDDLE, margin=0.08)
+        for i, r in enumerate(rows):
+            y = top + hh + g + i * (rh + g)
+            cells = [r.get("label") or ""] + list(r.get("cells") or []) if labelled else list(r.get("cells") or [])
+            cells = (cells + [""] * nc)[:nc]
+            for j, c in enumerate(cells):
+                first = labelled and j == 0
+                b = box(sld, xs[j], y, widths[j], rh, fill=VIOLET if first else CREAM, radius=0.06)
+                text_in(b, str(c), size=fs, bold=first, color=WHITE if first else VIOLET, anchor=MSO_ANCHOR.MIDDLE,
+                        align=PP_ALIGN.LEFT if first else PP_ALIGN.CENTER, margin=0.1)
+        if s.get("source"):
+            text(sld, X0, 6.62, W, 0.3, "Source: " + s["source"], size=10.5, color=MUTED)
+        return sld
+
+    def chart(s):
+        from pptx.chart.data import CategoryChartData
+        from pptx.enum.chart import XL_CHART_TYPE, XL_LEGEND_POSITION
+        ch = s.get("chart") or {}
+        cats = [str(c) for c in ch.get("categories") or []]
+        series = [x for x in ch.get("series") or [] if x.get("values")][:6]
+        if not cats or not series:
+            return bullets(dict(s, items=[{"text": "[chart data]"}]))
+        kind = s.get("chart_kind") or ""
+        orig = (ch.get("type") or "").upper()
+        if not kind:
+            kind = "line" if "LINE" in orig else "pie" if ("PIE" in orig or "DOUGHNUT" in orig) else "bar" if orig.startswith("BAR") else "column"
+        dark = False
+        sld = new(prs, "light", s.get("title") or "")
+        cd = CategoryChartData()
+        cd.categories = cats
+        for x in (series[:1] if kind == "pie" else series):
+            cd.add_series(x.get("name") or "", [float(v or 0) for v in x["values"][:len(cats)]])
+        xt = {"column": XL_CHART_TYPE.COLUMN_CLUSTERED, "bar": XL_CHART_TYPE.BAR_CLUSTERED,
+              "line": XL_CHART_TYPE.LINE_MARKERS, "pie": XL_CHART_TYPE.DOUGHNUT}[kind]
+        side = bool(s.get("support"))
+        cw_ = 8.0 if side else W
+        gf = sld.shapes.add_chart(xt, _In(X0), _In(1.5), _In(cw_), _In(4.95), cd)
+        c = gf.chart
+        c.font.name = "Inter"
+        c.font.size = Pt(12)
+        c.font.color.rgb = K.rgb(VIOLET)
+        pal = [BLUE, GREEN, INDIGO, LBLUE, "8C84A0", "1F1534"]
+        multi = len(series) > 1 and kind != "pie"
+        c.has_legend = multi or kind == "pie"
+        if c.has_legend:
+            c.legend.position = XL_LEGEND_POSITION.BOTTOM if kind != "pie" else XL_LEGEND_POSITION.RIGHT
+            c.legend.include_in_layout = False
+            c.legend.font.size = Pt(12)
+        plot = c.plots[0]
+        if kind == "pie":
+            for k, pt in enumerate(plot.series[0].points):
+                pt.format.fill.solid(); pt.format.fill.fore_color.rgb = K.rgb(pal[k % len(pal)])
+            plot.has_data_labels = True
+            plot.data_labels.font.size = Pt(12); plot.data_labels.font.color.rgb = K.rgb(WHITE)
+        else:
+            for k, se in enumerate(plot.series):
+                col = K.rgb(pal[k % len(pal)])
+                if kind == "line":
+                    se.format.line.color.rgb = col; se.format.line.width = Pt(3)
+                    se.smooth = False
+                    try:
+                        se.marker.format.fill.solid(); se.marker.format.fill.fore_color.rgb = col; se.marker.format.line.color.rgb = col
+                    except Exception:
+                        pass
+                else:
+                    se.format.fill.solid(); se.format.fill.fore_color.rgb = col
+            if kind in ("column", "bar"):
+                try:
+                    plot.gap_width = 60; plot.overlap = -10 if multi else 0
+                except Exception:
+                    pass
+            if len(cats) * len(series) <= 12:
+                plot.has_data_labels = True
+                dl = plot.data_labels
+                dl.font.size = Pt(11); dl.font.color.rgb = K.rgb(VIOLET)
+                try:
+                    dl.number_format = '#,##0.##'; dl.number_format_is_linked = False
+                except Exception:
+                    pass
+            va = c.value_axis
+            va.has_major_gridlines = True
+            va.major_gridlines.format.line.color.rgb = K.rgb("E4DDD6")
+            va.format.line.fill.background()
+            va.tick_labels.font.size = Pt(11); va.tick_labels.font.color.rgb = K.rgb(MUTED)
+            ca = c.category_axis
+            ca.format.line.color.rgb = K.rgb("CFC6BD")
+            ca.tick_labels.font.size = Pt(12)
+        if side:
+            b = box(sld, X0 + cw_ + 0.35, 1.5, W - cw_ - 0.35, 4.95, fill=VIOLET, radius=0.08)
+            text(sld, X0 + cw_ + 0.65, 1.85, W - cw_ - 0.95, 0.4, "WHAT IT SHOWS", size=12, bold=True, color=GREEN)
+            text(sld, X0 + cw_ + 0.65, 2.35, W - cw_ - 0.95, 3.8, s["support"], size=_fit(s["support"], 80, 21, 16), bold=True, color=WHITE)
+        if s.get("source"):
+            text(sld, X0, 6.55, W, 0.3, "Source: " + s["source"], size=10.5, color=MUTED)
+        return sld
+
+    def image(s):
+        from PIL import Image as _Im
+        sld = new(prs, "light", s.get("title") or "")
+        pth = s.get("image_path")
+        its = items(s, hi=4)
+        cap = s.get("caption") or ""
+        if its:
+            fx, fy, fw, fh = X0, 1.5, 7.55, 5.0
+        else:
+            fx, fy, fw, fh = X0, 1.5, W, 4.75 if cap else 5.05
+        frame = box(sld, fx, fy, fw, fh, fill=CREAM, radius=0.06)
+        if pth and os.path.exists(pth):
+            iw, ih = _Im.open(pth).size
+            pad = 0.22
+            aw, ah = fw - 2 * pad, fh - 2 * pad
+            sc_ = min(aw / iw, ah / ih)
+            w_, h_ = iw * sc_, ih * sc_
+            pic = sld.shapes.add_picture(pth, _In(fx + (fw - w_) / 2), _In(fy + (fh - h_) / 2), _In(w_), _In(h_))
+            pic.line.color.rgb = K.rgb("E4DDD6"); pic.line.width = Pt(0.75)
+        if cap and not its:
+            text(sld, X0, fy + fh + 0.12, W, 0.4, cap, size=13, color=MUTED)
+        if its:
+            tx = fx + fw + 0.35; tw = X0 + W - tx
+            if cap:
+                text(sld, tx, 1.5, tw, 0.9, cap, size=_fit(cap, 70, 17, 14), bold=True, color=VIOLET)
+            y = 1.5 + (1.05 if cap else 0)
+            gap = min(1.15, (6.5 - y) / max(1, len(its)))
+            for i, it in enumerate(its):
+                box(sld, tx, y + i * gap + 0.12, 0.14, 0.14, fill=ACC[i % 2], shape=MSO_SHAPE.OVAL)
+                runs = []
+                if it.get("heading"):
+                    runs.append((it["heading"].rstrip(":") + "  ", {"bold": True}))
+                runs.append((it.get("text") or "", {}))
+                text(sld, tx + 0.35, y + i * gap, tw - 0.35, gap - 0.08, [runs], size=_fit(it.get("text") or "", 70, 15, 12), color=VIOLET)
+        return sld
+
+    def hub(s):
+        sld = new(prs, "light", s.get("title") or "")
+        its = items(s, hi=6) or [{}]
+        cx, cy, rx, ry = 6.67, 4.05, 4.25, 1.85
+        n = len(its)
+        import math as _m
+        pos = []
+        for i in range(n):
+            a = -_m.pi / 2 + 2 * _m.pi * i / n
+            pos.append((cx + rx * _m.cos(a), cy + ry * _m.sin(a)))
+        for (px, py) in pos:
+            line(sld, cx, cy, px, py, color="0075E4@55", width=1.25, dash=DASH.DASH)
+        d = box(sld, cx - 1.05, cy - 1.05, 2.1, 2.1, grad=(GREEN, BLUE, 45), shape=MSO_SHAPE.OVAL)
+        hc = s.get("hub_center") or ""
+        text_in(d, hc, size=_fit(hc, 16, 18, 13), bold=True, color=WHITE, align=PP_ALIGN.CENTER, anchor=MSO_ANCHOR.MIDDLE, margin=0.15)
+        bw, bh = 2.75, 0.95
+        for i, ((px, py), it) in enumerate(zip(pos, its)):
+            bx, by = min(max(X0, px - bw / 2), X0 + W - bw), min(max(1.45, py - bh / 2), 6.55 - bh)
+            box(sld, bx, by, bw, bh, fill=WHITE, line=VIOLET, lw=1.0, radius=0.14)
+            col = ACC[i % len(ACC)]
+            icon_disc(sld, ic(it), bx + 0.14, by + 0.17, 0.6, disc=col, color="v" if col in (GREEN, LBLUE) else "w")
+            hd = it.get("heading") or it.get("text") or ""
+            text(sld, bx + 0.86, by, bw - 0.95, bh, hd, size=_fit(hd, 20, 14, 11), bold=True, color=VIOLET, anchor=MSO_ANCHOR.MIDDLE)
+        return sld
+
     draw = dict(cover=cover, agenda=agenda, statement=statement, bullets=bullets, columns=columns, cards=cards,
-                numbers=numbers, steps=steps, comparison=comparison, quote=quote, closing=closing)
+                numbers=numbers, steps=steps, comparison=comparison, quote=quote, closing=closing,
+                table=table, chart=chart, image=image, hub=hub)
     slides = [s for s in spec.get("slides") or [] if isinstance(s, dict)]
     if not slides or slides[0].get("layout") != "cover":
         slides = [{"layout": "cover", "notes": ""}] + slides

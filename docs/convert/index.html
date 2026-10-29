@@ -1,0 +1,246 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<title>Convert your deck</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--violet:#1F1534;--indigo:#0D09B5;--blue:#0075E4;--green:#0BD7A1;--bg:#F6F0EB;--card:#fff;--ink:#1F1534;--muted:#6B6478;--line:#E4DDD6;--soft:#FBF8F5;--ok:#0F8F6A;--okbg:#DDF7EE;--bad:#B42318;--badbg:#FDE8E7}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#17102A;--card:#231A3B;--ink:#F3EEF8;--muted:#B5ACC4;--line:#3A3052;--soft:#2A2046;--okbg:#0F3B30;--ok:#7BE8C6;--badbg:#4A1A1A;--bad:#FF9C93}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:14.5px/1.5 Inter,system-ui,-apple-system,"Segoe UI",sans-serif}
+a{color:var(--blue)}
+header{background:var(--violet);color:#fff;padding:18px 16px 26px}
+.wrap{max-width:860px;margin:0 auto}
+.top{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.logo{height:24px;width:auto;display:block}
+.top a{color:rgba(255,255,255,.8);font-size:13px;text-decoration:none}
+h1{font-size:24px;font-weight:700;margin:16px 0 2px}
+.sub{color:rgba(255,255,255,.72);margin:0;font-size:14px}
+main{margin:16px auto 40px;padding:0 16px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;margin:0 0 14px}
+h2{font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--blue);margin:0 0 10px}
+label.l{display:block;font-size:13px;font-weight:600;margin:10px 0 4px}
+label.l .opt{font-weight:400;color:var(--muted)}
+.hint{font-size:12.5px;color:var(--muted);margin:0 0 6px}
+select,textarea,input[type=text],input[type=date],input[type=url]{font:inherit;font-size:14px;color:var(--ink);background:var(--card);border:1px solid var(--line);border-radius:8px;padding:8px 10px;width:100%}
+textarea{min-height:64px;resize:vertical}
+.two{display:grid;gap:0 12px}
+@media(min-width:640px){.two{grid-template-columns:1fr 1fr}}
+.opts{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:8px}
+.opt{display:flex;gap:8px;align-items:flex-start;border:1px solid var(--line);border-radius:10px;padding:9px 11px;cursor:pointer;background:var(--soft)}
+.opt input{margin-top:3px}
+.opt b{display:block;font-size:13.5px}
+.opt small{display:block;color:var(--muted);font-size:12px}
+.opt:has(input:checked){border-color:var(--indigo);box-shadow:0 0 0 1px var(--indigo) inset}
+.starters{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 12px}
+.chip{font:inherit;font-size:12.5px;font-weight:600;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:999px;padding:5px 12px;cursor:pointer}
+.chip:hover{border-color:var(--blue)}
+.slide{display:grid;grid-template-columns:34px 1fr;gap:10px;border:1px solid var(--line);border-radius:12px;padding:12px;margin:0 0 10px;background:var(--soft)}
+.num{width:30px;height:30px;border-radius:8px;display:grid;place-items:center;background:var(--violet);color:#fff;font-weight:700;font-size:13px}
+.srow{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:6px}
+.srow select{width:auto;flex:1;min-width:180px}
+.rules{border:1px dashed var(--line);border-radius:10px;padding:10px 12px;margin-top:8px;background:var(--soft)}
+.rules .rr{display:grid;gap:8px;grid-template-columns:1fr}
+@media(min-width:620px){.rules .rr{grid-template-columns:160px 1fr}}
+.rules label{font-size:12.5px;font-weight:600;color:var(--muted);display:block;margin-bottom:3px}
+.rules .kinds{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:13px;margin-top:2px}
+.rules .kinds label{font-weight:400;color:var(--ink);display:flex;gap:5px;align-items:center;margin:0}
+.rules .kinds input{width:auto}
+.rules .rhint{font-size:12px;color:var(--muted);margin:6px 0 0}
+.tools{display:flex;gap:4px}
+.ib{font:inherit;font-size:13px;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:7px;width:30px;height:30px;cursor:pointer}
+.ib:disabled{opacity:.35;cursor:default}
+.lay{font-size:12px;color:var(--muted);margin:4px 0 0}
+.btn{display:inline-block;font:inherit;font-weight:600;font-size:14.5px;border:0;border-radius:9px;padding:11px 18px;color:#fff;background:var(--indigo);cursor:pointer;text-decoration:none}
+.btn.ghost{background:transparent;color:var(--ink);border:1px solid var(--line)}
+.btn:disabled{opacity:.6;cursor:wait}
+.msg{padding:12px 14px;border-radius:10px;margin:0 0 14px;font-size:14px}
+.msg.err{background:var(--badbg);color:var(--bad)}.msg.ok{background:var(--okbg);color:var(--ok)}
+.sticky{position:sticky;bottom:0;background:linear-gradient(transparent,var(--bg) 30%);padding:18px 0 12px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.count{font-size:13px;color:var(--muted)}
+.hidden{display:none}
+.drop{border:2px dashed var(--line);border-radius:12px;padding:22px 16px;text-align:center;background:var(--soft);cursor:pointer;transition:border-color .15s}
+.drop:hover,.drop.over{border-color:var(--blue)}
+.drop b{display:block;font-size:15px;margin-bottom:2px}
+.drop small{color:var(--muted)}
+.drop input{display:none}
+.file{display:flex;gap:10px;align-items:center;justify-content:space-between;border:1px solid var(--line);border-radius:10px;padding:10px 12px;background:var(--card);margin-top:10px}
+.file b{font-size:14px;word-break:break-all}
+.file small{display:block;color:var(--muted);font-size:12.5px}
+.or{display:flex;align-items:center;gap:10px;color:var(--muted);font-size:12.5px;margin:12px 0 6px}
+.or:before,.or:after{content:"";flex:1;border-top:1px solid var(--line)}
+.what{display:grid;gap:8px;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));margin:0}
+.what div{background:var(--soft);border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:13px}
+.what b{display:block;font-size:13.5px;margin-bottom:2px}
+</style>
+</head>
+<body>
+<header><div class="wrap">
+ <div class="top"><svg viewBox="0 0 175.24 41.66" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" class="logo" role="img" aria-label="evoila"><defs></defs><g><path d="M31.95 26.76C31.7 28.61 30.94 34.23 23.13 38.47 20.03 40.15 16.06 41.29 12.24 41.58 11.59 41.63 10.97 41.66 10.38 41.66 7.63 41.66 5.5 41.14 4.52 40.18 3.9 39.63 3.53 38.82 3.53 37.97 3.53 37.47 3.65 36.98 3.88 36.54 4.16 35.93 4.6 35.36 5.2 34.68L5.2 34.68C5.2 34.68 5.45 34.83 5.58 34.91 5.72 34.99 6.05 35.14 6.05 35.14 5.43 35.84 4.96 36.4 4.72 36.95L4.72 36.98C4.54 37.28 4.46 37.62 4.46 37.97 4.46 38.55 4.71 39.11 5.15 39.5 7.11 41.41 15.92 41.32 22.68 37.65 30.07 33.64 30.78 28.38 31.01 26.65 31.58 22.43 29.46 18.25 25.73 16.24 25.82 16.14 25.91 16.05 25.99 15.95 26.13 15.8 26.25 15.66 26.37 15.51 30.32 17.74 32.55 22.23 31.94 26.77Z" fill="#FFFFFF"/><path d="M25.73 16.23C25.12 16.9 24.44 17.62 23.79 18.49 21.7 21.34 21.47 24.64 21.14 26.97 20.32 32.82 14.94 36.9 9.13 36.07 8.03 35.92 7 35.59 6.05 35.13 6.17 35 6.29 34.86 6.41 34.73 6.97 34.11 7.61 33.41 8.2 32.59 10.13 29.94 10.51 26.88 10.79 24.65 10.83 24.38 10.86 24.13 10.89 23.88 11.26 21.17 12.64 18.77 14.81 17.11 16.97 15.45 19.64 14.74 22.33 15.11 23.52 15.27 24.64 15.63 25.69 16.19L25.69 16.19C25.69 16.19 25.73 16.22 25.73 16.22Z" fill="#FFFFFF"/><path d="M27.66 12.87C27.66 13.3 27.55 13.72 27.35 14.08 27.13 14.56 26.79 15.02 26.37 15.51 26.29 15.46 26.23 15.42 26.14 15.38L26.14 15.38C24.99 14.76 23.75 14.36 22.45 14.19 19.52 13.79 16.6 14.56 14.24 16.37 11.88 18.18 10.36 20.8 9.97 23.76 9.93 24.01 9.9 24.27 9.87 24.54 9.59 26.78 9.24 29.58 7.46 32.03 6.89 32.81 6.3 33.46 5.73 34.09 5.68 34.14 5.63 34.2 5.59 34.25L5.59 34.25C5.59 34.25 5.35 34.51 5.35 34.51 5.3 34.56 5.26 34.61 5.21 34.66 1.63 32.53-0.51 28.38 0.11 23.98 0.47 21.42 1.66 16.46 8.75 12.67 15.44 9.09 24.62 8.82 26.82 10.99 27.34 11.45 27.66 12.12 27.66 12.87Z" fill="#FFFFFF"/><path d="M5.58 34.26C5.5 34.35 5.42 34.44 5.34 34.52L5.2 34.67 5.2 34.67C5.25 34.62 5.29 34.57 5.34 34.52L5.58 34.25 5.58 34.25Z" fill="#FFFFFF"/></g><g id="Logo-2"><g><path d="M76.72 40.72 69.67 13.66 74.73 12.34 80.7 35.26 87.51 19.9C88.16 18.13 87.75 16.78 87.46 15.78 87.22 14.94 87 14.53 86.57 13.72L91.63 12.4C92.13 13.33 92.52 14.2 92.85 15.59 93.23 17.12 93.47 18.9 92.83 20.82L83.96 40.76 76.72 40.74 76.72 40.74Z" fill="#FFFFFF"/><path d="M97.33 30.8 97.31 23.18C97.29 16.04 100.91 12.42 108.96 12.42 117.01 12.42 120.78 16.09 120.75 23.18L120.77 30.8C120.82 37.42 117.2 41.61 109.12 41.61 101.04 41.61 97.33 37.1 97.33 30.8L97.33 30.8ZM115.82 23.18C115.8 18.58 113.88 16.68 109.25 16.66 104.53 16.66 102.71 18.55 102.71 23.18L102.71 30.8C102.71 34.9 104.53 37.34 109.33 37.34 114.13 37.34 115.83 35.18 115.83 30.8L115.83 23.18 115.83 23.18Z" fill="#FFFFFF"/><path d="M127.63 13.78 132.88 12.42 132.86 40.72 127.7 40.72 127.63 13.78Z" fill="#FFFFFF"/><path d="M140.43 1.37 145.66 0 145.66 40.7 140.43 40.7 140.43 1.37 140.43 1.37Z" fill="#FFFFFF"/><path d="M175.24 40.72 170.9 40.72 170.42 37.22C167.52 40.07 163.54 41.65 159.61 41.65 154.84 41.65 152.59 38.87 151.96 35.54 151.82 34.82 151.82 34.05 151.79 33.29L151.79 23.05C151.79 16.03 153.92 12.41 163.73 12.41 167.54 12.41 171.98 13.3 175.24 14.38L175.24 40.72 175.24 40.72ZM170.01 17.33C168.28 16.92 166.05 16.61 163.9 16.61 159.13 16.61 157.02 17.98 157.02 23.68L157.02 32.91C157.02 33.63 157.04 34.4 157.14 34.92 157.4 36.29 158.24 37.32 160.14 37.32 164.02 37.32 167.02 35.04 170.02 32.02L170.02 17.33 170.02 17.33Z" fill="#FFFFFF"/><circle cx="130.25" cy="6.59" r="2.85" fill="#FFFFFF"/><path d="M64.62 32.57C61.07 34.75 56.3 37.34 53.07 37.34 49.84 37.34 48.11 36.53 47.75 34.7 47.7 34.46 47.63 34.05 47.63 33.41L47.63 31.08C50.19 30.31 52.71 30.03 56.28 28.85 64.6 26.14 66.56 23.74 65.63 18.9 64.79 14.66 60.62 12.43 55.39 12.43 46.5 12.43 42.3 16.07 42.3 23.31L42.32 32.35C42.32 33.36 42.44 34.29 42.58 34.99 43.35 38.92 46.39 41.63 52.72 41.63 57.85 41.63 62.62 38.9 65.86 36.69L64.61 32.57 64.61 32.57ZM47.6 22.68C47.6 18.03 50.88 16.69 55.77 16.69 58.6 16.69 60.37 17.58 60.76 19.45 61.22 21.8 58.72 23.62 53.76 25.03 50.88 25.84 49.25 26.16 47.6 26.61L47.6 22.68 47.6 22.68Z" fill="#FFFFFF"/></g></g></svg><a href="../">← Marketing hub</a></div>
+ <h1>Convert your deck</h1>
+ <p class="sub">Upload a deck you made yourself. We rebuild every slide in the evoila template, turn your diagrams, charts and tables into evoila visuals, and email you the PowerPoint and PDF, usually within fifteen minutes.</p>
+</div></header>
+<main class="wrap">
+<div id="flash"></div>
+<form id="f" novalidate>
+<section class="card">
+ <h2>Your deck</h2>
+ <label class="drop" id="drop" for="file"><input type="file" id="file" accept=".pptx,.ppt,.pdf,application/pdf,application/vnd.openxmlformats-officedocument.presentationml.presentation,application/vnd.ms-powerpoint">
+  <b>Drop your PowerPoint or PDF here</b><small>or click to choose a file. PowerPoint works best: we can read its charts and tables directly.</small></label>
+ <div id="fileinfo"></div>
+ <div class="or">or paste a link</div>
+ <input type="url" id="link" placeholder="Google Slides, Google Drive or Dropbox link anyone can open">
+ <p class="hint" style="margin-top:6px">Big files are fine: we shrink large pictures before sending. SharePoint and OneDrive links usually need a sign-in, so upload the file instead.</p>
+</section>
+
+<section class="card">
+ <h2>How we convert it</h2>
+ <div class="what">
+  <div><b>Text and bullets</b>Become evoila bullets, icon cards or columns.</div>
+  <div><b>Diagrams</b>Chevrons and arrows become process steps; hub-and-spoke drawings become the evoila hub.</div>
+  <div><b>Charts and tables</b>Redrawn in evoila colours from the numbers in your file.</div>
+  <div><b>Screenshots and drawings</b>Kept as they are, framed on an evoila slide. Stock photos and old logos are dropped.</div>
+ </div>
+ <label class="l">Wording</label>
+ <div class="opts" id="wording">
+  <label class="opt"><input type="radio" name="wording" value="keep" checked><span><b>Keep my wording</b><small>Only shortened where a line will not fit</small></span></label>
+  <label class="opt"><input type="radio" name="wording" value="tighten"><span><b>Tighten the copy</b><small>Shorter, plainer lines; same meaning and facts</small></span></label>
+ </div>
+ <label class="l" for="title">Deck title <span class="opt">(optional: we use the title on your first slide)</span></label>
+ <input type="text" id="title" maxlength="90">
+</section>
+
+<section class="card">
+ <h2>The meeting</h2>
+ <div class="two">
+  <div><label class="l" for="company">Who it's for <span class="opt">(company or event)</span></label><input type="text" id="company" maxlength="90" placeholder="e.g. Acme Health"></div>
+  <div><label class="l" for="date">Meeting date <span class="opt">(optional)</span></label><input type="date" id="date"></div>
+ </div>
+ <label class="l">Audience</label>
+ <div class="opts" id="aud">
+  <label class="opt"><input type="radio" name="aud" value="Executive" checked><span><b>Customer executives</b><small>CIO, CTO, CFO, VP</small></span></label>
+  <label class="opt"><input type="radio" name="aud" value="Technical team"><span><b>Technical team</b><small>Architects, engineers</small></span></label>
+  <label class="opt"><input type="radio" name="aud" value="Partner"><span><b>Partner</b><small>Reseller, VAR, delivery</small></span></label>
+  <label class="opt"><input type="radio" name="aud" value="Broadcom"><span><b>Broadcom</b><small>Field and partner teams</small></span></label>
+ </div>
+ <label class="l">Presenters <span class="opt">(up to two, shown on the cover)</span></label>
+ <div class="opts" id="pres">
+  <label class="opt"><input type="checkbox" value="reczjQAa0jo0wr8nP" data-n="Glen Tindal"><span><b>Glen Tindal</b><small>CEO and Managing Director</small></span></label>
+  <label class="opt"><input type="checkbox" value="recP682vxzWqhWTGn" data-n="Mark Maisano"><span><b>Mark Maisano</b><small>VP Alliances &amp; Strategy</small></span></label>
+  <label class="opt"><input type="checkbox" value="recl963mdjqTk5PfF" data-n="Andrew Hald"><span><b>Andrew Hald</b><small>Lead Solution Architect</small></span></label>
+  <label class="opt"><input type="checkbox" value="recu62LCUzIx2PDSo" data-n="Tom MacKay"><span><b>Tom MacKay</b><small>VP of Technical Sales and Services</small></span></label>
+ </div>
+</section>
+
+<section class="card">
+ <h2>Anything else</h2>
+ <label class="l" for="notes">Notes for us <span class="opt">(optional)</span></label>
+ <textarea id="notes" placeholder="e.g. slide 6 is out of date, drop it; keep the customer logos on slide 9"></textarea>
+</section>
+
+<div class="sticky">
+ <button type="submit" class="btn" id="go">Convert my deck</button>
+ <span class="count" id="count"></span>
+</div>
+</form>
+</main>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script>
+const API="https://hook.us2.make.com/91mst8q1pr5j2smjck26k4a23tlrcrn8";
+const DEV=/Mobi|Android|iPhone|iPad/i.test(navigator.userAgent)?"phone":"desktop";
+const LIMIT=3.4*1024*1024;            /* what the upload route takes, after shrinking */
+function store(k,v){try{localStorage.setItem(k,v)}catch(e){}}
+function load(k){try{return localStorage.getItem(k)}catch(e){return null}}
+let token=null;
+const h=new URLSearchParams(location.hash.slice(1));
+if(h.get("k")){token=h.get("k");store("evoila_hub","k:"+token);}
+else if(h.get("t")){token=h.get("t");store("evoila_hub","t:"+token);}
+if(token)history.replaceState(null,"",location.pathname);
+else{const s=load("evoila_hub");if(s)token=s.slice(2);}
+const $=s=>document.querySelector(s);
+function flash(t,k){const d=$("#flash");d.innerHTML="";if(!t)return;const m=document.createElement("div");m.className="msg "+(k||"ok");m.textContent=t;d.appendChild(m);window.scrollTo({top:0,behavior:"smooth"});}
+const mb=n=>(n/1048576).toFixed(n<1048576?2:1)+" MB";
+let picked=null;
+
+function showFile(f,note){const i=$("#fileinfo");i.innerHTML="";if(!f)return;
+  const d=document.createElement("div");d.className="file";
+  d.innerHTML='<div><b></b><small></small></div><button type="button" class="ib" title="Remove">✕</button>';
+  d.querySelector("b").textContent=f.name;d.querySelector("small").textContent=note||mb(f.size);
+  d.querySelector("button").onclick=()=>{picked=null;$("#file").value="";i.innerHTML="";};i.appendChild(d);}
+function pick(f){if(!f)return;
+  if(!/\.(pptx|ppt|pdf)$/i.test(f.name)){flash("Upload a PowerPoint (.pptx) or a PDF.","err");return;}
+  flash("");picked=f;
+  showFile(f,mb(f.size)+(f.size>LIMIT?(/\.pptx$/i.test(f.name)?" · we'll shrink the pictures when you send it":" · over 3.4 MB: export a smaller PDF or use a link"):""));
+}
+$("#file").onchange=e=>pick(e.target.files[0]);
+const drop=$("#drop");
+["dragenter","dragover"].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.classList.add("over");}));
+["dragleave","drop"].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.classList.remove("over");}));
+drop.addEventListener("drop",e=>pick(e.dataTransfer.files[0]));
+
+/* Shrink a PowerPoint in the browser: large pictures are scaled to 1600 px and recompressed, videos and audio
+   are emptied (we only need the slides as they look). Names and structure are left alone. */
+async function shrink(file,status){
+  const zip=await JSZip.loadAsync(file);
+  const media=Object.keys(zip.files).filter(n=>/^ppt\/media\//.test(n));
+  let k=0;
+  for(const n of media){k++;status("Shrinking pictures "+k+"/"+media.length+"…");
+    const f=zip.file(n);if(!f)continue;
+    if(/\.(mp4|m4v|mov|wmv|avi|mpg|mpeg|webm|mp3|wav|m4a|wma|aac)$/i.test(n)){zip.file(n,new Uint8Array(0));continue;}
+    if(!/\.(png|jpe?g)$/i.test(n))continue;
+    const data=await f.async("uint8array");if(data.length<150*1024)continue;
+    try{const isPng=/\.png$/i.test(n);
+      const bmp=await createImageBitmap(new Blob([data],{type:isPng?"image/png":"image/jpeg"}));
+      const sc=Math.min(1,1600/Math.max(bmp.width,bmp.height));
+      const c=document.createElement("canvas");c.width=Math.max(1,Math.round(bmp.width*sc));c.height=Math.max(1,Math.round(bmp.height*sc));
+      c.getContext("2d").drawImage(bmp,0,0,c.width,c.height);
+      const blob=await new Promise(r=>c.toBlob(r,isPng?"image/png":"image/jpeg",0.82));
+      if(blob&&blob.size<data.length)zip.file(n,new Uint8Array(await blob.arrayBuffer()));
+    }catch(e){}
+  }
+  status("Packing…");
+  const out=await zip.generateAsync({type:"blob",compression:"DEFLATE",compressionOptions:{level:6}});
+  return new File([out],file.name,{type:"application/vnd.openxmlformats-officedocument.presentationml.presentation"});
+}
+const b64=f=>new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(String(r.result).split(",")[1]);r.onerror=rej;r.readAsDataURL(f);});
+
+document.querySelectorAll("#pres input").forEach(c=>c.onchange=()=>{const on=[...document.querySelectorAll("#pres input:checked")];if(on.length>2)c.checked=false;});
+
+$("#f").onsubmit=async e=>{
+  e.preventDefault();
+  if(!token){flash("Open this page from your personal hub link first.","err");return;}
+  const link=$("#link").value.trim(),company=$("#company").value.trim();
+  const pres=[...document.querySelectorAll("#pres input:checked")];
+  const missing=[];if(!picked&&!link)missing.push("your deck (a file or a link)");if(!company)missing.push("who it's for");if(!pres.length)missing.push("a presenter");
+  if(missing.length){flash("Add "+missing.join(", ")+".","err");return;}
+  const b=$("#go");b.disabled=true;const st=t=>{b.textContent=t;};
+  try{
+    let file=picked;
+    if(file&&file.size>LIMIT&&/\.pptx$/i.test(file.name)){st("Shrinking…");file=await shrink(file,st);}
+    if(file&&file.size>LIMIT){throw new Error("big:"+mb(file.size));}
+    st("Sending…");
+    const p=new URLSearchParams({t:token,dev:DEV,a:"convert",company,date:$("#date").value,
+      audience:document.querySelector("#aud input:checked").value,presenters:pres.map(x=>x.value).join("|"),
+      notes:$("#notes").value.trim(),
+      options:JSON.stringify({title:$("#title").value.trim(),wording:document.querySelector("#wording input:checked").value,link:file?"":link})});
+    if(file){p.set("file",await b64(file));p.set("fileName",file.name);
+      p.set("fileType",/\.pdf$/i.test(file.name)?"application/pdf":"application/vnd.openxmlformats-officedocument.presentationml.presentation");}
+    const r=await fetch(API,{method:"POST",body:p});const j=await r.json().catch(()=>null);
+    if(r.status===401)throw new Error("auth");if(!r.ok||!j||!j.ok)throw new Error("fail");
+    $("#f").classList.add("hidden");
+    flash("Got it. Your deck is being converted and will land in your inbox in about fifteen minutes, with a note on what each slide became. It will also show under Recent decks on the hub.");
+    const a=document.createElement("p");a.innerHTML='<a class="btn" href="../">Back to the hub</a> <a class="btn ghost" href="./">Convert another</a>';$("#flash").appendChild(a);
+  }catch(err){
+    const m=String(err.message||"");
+    flash(m==="auth"?"This link isn't recognized. Open the hub from the personal link Kevin sent you."
+      :m.startsWith("big:")?"Even after shrinking, the file is "+m.slice(4)+", which is over the 3.4 MB we can take. Save it as a PDF, or put it on Google Drive or Dropbox and paste the link."
+      :"That didn't go through. Try again in a minute.","err");
+    b.disabled=false;b.textContent="Convert my deck";}
+};
+</script>
+</body>
+</html>

@@ -73,9 +73,14 @@ if __name__ == "__main__":
     if rr.MODE == "check-library":
         os.execv(sys.executable, [sys.executable, os.path.join(rr.HERE, "run_request.py")] + sys.argv[1:])
     try:
-        if (rr.get_record(rr.T_REQ, rr.REC).get("fldQahyDEnFyMIm87") or "") == "Custom outline":
+        rtype = rr.get_record(rr.T_REQ, rr.REC).get("fldQahyDEnFyMIm87") or ""
+        if rtype == "Custom outline":
             import custom_deck                   # requester wrote the outline on the hub
             custom_deck.run()
+            sys.exit(0)
+        if rtype == "Convert deck":
+            import convert_deck                  # requester uploaded their own deck on the hub
+            convert_deck.run()
             sys.exit(0)
         claude_steps()
         rr.main()
